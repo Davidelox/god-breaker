@@ -5,6 +5,21 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-06
+
+### Added
+- Rebote irregular al golpear justo en la esquina de un bloque (desvío aleatorio de hasta ±14°).
+- En un golpe de esquina hay un 2 % de probabilidad de que la bola salga en vertical pura. Puede quedarse rebotando entre el techo y un bloque; el botón ▼ la recoge.
+- Aviso «Pulsa ▼ para recoger las bolas» si un disparo dura más de 12 segundos.
+
+### Changed
+- El botón de velocidad cambia entre x1, x2 y x3. Está siempre visible, se mantiene entre turnos y partidas y se guarda en el guardado (`settings.speed`).
+- Ya no se acelera solo a x2 tras 6 segundos de disparo.
+- Menos criaturas: probabilidad de bloque con criatura del 30 % al 15 %.
+- Legendario solo cada 10 turnos. Se elimina el parámetro de prueba `?boss`.
+- Los bloques bajan siempre exactamente una fila por turno: el legendario ya no hace bajar dos filas, porque el turno anterior le deja libres sus dos columnas.
+- Escarcha ya no impide que bajen los bloques; ahora las bolas hacen el doble de daño.
+
 ## [0.1.0] - 2026-11-06
 
 ### Added

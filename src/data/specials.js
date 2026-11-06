@@ -6,7 +6,7 @@ export const SPECIALS = [
   { id: 'torrente', name: 'Torrente', type: 'agua', desc: 'Las bolas atraviesan los bloques' },
   { id: 'enredadera', name: 'Enredadera', type: 'planta', desc: 'Disparas el doble de bolas' },
   { id: 'arco', name: 'Arco voltaico', type: 'electrico', desc: 'Cada golpe salta a 2 bloques' },
-  { id: 'escarcha', name: 'Escarcha', type: 'hielo', desc: 'Los bloques no bajan este turno' },
+  { id: 'escarcha', name: 'Escarcha', type: 'hielo', desc: 'Las bolas hacen el doble de daño' },
   { id: 'derrumbe', name: 'Derrumbe', type: 'roca', desc: 'Rocas golpean la fila más baja' }
 ];
 

@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import {
   W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y,
-  BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE, CAPTURE_CHANCE
+  BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE, CAPTURE_CHANCE,
+  CORNER_JITTER, VERTICAL_LOCK_CHANCE, SPEEDS
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, effectiveness, hexToNum } from '../data/types.js';
@@ -39,8 +40,10 @@ export default class GameScene extends Phaser.Scene {
     this.aimAngle = -Math.PI / 2;
     this.aiming = false;
     this.aimValid = false;
-    this.speedMul = 1;
+    this.speedMul = SPEEDS.includes(this.save.data.settings.speed) ? this.save.data.settings.speed : 1;
     this.shotTime = 0;
+    this.recallHinted = false;
+    this.reservedBossCol = null;
     this.toLaunch = 0;
     this.launchTimer = null;
     this.runCaptures = [];
@@ -93,8 +96,11 @@ export default class GameScene extends Phaser.Scene {
     this.turnText = text(this, 14, 42, '', 8, '#56607c').setOrigin(0, 0);
     this.captText = text(this, 160, 42, '', 8, '#56607c').setOrigin(0, 0);
     this.menuBtn = makeButton(this, W - 26, 22, 30, 24, 'II', () => this.openPause());
-    this.speedBtn = makeButton(this, W - 112, 22, 44, 24, 'x2', () => {
-      this.speedMul = this.speedMul >= 3 ? 1 : 3;
+    // Velocidad x1/x2/x3: se mantiene entre turnos y entre partidas.
+    this.speedBtn = makeButton(this, W - 112, 22, 44, 24, `x${this.speedMul}`, () => {
+      this.speedMul = SPEEDS[(SPEEDS.indexOf(this.speedMul) + 1) % SPEEDS.length];
+      this.save.data.settings.speed = this.speedMul;
+      this.save.write();
       this.refreshHud();
     });
     this.recallBtn = makeButton(this, W - 68, 22, 40, 24, '▼', () => this.recallBalls());
@@ -123,7 +129,7 @@ export default class GameScene extends Phaser.Scene {
     this.turnText.setText(`TURNO ${this.turn}`);
     this.captText.setText(`CAPTURAS ${this.runCaptures.length}`);
     const shooting = this.state === 'shooting';
-    this.speedBtn.setVisible(shooting).setSelected(this.speedMul > 1);
+    this.speedBtn.setLabel(`x${this.speedMul}`).setSelected(this.speedMul > 1);
     this.recallBtn.setVisible(shooting);
     const n = shooting ? this.toLaunch : this.ballCount;
     this.launchText.setText(n > 0 ? `x${n}` : '').setX(this.launchX);
@@ -259,20 +265,23 @@ export default class GameScene extends Phaser.Scene {
   spawnRow() {
     const t = this.turn;
     const taken = new Set();
-    const boss = this.isBossTurn(t);
-    if (boss) {
-      const col = randInt(0, COLS - 2);
+    // El legendario ocupa 2x2. Para que el tablero baje siempre una sola fila,
+    // el turno anterior deja libres sus dos columnas, que tras bajar quedan vacías en la fila 1.
+    if (this.isBossTurn(t) && this.reservedBossCol !== null) {
+      const col = this.reservedBossCol;
+      this.reservedBossCol = null;
       this.addBlock({ col, row: 0, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: 20 + t * 6 });
-      for (const r of [0, 1]) for (const c of [col, col + 1]) taken.add(`${r},${c}`);
+      taken.add(col).add(col + 1);
       this.showToast('¡Aparece un legendario!', '#b07800');
+    } else if (this.isBossTurn(t + 1)) {
+      this.reservedBossCol = randInt(0, COLS - 2);
+      taken.add(this.reservedBossCol).add(this.reservedBossCol + 1);
     }
-    for (const r of boss ? [0, 1] : [0]) {
-      const free = shuffle([...Array(COLS).keys()].filter((c) => !taken.has(`${r},${c}`)));
-      const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / 6));
-      const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
-      for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(r, free[i], t);
-      if (r === 0) this.addPickup(0, free[free.length - 1]);
-    }
+    const free = shuffle([...Array(COLS).keys()].filter((c) => !taken.has(c)));
+    const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / 6));
+    const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
+    for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(0, free[i], t);
+    this.addPickup(0, free[free.length - 1]);
   }
 
   addRandomBlock(row, col, t) {
@@ -370,7 +379,6 @@ export default class GameScene extends Phaser.Scene {
     }
     this.state = 'shooting';
     this.shotTime = 0;
-    this.speedMul = 1;
     this.nextLaunchX = null;
     this.toLaunch = this.ballCount * (sp?.id === 'enredadera' ? 2 : 1);
     if (sp?.id === 'derrumbe') this.rockslide();
@@ -425,9 +433,9 @@ export default class GameScene extends Phaser.Scene {
     if (this.state !== 'shooting') return;
 
     this.shotTime += dt;
-    if (this.shotTime > 6 && this.speedMul === 1) {
-      this.speedMul = 2;
-      this.refreshHud();
+    if (this.shotTime > 12 && !this.recallHinted) {
+      this.recallHinted = true;
+      this.showToast('Pulsa ▼ para recoger las bolas');
     }
     if (this.launchTimer) this.launchTimer.timeScale = this.speedMul;
 
@@ -512,6 +520,9 @@ export default class GameScene extends Phaser.Scene {
       if (dot < 0) {
         b.vx -= 2 * dot * nx;
         b.vy -= 2 * dot * ny;
+        // Golpe justo en la esquina: rebote irregular y, muy rara vez, la bola queda en vertical.
+        const corner = (b.x < r.x0 || b.x > r.x1) && (b.y < r.y0 || b.y > r.y1);
+        if (corner) this.cornerBounce(b);
       }
       b.x += nx * (BALL_R - d);
       b.y += ny * (BALL_R - d);
@@ -533,6 +544,18 @@ export default class GameScene extends Phaser.Scene {
       const py = BOARD_TOP + p.row * CELL + CELL / 2;
       if ((b.x - px) ** 2 + (b.y - py) ** 2 < (BALL_R + 8) ** 2) this.takePickup(p);
     }
+  }
+
+  cornerBounce(b) {
+    if (Math.random() < VERTICAL_LOCK_CHANCE) {
+      b.vy = (b.vy < 0 ? -1 : 1) * BALL_SPEED;
+      b.vx = 0;
+      return;
+    }
+    const jitter = (Math.random() * 2 - 1) * CORNER_JITTER;
+    const cos = Math.cos(jitter);
+    const sin = Math.sin(jitter);
+    [b.vx, b.vy] = [b.vx * cos - b.vy * sin, b.vx * sin + b.vy * cos];
   }
 
   takePickup(p) {
@@ -723,24 +746,19 @@ export default class GameScene extends Phaser.Scene {
     if (this.nextLaunchX !== null) this.launchX = this.nextLaunchX;
     this.ballCount += this.pendingBalls;
     this.pendingBalls = 0;
-    const frozen = this.activeSpecial?.id === 'escarcha';
     this.activeSpecial = null;
-    this.speedMul = 1;
     this.turn++;
 
-    if (frozen) {
-      this.showToast('Los bloques están congelados');
-    } else {
-      this.shiftAll(this.isBossTurn(this.turn) ? 2 : 1, true);
-      // Las bolas extra que llegan abajo se recogen solas.
-      for (const p of [...this.pickups]) if (p.row >= ROWS - 1) this.takePickup(p);
-      if (this.blocks.some((b) => b.row + b.size - 1 >= ROWS - 1)) {
-        this.time.delayedCall(250, () => this.gameOver());
-        this.refreshHud();
-        return;
-      }
-      this.spawnRow();
+    // Siempre baja exactamente una fila.
+    this.shiftAll(1, true);
+    // Las bolas extra que llegan abajo se recogen solas.
+    for (const p of [...this.pickups]) if (p.row >= ROWS - 1) this.takePickup(p);
+    if (this.blocks.some((b) => b.row + b.size - 1 >= ROWS - 1)) {
+      this.time.delayedCall(250, () => this.gameOver());
+      this.refreshHud();
+      return;
     }
+    this.spawnRow();
     this.time.delayedCall(220, () => {
       if (this.state !== 'resolving') return;
       this.state = 'aim';

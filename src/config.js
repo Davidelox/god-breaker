@@ -20,10 +20,13 @@ export const BALL_R = 4;
 export const BALL_SPEED = 620;
 export const START_BALLS = 3;
 export const LAUNCH_DELAY = 55;
+export const SPEEDS = [1, 2, 3]; // velocidades del botón x1/x2/x3
+export const CORNER_JITTER = (14 * Math.PI) / 180; // desvío máximo al chocar justo en una esquina
+export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sale en vertical pura
 
 // Contenido
-export const CREATURE_CHANCE = 0.3;
-export const BOSS_EVERY = params.has('boss') ? 3 : 10;
+export const CREATURE_CHANCE = 0.15;
+export const BOSS_EVERY = 10; // un legendario cada 10 turnos
 export const SHINY_RATE = params.has('shiny') ? 0.25 : 1 / 256;
 export const CAPTURE_CHANCE = { 1: 0.6, 2: 0.4, 3: 0.25, 4: 0.15 };
 export const RARITY_NAMES = { 1: 'Común', 2: 'Poco común', 3: 'Rara', 4: 'Legendaria' };

@@ -66,3 +66,11 @@ describe('guardado', () => {
     expect(b.data.stats.games).toBe(2);
   });
 });
+
+describe('ajustes', () => {
+  it('guarda la velocidad y descarta valores no válidos', () => {
+    expect(parseSave(JSON.stringify({ version: 1, settings: { speed: 3 } })).settings.speed).toBe(3);
+    expect(parseSave(JSON.stringify({ version: 1, settings: { speed: 7 } })).settings.speed).toBe(1);
+    expect(parseSave(JSON.stringify({ version: 1 })).settings.speed).toBe(1);
+  });
+});

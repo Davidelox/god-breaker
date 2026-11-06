@@ -17,10 +17,9 @@ npm run build    # versión final en dist/
 | Parámetro | Efecto |
 |---|---|
 | `?shiny` | Probabilidad de shiny del 25 % |
-| `?boss` | Un jefe legendario cada 3 turnos |
 | `?debug` | Expone `window.__game` también en la versión final |
 
-Ejemplo: `http://localhost:5173/?shiny&boss`
+Ejemplo: `http://localhost:5173/?shiny`
 
 ## Estructura
 
