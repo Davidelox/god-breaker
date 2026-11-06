@@ -1,0 +1,166 @@
+// Guardado versionado: validación, migraciones y recuperación ante datos corruptos.
+import { logError } from './errors.js';
+
+export const SAVE_KEY = 'beastbreaker.save';
+export const SAVE_VERSION = 1;
+
+export function defaultSave() {
+  return {
+    version: SAVE_VERSION,
+    bestScore: 0,
+    collection: {}, // id -> { count, shinyCount, firstAt }
+    stats: { games: 0, captures: 0, shinies: 0 }
+  };
+}
+
+/**
+ * Migraciones: la clave es la versión de origen y devuelve el formato de la siguiente.
+ * Cuando cambie el formato: sube SAVE_VERSION y añade aquí el paso correspondiente.
+ */
+const MIGRATIONS = {
+  // v0 = prototipo sin versión, que solo guardaba { best }.
+  0: (s) => ({ ...defaultSave(), bestScore: Number(s.best) || 0, version: 1 })
+};
+
+export function migrate(raw) {
+  let s = raw;
+  let v = Number.isInteger(s.version) ? s.version : 0;
+  if (v > SAVE_VERSION) {
+    throw new Error(`La partida guardada es de una versión más nueva (v${v})`);
+  }
+  while (v < SAVE_VERSION) {
+    const step = MIGRATIONS[v];
+    if (!step) throw new Error(`No hay migración desde la versión ${v}`);
+    s = step(s);
+    v = s.version;
+  }
+  return s;
+}
+
+const nonNegInt = (n) => (Number.isFinite(n) && n > 0 ? Math.floor(n) : 0);
+
+/** Corrige tipos y descarta entradas inválidas o de criaturas que no existen. */
+export function sanitize(s, validIds) {
+  const out = defaultSave();
+  out.bestScore = nonNegInt(s.bestScore);
+  const stats = s.stats && typeof s.stats === 'object' ? s.stats : {};
+  out.stats = {
+    games: nonNegInt(stats.games),
+    captures: nonNegInt(stats.captures),
+    shinies: nonNegInt(stats.shinies)
+  };
+  const col = s.collection && typeof s.collection === 'object' ? s.collection : {};
+  for (const [id, e] of Object.entries(col)) {
+    if (validIds && !validIds.has(Number(id))) continue;
+    if (!e || typeof e !== 'object') continue;
+    const count = nonNegInt(e.count);
+    if (count === 0) continue;
+    out.collection[id] = {
+      count,
+      shinyCount: Math.min(count, nonNegInt(e.shinyCount)),
+      firstAt: typeof e.firstAt === 'string' ? e.firstAt : new Date(0).toISOString()
+    };
+  }
+  return out;
+}
+
+export function parseSave(text, validIds) {
+  if (text == null || text === '') return defaultSave();
+  const raw = JSON.parse(text);
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('Formato de guardado inválido');
+  }
+  return sanitize(migrate(raw), validIds);
+}
+
+export function memoryStorage() {
+  const m = new Map();
+  return {
+    getItem: (k) => (m.has(k) ? m.get(k) : null),
+    setItem: (k, v) => m.set(k, String(v)),
+    removeItem: (k) => m.delete(k)
+  };
+}
+
+function browserStorage() {
+  try {
+    const ls = globalThis.localStorage;
+    const probe = '__bb_probe__';
+    ls.setItem(probe, '1');
+    ls.removeItem(probe);
+    return ls;
+  } catch {
+    logError('save', 'localStorage no disponible; el progreso no se guardará entre sesiones');
+    return memoryStorage();
+  }
+}
+
+export class SaveStore {
+  constructor(storage = browserStorage(), validIds = null) {
+    this.storage = storage;
+    this.validIds = validIds;
+    this.recovered = false;
+    this.data = defaultSave();
+  }
+
+  load() {
+    let text = null;
+    try {
+      text = this.storage.getItem(SAVE_KEY);
+      this.data = parseSave(text, this.validIds);
+    } catch (err) {
+      logError('save-load', err);
+      // Conservamos una copia del guardado dañado para poder recuperarlo a mano.
+      try {
+        if (text) this.storage.setItem(`${SAVE_KEY}.corrupt`, text);
+      } catch {
+        /* ignorado */
+      }
+      this.data = defaultSave();
+      this.recovered = true;
+      this.write();
+    }
+    return this.data;
+  }
+
+  write() {
+    try {
+      this.storage.setItem(SAVE_KEY, JSON.stringify(this.data));
+      return true;
+    } catch (err) {
+      logError('save-write', err);
+      return false;
+    }
+  }
+
+  entry(id) {
+    return this.data.collection[id] ?? null;
+  }
+
+  recordCapture(id, shiny) {
+    const prev = this.data.collection[id];
+    const isNew = !prev;
+    const isNewShiny = shiny && !(prev?.shinyCount > 0);
+    const e = prev ?? { count: 0, shinyCount: 0, firstAt: new Date().toISOString() };
+    e.count += 1;
+    if (shiny) e.shinyCount += 1;
+    this.data.collection[id] = e;
+    this.data.stats.captures += 1;
+    if (shiny) this.data.stats.shinies += 1;
+    this.write();
+    return { isNew, isNewShiny };
+  }
+
+  recordGame(score) {
+    const isBest = score > this.data.bestScore;
+    if (isBest) this.data.bestScore = score;
+    this.data.stats.games += 1;
+    this.write();
+    return isBest;
+  }
+
+  counts() {
+    const entries = Object.values(this.data.collection);
+    return { caught: entries.length, shiny: entries.filter((e) => e.shinyCount > 0).length };
+  }
+}
