@@ -579,7 +579,7 @@ export default class GameScene extends Phaser.Scene {
     this.shotBall = this.selectedBall;
     if (this.shotBall !== 'normal') {
       this.ballInv[this.shotBall]--;
-      if (this.ballInv[this.shotBall] <= 0) this.selectedBall = 'normal';
+      this.selectedBall = 'normal'; // tras usar una bola especial se vuelve a la normal
     }
     this.state = 'shooting';
     this.shotTime = 0;
@@ -950,7 +950,8 @@ export default class GameScene extends Phaser.Scene {
     blk.bg.setFillStyle(0xffffff);
     if (blk.sprite) {
       // La criatura parpadea en rojo al recibir el golpe
-      blk.sprite.setTint(0xff3030);
+      // Rojo normal; naranja si es muy eficaz; gris si es poco eficaz
+      blk.sprite.setTint(eff > 1 ? 0xff9020 : eff < 1 ? 0x8a8a8a : 0xff3030);
       blk.redUntil = this.time.now + 90;
       this.time.delayedCall(90, () => {
         if (!blk.dead && this.time.now >= blk.redUntil - 1) blk.sprite.clearTint();

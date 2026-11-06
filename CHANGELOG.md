@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-11-06
+
+### Changed
+- El color del parpadeo al golpear una criatura depende de la eficacia: naranja si es muy eficaz, gris si es poco eficaz y rojo si es normal.
+- Bola super: fondo blanco y borde azul. Bola ultra: fondo amarillo y borde negro.
+- Después de lanzar con una bola especial (super o ultra), la selección vuelve sola a la bola normal.
+
 ## [0.18.0] - 2026-11-06
 
 ### Added
