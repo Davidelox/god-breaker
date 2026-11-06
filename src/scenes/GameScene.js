@@ -32,6 +32,7 @@ const ROCK_BOSS_PCT = 0.3;
 const TURBO_SPEED = 5; // velocidad automática cuando ninguna bola puede golpear nada más
 const pct = (r) => `${Math.round(r * 1000) / 10}%`;
 const DANGER_Y = BOARD_TOP + (ROWS - 1) * CELL;
+const BOTTOM_BAR_Y = LAUNCH_Y + 52; // botones de poderes y bolas, justo bajo los medidores
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -120,8 +121,8 @@ export default class GameScene extends Phaser.Scene {
     // Cuadrícula opcional (ajuste CUADRICULA en la pausa; oculta por defecto)
     this.gridG = this.add.graphics().setDepth(-1);
     this.gridG.lineStyle(1, 0xffffff, 0.06);
-    for (let c = 1; c < COLS; c++) this.gridG.lineBetween(BOARD_X + c * CELL, BOARD_TOP, BOARD_X + c * CELL, BOARD_BOTTOM);
-    for (let r = 1; r < ROWS; r++) this.gridG.lineBetween(BOARD_X, BOARD_TOP + r * CELL, BOARD_RIGHT, BOARD_TOP + r * CELL);
+    for (let c = 1; c < COLS; c++) this.gridG.lineBetween(BOARD_X + c * CELL, BOARD_TOP, BOARD_X + c * CELL, LAUNCH_Y);
+    for (let r = 1; r < ROWS - 1; r++) this.gridG.lineBetween(BOARD_X, BOARD_TOP + r * CELL, BOARD_RIGHT, BOARD_TOP + r * CELL);
     this.gridG.setVisible(this.save.data.settings.grid);
     const g = this.add.graphics().setDepth(-1);
     g.fillStyle(0xe05858, 0.5);
@@ -186,12 +187,12 @@ export default class GameScene extends Phaser.Scene {
     this.energyG = this.add.graphics();
     this.slotButtons = [];
     for (let i = 0; i < MAX_POWERS; i++) {
-      const btn = makeButton(this, 4 + 37 + i * 78, H - 26, 74, 40, '-', () => this.toggleSlot(i));
+      const btn = makeButton(this, 4 + 37 + i * 78, BOTTOM_BAR_Y, 74, 44, '-', () => this.toggleSlot(i));
       this.slotButtons.push(btn);
     }
     this.ballButtons = {};
     BALL_ORDER.forEach((id, i) => {
-      const btn = makeButton(this, 162 + 31 + i * 65, H - 26, 62, 40, '', () => this.selectBall(id), {
+      const btn = makeButton(this, 162 + 31 + i * 65, BOTTOM_BAR_Y, 62, 44, '', () => this.selectBall(id), {
         fill: BALL_TYPES[id].fill
       });
       this.ballButtons[id] = btn;

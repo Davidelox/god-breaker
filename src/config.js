@@ -13,7 +13,8 @@ export const BOARD_X = (W - COLS * CELL) / 2;
 export const BOARD_TOP = 64;
 export const BOARD_BOTTOM = BOARD_TOP + ROWS * CELL;
 export const BOARD_RIGHT = BOARD_X + COLS * CELL;
-export const LAUNCH_Y = BOARD_BOTTOM + 12;
+// El disparo sale desde la línea de derrota (arriba de la última fila). Las bolas vuelven a esa línea.
+export const LAUNCH_Y = BOARD_TOP + (ROWS - 1) * CELL;
 
 // Bolas
 export const BALL_R = 6;

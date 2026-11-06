@@ -5,6 +5,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-06
+
+### Changed
+- El disparo sale desde la línea de derrota (la línea roja), no desde abajo del todo. Las bolas vuelven a esa misma línea y el tablero termina en ella.
+- Los botones de poderes y bolas suben justo debajo de los medidores, para que no quede un hueco entre ellos.
+
 ## [0.15.3] - 2026-11-06
 
 ### Changed
