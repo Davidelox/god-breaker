@@ -5,6 +5,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-06
+
+### Added
+- Barra de vida en los legendarios, bajo el sprite y encima del número. Es verde por encima del 50 %, amarilla hasta el 25 % y roja por debajo. Un rastro blanco se queda atrás un instante tras cada golpe para que se note el daño.
+
 ## [0.13.1] - 2026-11-06
 
 ### Changed

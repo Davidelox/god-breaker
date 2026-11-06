@@ -415,7 +415,7 @@ export default class GameScene extends Phaser.Scene {
     blk.bg = bg;
     blk.color = color;
     if (d.creature) {
-      const spr = this.add.image(0, d.kind === 'boss' ? -10 : -7, creatureKey(d.creature.id, blk.shiny)).setScale(d.kind === 'boss' ? 3 : 2);
+      const spr = this.add.image(0, d.kind === 'boss' ? -14 : -7, creatureKey(d.creature.id, blk.shiny)).setScale(d.kind === 'boss' ? 3 : 2);
       cont.add(spr);
       blk.sprite = spr;
       this.tweens.add({ targets: spr, y: spr.y - 2, duration: 400 + Math.random() * 300, yoyo: true, repeat: -1 });
@@ -425,6 +425,16 @@ export default class GameScene extends Phaser.Scene {
     // Vida en grande; en bloques con criatura va abajo para no tapar el sprite
     blk.hpText = text(this, 0, d.creature ? size / 2 - 12 : 0, '', 16).setOrigin(0.5).setStroke('#101828', 4);
     blk.hpMaxW = size - 8;
+    if (d.kind === 'boss') {
+      // Barra de vida del legendario: fondo, rastro blanco que se queda atrás y relleno de color
+      const w = size - 20;
+      const y = size / 2 - 28;
+      blk.barW = w;
+      const bg = this.add.rectangle(-w / 2 - 1, y, w + 2, 8, 0x101828).setOrigin(0, 0.5);
+      blk.barLag = this.add.rectangle(-w / 2, y, w, 6, 0xffffff).setOrigin(0, 0.5);
+      blk.barFill = this.add.rectangle(-w / 2, y, w, 6, 0x58c878).setOrigin(0, 0.5);
+      cont.add([bg, blk.barLag, blk.barFill]);
+    }
     cont.add(blk.hpText);
     blk.cont = cont;
     cont.setScale(0);
@@ -484,6 +494,17 @@ export default class GameScene extends Phaser.Scene {
     // Con 3 o más cifras se reduce lo justo para que quepa en el bloque
     blk.hpText.setScale(1);
     if (blk.hpText.width > blk.hpMaxW) blk.hpText.setScale(blk.hpMaxW / blk.hpText.width);
+    if (blk.barFill) this.updateBossBar(blk);
+  }
+
+  updateBossBar(blk) {
+    const ratio = Phaser.Math.Clamp(blk.hp / blk.maxHp, 0, 1);
+    const w = Math.max(0, blk.barW * ratio);
+    blk.barFill.width = w;
+    blk.barFill.setFillStyle(ratio > 0.5 ? 0x58c878 : ratio > 0.25 ? 0xe8c040 : 0xe05858);
+    // El rastro blanco alcanza a la vida actual tras un instante
+    this.tweens.killTweensOf(blk.barLag);
+    this.tweens.add({ targets: blk.barLag, width: w, delay: 220, duration: 260, ease: 'Quad.easeOut' });
   }
 
   shiftAll(n, animate) {
