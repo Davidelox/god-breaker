@@ -31,9 +31,10 @@ export const CORNER_JITTER = (14 * Math.PI) / 180; // desvío máximo al chocar 
 export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sale en vertical pura
 
 // Contenido
-export const CREATURE_CHANCE = 0.15;
+export const CREATURE_CHANCE = 0.11; // probabilidad de que un bloque nuevo sea una bestia
+export const CREATURE_FROM_TURN = 5; // en los 4 primeros turnos no salen bestias (los dioses van aparte)
 export const BOSS_EVERY = 8; // un legendario cada 10 turnos
-export const SHINY_RATE = params.has('shiny') ? 0.25 : 0.01; // probabilidad base de shiny
+export const SHINY_RATE = params.has('shiny') || params.has('gold') ? 0.25 : 0.01; // probabilidad base de la versión dorada (gold)
 export const SHINY_BOOST_RATE = 0.03; // con el medidor shiny lleno
 export const SHINY_BOOST_TURNS = 3;
 export const SHINY_METER_MAX = 100;
@@ -50,6 +51,6 @@ export const PICKUP_CHANCE = 0.5; // probabilidad de que salga una bola extra +1
 export const PICKUP_COOLDOWN = 2; // tiradas que deben pasar tras recoger la bola extra antes de que salga otra
 export const ROW_GROWTH_TURNS = 5; // cada cuántos turnos cabe un bloque más por fila
 export const BOSS_HP = (turn) => 20 + turn * 8;
-export const RARITY_NAMES = { 1: 'Común', 2: 'Poco común', 3: 'Rara', 4: 'Legendaria' };
+export const RARITY_NAMES = { 1: 'Common', 2: 'Uncommon', 3: 'Rare', 4: 'Legendary' };
 
 export const DEBUG = params.has('debug');

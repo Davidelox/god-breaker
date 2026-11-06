@@ -13,7 +13,7 @@ export default class BootScene extends Phaser.Scene {
 
   preload() {
     // Imágenes del pack (si las hay). Si alguna falla se usa el sprite generado.
-    this.load.on('loaderror', (file) => logError('pack-imagen', `No se pudo cargar ${file.src ?? file.key}`));
+    this.load.on('loaderror', (file) => logError('pack-imagen', `Could not load ${file.src ?? file.key}`));
     for (const { key, url } of PACK_IMAGES) this.load.image(key, url);
   }
 

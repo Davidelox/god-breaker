@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bestiario: hoja de sprites</title>
+<style>
+  body { margin: 0; background: #101828; color: #e8ecf4; font: 12px/1.3 system-ui, sans-serif; }
+  header { position: sticky; top: 0; background: #101828ee; padding: 8px 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; z-index: 1; }
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cw, 96px), 1fr)); gap: 6px; padding: 12px; }
+  .c { border-radius: 6px; padding: 6px 4px 4px; text-align: center; }
+  .c canvas { image-rendering: pixelated; display: block; margin: 0 auto 4px; }
+  .n { font-weight: 600; color: #101828; }
+  .o { font-size: 10px; color: #101828aa; }
+  h2 { grid-column: 1 / -1; margin: 12px 0 0; font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <strong>Bestiario</strong>
+  <label><input type="checkbox" id="shiny" /> gold</label>
+  <label>Origen <select id="origin"><option value="">todos</option></select></label>
+  <input id="q" placeholder="buscar…" />
+  <span id="count"></span>
+</header>
+<div id="grid"></div>
+<script type="module">
+  import { CREATURES } from '../src/data/creatures.js';
+  import { TYPES, TYPE_ORDER } from '../src/data/types.js';
+  import { drawCreature } from '../src/gfx/sprites.js';
+
+  // ?n=Zeus,Anubis muestra solo esas bestias; ?k=5 cambia el zoom; ?o=griega filtra por origen
+  const params = new URLSearchParams(location.search);
+  const only = params.get('n') ? params.get('n').split(',') : null;
+  const zoom = Number(params.get('k')) || 2.5;
+  const sel = document.getElementById('origin');
+  for (const t of TYPE_ORDER) sel.add(new Option(TYPES[t].name, t));
+  if (params.get('o')) sel.value = params.get('o');
+  const grid = document.getElementById('grid');
+  grid.style.setProperty('--cw', Math.round(zoom * 30 + 20) + 'px');
+  function render() {
+    const shiny = document.getElementById('shiny').checked;
+    const q = document.getElementById('q').value.toLowerCase();
+    grid.textContent = '';
+    let last = null, n = 0;
+    for (const c of CREATURES) {
+      if (sel.value && c.type !== sel.value) continue;
+      if (only && !only.includes(c.name)) continue;
+      if (q && !c.name.toLowerCase().includes(q)) continue;
+      if (c.type !== last) {
+        const h = document.createElement('h2');
+        h.textContent = TYPES[c.type].name;
+        grid.append(h);
+        last = c.type;
+      }
+      const card = document.createElement('div');
+      card.className = 'c';
+      card.style.background = TYPES[c.type].light;
+      const src = drawCreature(c, shiny);
+      const cv = document.createElement('canvas');
+      const k = c.legendary ? zoom * 0.8 : zoom;
+      cv.width = src.width * k; cv.height = src.height * k;
+      const ctx = cv.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(src, 0, 0, cv.width, cv.height);
+      card.append(cv);
+      card.insertAdjacentHTML('beforeend', `<div class="n">#${c.id} ${c.name}</div><div class="o">${c.legendary ? 'Dios' : 'R' + c.rarity}</div>`);
+      card.title = c.art;
+      grid.append(card);
+      n++;
+    }
+    document.getElementById('count').textContent = `${n} bestias`;
+  }
+  for (const id of ['shiny', 'origin', 'q']) document.getElementById(id).addEventListener('input', render);
+  render();
+</script>
+</body>
+</html>

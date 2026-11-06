@@ -1,44 +1,28 @@
-// Tipos elementales: colores (normal y shiny) y tabla de eficacia.
-export const TYPE_ORDER = ['fuego', 'agua', 'planta', 'electrico', 'hielo', 'roca', 'fantasma', 'psiquico'];
+// Orígenes mitológicos de las bestias: nombre, abreviatura y colores del bloque.
+// (Se exportan como TYPES / TYPE_ORDER porque el resto del juego llama «tipo» al origen.)
+// Los hechizos tienen sus propios colores elementales en specials.js.
+export const TYPE_ORDER = [
+  'griega', 'nordica', 'egipcia', 'celta', 'eslava', 'iberica', 'europea',
+  'japonesa', 'asiatica', 'indomalaya', 'medioriental', 'americana', 'africana', 'oceanica'
+];
+
+const o = (name, myth, short, base, light, dark) => ({ name, myth, short, base, light, dark });
 
 export const TYPES = {
-  fuego: { name: 'Fuego', short: 'FUE', base: '#e8613c', light: '#ffa25c', dark: '#a8322a', accent: '#ffd84a',
-    shiny: { base: '#8c5ad8', light: '#b88cf0', dark: '#5a3496' } },
-  agua: { name: 'Agua', short: 'AGU', base: '#3c8ce8', light: '#78c0ff', dark: '#24569c', accent: '#d8f4ff',
-    shiny: { base: '#e85a9c', light: '#ff92c4', dark: '#a03068' } },
-  planta: { name: 'Planta', short: 'PLA', base: '#4cb04c', light: '#8ce070', dark: '#2c703c', accent: '#f070a0',
-    shiny: { base: '#d8b83c', light: '#f8e070', dark: '#987820' } },
-  electrico: { name: 'Eléctrico', short: 'ELE', base: '#f0c830', light: '#fff07a', dark: '#b08420', accent: '#3c3c50',
-    shiny: { base: '#50c8c0', light: '#8cf0e0', dark: '#2c8480' } },
-  hielo: { name: 'Hielo', short: 'HIE', base: '#8cd8f0', light: '#d4f4ff', dark: '#4c94b8', accent: '#ffffff',
-    shiny: { base: '#c8a0e8', light: '#ecd4ff', dark: '#8460a8' } },
-  roca: { name: 'Roca', short: 'ROC', base: '#a08868', light: '#c8b08c', dark: '#685440', accent: '#6c6c78',
-    shiny: { base: '#6c8ca8', light: '#9cb8d0', dark: '#44607c' } },
-  fantasma: { name: 'Fantasma', short: 'FAN', base: '#7c5cb8', light: '#a88ce0', dark: '#4c3480', accent: '#e85a8c',
-    shiny: { base: '#4c4c5c', light: '#7c7c90', dark: '#2c2c38' } },
-  psiquico: { name: 'Psíquico', short: 'PSI', base: '#e870b0', light: '#ff9cd0', dark: '#a8407c', accent: '#4ce0e8',
-    shiny: { base: '#60c870', light: '#98eca0', dark: '#348440' } }
+  griega: o('Greco-Roman', 'Greco-Roman mythology', 'GRE', '#4c7cd8', '#8cb4ff', '#2c4c9c'),
+  nordica: o('Norse', 'Norse mythology', 'NOR', '#5c8ca8', '#a0c8dc', '#345c78'),
+  egipcia: o('Egyptian', 'Egyptian mythology', 'EGY', '#d0a030', '#f4d47c', '#8c6418'),
+  celta: o('Celtic', 'Celtic and British folklore', 'CEL', '#3c9c5c', '#80d494', '#22643a'),
+  eslava: o('Slavic', 'Slavic mythology', 'SLA', '#c84848', '#f08c8c', '#842c2c'),
+  iberica: o('Iberian', 'Iberian mythology', 'IBE', '#e07a30', '#ffb478', '#984818'),
+  europea: o('European', 'European folklore', 'EUR', '#8c6cb8', '#c4ace8', '#5a4084'),
+  japonesa: o('Japanese', 'Japanese mythology', 'JAP', '#e05878', '#ff9cb4', '#a0304c'),
+  asiatica: o('East Asian', 'East Asian mythology', 'EAS', '#2ca890', '#78e0c8', '#18705c'),
+  indomalaya: o('Indo-Malay', 'Indian and Malay mythology', 'IND', '#e89c28', '#ffd080', '#a06414'),
+  medioriental: o('Middle Eastern', 'Middle Eastern mythology', 'MID', '#38a0c8', '#88d4f0', '#1c6c8c'),
+  americana: o('American', 'American mythology', 'AME', '#b85c38', '#e8987c', '#7c3820'),
+  africana: o('African', 'African mythology', 'AFR', '#a0783c', '#d4b07c', '#6c4c20'),
+  oceanica: o('Oceanian', 'Oceanian mythology', 'OCE', '#30b8b0', '#80ece4', '#18807a')
 };
 
 export const hexToNum = (hex) => parseInt(hex.slice(1), 16);
-
-// strong: tipos contra los que hace x2; weak: tipos contra los que hace x0.5
-export const CHART = {
-  fuego: { strong: ['planta', 'hielo'], weak: ['agua', 'roca'] },
-  agua: { strong: ['fuego', 'roca'], weak: ['planta', 'electrico'] },
-  planta: { strong: ['agua', 'roca'], weak: ['fuego', 'hielo'] },
-  electrico: { strong: ['agua'], weak: ['planta', 'roca'] },
-  hielo: { strong: ['planta'], weak: ['fuego', 'roca'] },
-  roca: { strong: ['fuego', 'hielo', 'electrico'], weak: ['agua', 'planta'] },
-  fantasma: { strong: ['fantasma', 'psiquico'], weak: [] },
-  psiquico: { strong: ['fantasma'], weak: ['psiquico'] }
-};
-
-export function effectiveness(attackType, defenseType) {
-  if (!attackType || !defenseType) return 1;
-  const row = CHART[attackType];
-  if (!row) return 1;
-  if (row.strong.includes(defenseType)) return 2;
-  if (row.weak.includes(defenseType)) return 0.5;
-  return 1;
-}

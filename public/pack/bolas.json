@@ -3,17 +3,17 @@
   "bolas": [
     {
       "id": "normal",
-      "nombre": "Normal",
+      "nombre": "Common",
       "imagen": null
     },
     {
       "id": "super",
-      "nombre": "Super",
+      "nombre": "Runic",
       "imagen": null
     },
     {
       "id": "ultra",
-      "nombre": "Ultra",
+      "nombre": "Divine",
       "imagen": null
     }
   ]

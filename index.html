@@ -1,13 +1,26 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#0c1020" />
-    <title>Beast Breaker</title>
+    <!-- Pantalla de inicio (iPhone/Android): se abre a pantalla completa, con icono propio -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="God Breaker" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <link rel="icon" type="image/png" href="icons/icon-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <title>God Breaker</title>
     <style>
       html, body { margin: 0; height: 100%; background: #0c1020; overflow: hidden; }
-      #game { width: 100vw; height: 100dvh; }
+      /* Respeta la muesca y la barra inferior del iPhone al abrirse a pantalla completa */
+      #game {
+        width: 100vw;
+        height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        margin-top: env(safe-area-inset-top);
+      }
       canvas { touch-action: none; image-rendering: pixelated; }
       #error-overlay {
         display: none; position: fixed; inset: 0; z-index: 10;

@@ -29,11 +29,11 @@ export function migrate(raw) {
   let s = raw;
   let v = Number.isInteger(s.version) ? s.version : 0;
   if (v > SAVE_VERSION) {
-    throw new Error(`La partida guardada es de una versión más nueva (v${v})`);
+    throw new Error(`This save comes from a newer version (v${v})`);
   }
   while (v < SAVE_VERSION) {
     const step = MIGRATIONS[v];
-    if (!step) throw new Error(`No hay migración desde la versión ${v}`);
+    if (!step) throw new Error(`No migration from save version ${v}`);
     s = step(s);
     v = s.version;
   }
@@ -77,7 +77,7 @@ export function parseSave(text, validIds) {
   if (text == null || text === '') return defaultSave();
   const raw = JSON.parse(text);
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-    throw new Error('Formato de guardado inválido');
+    throw new Error('Invalid save format');
   }
   return sanitize(migrate(raw), validIds);
 }
@@ -99,7 +99,7 @@ function browserStorage() {
     ls.removeItem(probe);
     return ls;
   } catch {
-    logError('save', 'localStorage no disponible; el progreso no se guardará entre sesiones');
+    logError('save', 'localStorage unavailable; progress will not be kept between sessions');
     return memoryStorage();
   }
 }

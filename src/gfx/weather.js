@@ -2,12 +2,12 @@
 import { BOARD_X, BOARD_TOP, BOARD_RIGHT, BOARD_FLOOR_Y } from '../config.js';
 
 export const WEATHERS = [
-  { id: 'despejado', name: 'Noche despejada', bg: 0x182038 },
-  { id: 'lluvia', name: 'Lluvia', bg: 0x142236 },
-  { id: 'nieve', name: 'Nieve', bg: 0x1c2642 },
-  { id: 'arena', name: 'Tormenta de arena', bg: 0x2a2228 },
-  { id: 'niebla', name: 'Niebla', bg: 0x1e2434 },
-  { id: 'sol', name: 'Sol radiante', bg: 0x222a40 }
+  { id: 'despejado', name: 'Clear night', bg: 0x182038 },
+  { id: 'lluvia', name: 'Rain', bg: 0x142236 },
+  { id: 'nieve', name: 'Snow', bg: 0x1c2642 },
+  { id: 'arena', name: 'Sandstorm', bg: 0x2a2228 },
+  { id: 'niebla', name: 'Fog', bg: 0x1e2434 },
+  { id: 'sol', name: 'Blazing sun', bg: 0x222a40 }
 ];
 
 const X0 = BOARD_X;

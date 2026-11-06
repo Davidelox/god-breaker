@@ -1,6 +1,7 @@
-# Beast Breaker
+# God Breaker
 
-Rompebloques por turnos en pixel art: destruye bloques, captura criaturas y completa la colección (también las shiny).
+Rompebloques por turnos en pixel art. Eres un cazador humano encargado de vencer y capturar seres de la mitología y dioses griegos, nórdicos y egipcios, lanzando orbes. Completa el bestiario de 600 bestias (también sus versiones doradas, «gold»).
+El juego está en inglés; la documentación del proyecto, en español.
 Hecho con [Phaser 4](https://phaser.io) y Vite. Se juega en el navegador y está preparado para llevarlo a móvil con Capacitor.
 
 ## Comandos
@@ -12,22 +13,26 @@ npm test         # tests
 npm run build    # versión final en dist/
 ```
 
+## Hoja de sprites
+
+Con `npm run dev` en marcha, abre `http://localhost:5173/tools/bestiario.html` para ver los 600 sprites por origen.
+
 ## Parámetros de prueba (en la URL)
 
 | Parámetro | Efecto |
 |---|---|
-| `?shiny` | Probabilidad de shiny del 25 % |
+| `?gold` (o `?shiny`) | Probabilidad de versión dorada del 25 % |
 | `?debug` | Expone `window.__game` también en la versión final |
 
-Ejemplo: `http://localhost:5173/?shiny`
+Ejemplo: `http://localhost:5173/?gold`
 
 ## Estructura
 
 ```
 src/
   core/      errores, guardado versionado, números aleatorios
-  data/      criaturas, tipos y tabla de eficacia, especiales
-  gfx/       sprites generados por código y componentes de interfaz
+  data/      bestiario, elementos, hechizos, orbes, misiones y packs
+  gfx/       sprites generados por código (beastArt.js: bestias) y componentes de interfaz
   scenes/    Boot, Title, Game, Collection
 tests/       tests con Vitest
 ```

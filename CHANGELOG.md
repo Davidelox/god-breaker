@@ -5,6 +5,52 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Added
+- Publicación automática en GitHub Pages (`.github/workflows/deploy.yml`): en cada push a master se pasan los tests, se compila y se publica.
+- Instalable en la pantalla de inicio del móvil: manifiesto web, icono propio (`scripts/make-icons.mjs`), pantalla completa en iPhone y márgenes para la muesca.
+- Estela de luz en los orbes: halo del color del orbe y núcleo blanco, translúcidos, que se estrechan y se apagan, con brillo aditivo y un resplandor suave alrededor de cada orbe. Mide como mucho 48 px, menos que la separación entre orbes, para que una ráfaga no forme una línea continua.
+- Orbes con más contraste: contorno casi negro y colores más saturados, para que se vean sólidos sobre el tablero.
+- Colección: botón «CAUGHT ONLY» para ver solo las bestias capturadas (en la vista gold, solo las capturadas en gold). Se recuerda mientras el juego esté abierto.
+- Música de combate épica durante la partida (generada con Web Audio): 112 BPM, tambores graves tipo taiko con redobles al final de cada frase, caja y charles, bajo, ostinato de cuerdas en semicorcheas, acordes de metales, coro y una melodía heroica que entra tras 4 compases; cada 16 compases hay un puente más intenso. Sigue los acordes del clima. En los menús suena la música ambiente de siempre.
+- Logo nuevo en la pantalla de título: «GOD» en oro con degradado, contorno grueso y sombra, entre ramas de laurel; «BREAKER» en plata con líneas ornamentales; halo y rayos girando detrás, destellos sobre las letras y animación de entrada con sacudida y destello.
+- Escaparate en la pantalla de título: una sola bestia flotando que va cambiando cada pocos segundos entre las capturadas, incluidas sus versiones gold (con aura y destellos dorados), con su nombre y origen. Sin capturas, muestra la silueta de un dios.
+
+### Changed
+- El juego pasa a llamarse **God Breaker** (título, pestaña del navegador y `package.json`). Las claves del guardado no cambian, así que el progreso se conserva.
+- Todo el juego está en inglés: menús, guía, misiones, avisos, pantalla de error, climas, hechizos (Fireball, Tidal Wave, Overgrowth, Chain Lightning, Ice Lance, Stone Rain), orbes (Common, Runic, Divine), orígenes y los nombres del bestiario en su forma inglesa (Cerberus, Phoenix, Athena, Thoth…). La documentación sigue en español.
+- La versión shiny pasa a ser la versión **gold**: los sprites se vuelven dorados (cada color pasa a la rampa de oro según su luminosidad) en lugar de cambiar de tono. Vale también para las imágenes del pack sin `imagenShiny`. El parámetro de prueba `?gold` funciona igual que `?shiny`.
+- La Meiga gallega sustituye al Ventolín, cuyo nombre coincide en inglés con una marca registrada.
+
+### Removed
+- Subtítulo de la pantalla principal.
+
+### Balance
+- No aparecen bestias en los 4 primeros turnos (los dioses siguen apareciendo cada 8 turnos).
+- Probabilidad de que un bloque sea una bestia: del 15 % al 11 %.
+- Como mucho aparece una bestia por turno, y ninguna en el turno en que baja un dios.
+
+### Added
+- Premisa: eres un cazador humano encargado de vencer y capturar seres míticos y dioses, usando orbes como proyectiles.
+- Bestiario mitológico (`src/data/bestiary.js`) con 600 bestias agrupadas por su procedencia:
+  - 500 seres de la mitología y el folclore de 14 orígenes: grecorromana, nórdica, egipcia, celta y británica, eslava, ibérica, europea, japonesa, Asia oriental, India y Malasia, Oriente Medio, americana, africana y oceánica.
+  - 100 legendarios, que son dioses: 34 griegos, 33 nórdicos y 33 egipcios. La colección muestra su panteón.
+- Sprites nuevos para las 600 bestias, generados a partir de su representación tradicional (`src/gfx/beastArt.js`): Anubis con cabeza de chacal y cetro, Medusa con serpientes en el pelo, Cerbero con tres cabezas, Pegaso con alas, Odín tuerto con sombrero y lanza… Se dibujan al doble de resolución que antes, con contorno entre piezas, y la versión shiny cambia el tono de los colores.
+- `tools/bestiario.html`: hoja con todos los sprites, filtrable por origen y nombre (`?n=Zeus,Anubis&k=5` para verlos grandes).
+- Campos nuevos en `criaturas.json`: `origen`, `sprite` (descripción del dibujo) y `panteon` (`griega`, `nordica` o `egipcia`).
+
+### Changed
+- El catálogo por defecto y el pack incluido son ahora el bestiario, ordenado por origen (cada origen con sus seres y después sus dioses). Los id 1-600 pasan a ser bestias nuevas: las capturas de guardados anteriores se conservan, pero apuntan a la bestia que ahora tiene ese id.
+- Los tipos de las bestias se sustituyen por su origen mitológico, que da el color del bloque. Las misiones por tipo pasan a ser por origen («Japonesa al completo»…).
+- Los hechizos conservan su elemento (fuego, agua, naturaleza, rayo, hielo y tierra) con colores propios, independientes de las bestias.
+- Los poderes pasan a ser hechizos elementales, con la misma función: Bola de fuego, Maremoto, Germinación, Cadena de rayos, Lanza de hielo y Lluvia de rocas. La barra de PODER pasa a llamarse MAGIA.
+- Las bolas pasan a ser orbes (común, rúnico y divino), con un sprite nuevo de esfera de cristal en cian, violeta y dorado.
+- Los textos de legendarios hablan de dioses: «¡Desciende un dios!», «¡DIOS DERROTADO!», misiones «Captura un dios», etc.
+
+### Removed
+- Sistema de debilidades por tipo: todos los golpes hacen el mismo daño. Desaparecen «¡MUY EFICAZ!» / «poco eficaz», el parpadeo naranja y gris y la página TIPOS de la guía.
+- Generador de nombres inventados de `scripts/generate-pack.mjs`: ahora el script vuelca el bestiario.
+- Sprites antiguos de «manchas» simétricas generadas al azar.
+
 ## [0.19.0] - 2026-11-06
 
 ### Added

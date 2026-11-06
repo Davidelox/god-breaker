@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { W, H, RARITY_NAMES } from '../config.js';
 import { CREATURES } from '../data/creatures.js';
+import { PANTHEON_NAMES } from '../data/bestiary.js';
 import { TYPES, hexToNum } from '../data/types.js';
 import { addCreatureImage } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, COLORS } from '../gfx/ui.js';
@@ -21,6 +22,22 @@ export default class CollectionScene extends Phaser.Scene {
   init() {
     this.showShiny = false;
     this.page = 0;
+    // El filtro «solo capturadas» se recuerda mientras el juego esté abierto
+    this.onlyCaught = !!this.registry.get('collectionOnlyCaught');
+  }
+
+  /** Bestias que se muestran: todas o solo las capturadas (en la vista gold, las capturadas en gold). */
+  list() {
+    if (!this.onlyCaught) return CREATURES;
+    return CREATURES.filter((c) => {
+      const e = this.save.entry(c.id);
+      return this.showShiny ? e?.shinyCount > 0 : e?.count > 0;
+    });
+  }
+
+  updatePages() {
+    this.pages = Math.max(1, Math.ceil(this.list().length / PER_PAGE));
+    this.page = Math.min(this.page, this.pages - 1);
   }
 
   create() {
@@ -28,28 +45,38 @@ export default class CollectionScene extends Phaser.Scene {
     this.add.rectangle(0, 0, W, H, COLORS.night).setOrigin(0);
 
     const { caught, shiny, total } = this.save.counts();
-    text(this, W / 2, 18, 'COLECCION', 16, COLORS.goldHex).setOrigin(0.5);
-    text(this, W / 2, 40, `Distintas ${caught}/${CREATURES.length}  Shiny ${shiny}`, 8, '#a8b4cc').setOrigin(0.5);
-    text(this, W / 2, 56, `Bestias atrapadas: ${total}`, 8, COLORS.goldHex).setOrigin(0.5);
+    text(this, W / 2, 18, 'COLLECTION', 16, COLORS.goldHex).setOrigin(0.5);
+    text(this, W / 2, 40, `Unique ${caught}/${CREATURES.length}  Gold ${shiny}`, 8, '#a8b4cc').setOrigin(0.5);
+    text(this, W / 2, 56, `Beasts caught: ${total}`, 8, COLORS.goldHex).setOrigin(0.5);
 
     this.gridLayer = this.add.container(0, 0);
-    this.pages = Math.ceil(CREATURES.length / PER_PAGE);
     this.pageText = text(this, W / 2, H - 70, '', 8, '#a8b4cc').setOrigin(0.5);
     makeButton(this, W / 2 - 80, H - 70, 50, 26, '<', () => this.go(-1), { size: 16 });
     makeButton(this, W / 2 + 80, H - 70, 50, 26, '>', () => this.go(1), { size: 16 });
     // Saltos de 10 páginas para catálogos grandes
-    if (this.pages > 10) {
-      makeButton(this, W / 2 - 140, H - 70, 50, 26, '<<', () => this.go(-10));
-      makeButton(this, W / 2 + 140, H - 70, 50, 26, '>>', () => this.go(10));
-    }
+    this.jumpBtns = [
+      makeButton(this, W / 2 - 140, H - 70, 50, 26, '<<', () => this.go(-10)),
+      makeButton(this, W / 2 + 140, H - 70, 50, 26, '>>', () => this.go(10))
+    ];
     this.input.keyboard?.on('keydown-LEFT', () => this.go(-1));
     this.input.keyboard?.on('keydown-RIGHT', () => this.go(1));
+
+    // Filtro: solo las capturadas
+    const filterLabel = () => `CAUGHT ONLY: ${this.onlyCaught ? 'ON' : 'OFF'}`;
+    this.filterBtn = makeButton(this, W / 2, H - 104, 200, 24, filterLabel(), () => {
+      this.onlyCaught = !this.onlyCaught;
+      this.registry.set('collectionOnlyCaught', this.onlyCaught);
+      this.filterBtn.setLabel(filterLabel()).setSelected(this.onlyCaught);
+      this.page = 0;
+      this.drawGrid();
+    }).setSelected(this.onlyCaught);
+    this.emptyText = text(this, W / 2, GRID_Y + 150, '', 8, '#a8b4cc').setOrigin(0.5);
     this.drawGrid();
 
-    makeButton(this, 90, H - 28, 150, 32, 'VOLVER', () => this.scene.start('title'));
-    this.shinyBtn = makeButton(this, W - 90, H - 28, 150, 32, 'VER SHINY', () => {
+    makeButton(this, 90, H - 28, 150, 32, 'BACK', () => this.scene.start('title'));
+    this.shinyBtn = makeButton(this, W - 90, H - 28, 150, 32, 'SHOW GOLD', () => {
       this.showShiny = !this.showShiny;
-      this.shinyBtn.setLabel(this.showShiny ? 'VER NORMAL' : 'VER SHINY');
+      this.shinyBtn.setLabel(this.showShiny ? 'SHOW NORMAL' : 'SHOW GOLD');
       this.drawGrid();
     });
   }
@@ -61,8 +88,12 @@ export default class CollectionScene extends Phaser.Scene {
 
   drawGrid() {
     this.gridLayer.removeAll(true);
+    this.updatePages();
+    const list = this.list();
     this.pageText.setText(`${this.page + 1} / ${this.pages}`);
-    CREATURES.slice(this.page * PER_PAGE, (this.page + 1) * PER_PAGE).forEach((c, i) => {
+    for (const b of this.jumpBtns) b.setVisible(this.pages > 10);
+    this.emptyText.setText(list.length ? '' : this.showShiny ? 'No gold beasts\ncaptured yet.' : 'No beasts\ncaptured yet.');
+    list.slice(this.page * PER_PAGE, (this.page + 1) * PER_PAGE).forEach((c, i) => {
       const cx = GRID_X + (i % GRID_COLS) * CELL_W + CELL_W / 2;
       const cy = GRID_Y + Math.floor(i / GRID_COLS) * CELL_H + CELL_H / 2;
       const entry = this.save.entry(c.id);
@@ -101,16 +132,17 @@ export default class CollectionScene extends Phaser.Scene {
     if (!known) img.setTint(0x000000);
     layer.add(img);
     const t = TYPES[c.type];
+    const origin = c.pantheon ? `${PANTHEON_NAMES[c.pantheon]} god` : `Rarity: ${RARITY_NAMES[c.rarity]}`;
     const lines = known
       ? [
           `#${String(c.id).padStart(2, '0')} ${c.name}`,
-          `Tipo: ${t.name}`,
-          `Rareza: ${RARITY_NAMES[c.rarity]}`,
-          `Capturadas: ${entry.count}`,
-          `Shiny: ${shinyOwned ? `sí (${entry.shinyCount})` : 'no'}`
+          `Origin: ${t.name}`,
+          origin,
+          `Captured: ${entry.count}`,
+          `Gold: ${shinyOwned ? `yes (${entry.shinyCount})` : 'no'}`
         ]
-      : [`#${String(c.id).padStart(2, '0')} ???`, `Tipo: ${t.name}`, `Rareza: ${RARITY_NAMES[c.rarity]}`, 'Aún no capturada'];
+      : [`#${String(c.id).padStart(2, '0')} ???`, `Origin: ${t.name}`, origin, 'Not captured yet'];
     layer.add(text(this, W / 2, 340, lines.join('\n'), 8, COLORS.inkHex).setOrigin(0.5));
-    layer.add(makeButton(this, W / 2, 420, 140, 30, 'CERRAR', () => layer.destroy()));
+    layer.add(makeButton(this, W / 2, 420, 140, 30, 'CLOSE', () => layer.destroy()));
   }
 }

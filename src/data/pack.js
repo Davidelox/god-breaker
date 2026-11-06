@@ -1,9 +1,10 @@
-// Packs de contenido: permiten sustituir el catálogo de criaturas y las imágenes de las bolas
+// Packs de contenido: permiten sustituir el catálogo de bestias y las imágenes de los orbes
 // sin tocar el código. Ficheros en public/pack/ (ver public/pack/LEEME.md).
 // Si el pack no existe o tiene errores, el juego usa el contenido por defecto.
 import { setCreatures, DEFAULT_CREATURES } from './creatures.js';
 import { BALL_TYPES } from './balls.js';
 import { TYPES } from './types.js';
+import { PANTHEON_NAMES } from './bestiary.js';
 import { buildMissions } from './missions.js';
 import { logError } from '../core/errors.js';
 
@@ -43,7 +44,8 @@ export function validateCreatures(raw) {
     if (!Number.isInteger(id) || id <= 0) return errors.push(`${where}: id inválido`);
     if (seen.has(id)) return errors.push(`${where}: id ${id} repetido`);
     if (typeof e.nombre !== 'string' || !e.nombre.trim()) return errors.push(`${where}: falta "nombre"`);
-    if (!TYPES[e.tipo]) return errors.push(`${where}: tipo "${e.tipo}" no existe`);
+    const origin = e.origen ?? e.tipo;
+    if (!TYPES[origin]) return errors.push(`${where}: origen "${origin}" no existe`);
     const legendary = e.legendaria === true;
     const rarity = legendary ? 4 : Number(e.rareza);
     if (!legendary && ![1, 2, 3].includes(rarity)) return errors.push(`${where}: "rareza" debe ser 1, 2 o 3`);
@@ -51,9 +53,11 @@ export function validateCreatures(raw) {
     list.push({
       id,
       name: e.nombre.trim().slice(0, 14),
-      type: e.tipo,
+      type: origin,
       rarity,
       legendary,
+      pantheon: legendary && PANTHEON_NAMES[e.panteon] ? e.panteon : null,
+      art: typeof e.sprite === 'string' && e.sprite.trim() ? e.sprite.trim() : 'wisp',
       image: isImagePath(e.imagen) ? e.imagen : null,
       imageShiny: isImagePath(e.imagenShiny) ? e.imagenShiny : null
     });

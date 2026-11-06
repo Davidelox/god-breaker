@@ -4,6 +4,24 @@ import { logError } from '../core/errors.js';
 const midi = (m) => 440 * 2 ** ((m - 69) / 12);
 const BPM = 76;
 const BAR = (4 * 60) / BPM;
+// Pista de combate (dentro de la partida): más rápida, con tambores, ostinato y metales.
+const BATTLE_BPM = 112;
+const BATTLE_BAR = (4 * 60) / BATTLE_BPM;
+const S16 = BATTLE_BAR / 16; // semicorchea
+
+// Melodía heroica por compases, en grados del acorde: r raíz, 3 tercera, 5 quinta, 8 octava, 9 novena.
+// Cada nota: [inicio en semicorcheas, grado, duración en semicorcheas]
+const MOTIFS = [
+  [[0, '5', 3], [3, '5', 1], [4, '8', 6], [10, '9', 2], [12, '5', 4]],
+  [[0, '3', 4], [4, '5', 2], [6, '3', 2], [8, 'r', 8]],
+  [[0, '5', 3], [3, '5', 1], [4, '8', 4], [8, '9', 4], [12, '8', 4]],
+  [[0, '9', 4], [4, '5', 4], [8, '3', 2], [10, '5', 2], [12, 'r', 4]]
+];
+const DEGREE = { r: 0, 5: 7, 8: 12, 9: 14 };
+const degree = (d, q) => (d === '3' ? (q === 'm' ? 3 : 4) : DEGREE[d]);
+// Tambores por compás (semicorcheas): bombo grave (taiko), caja y charles
+const KICK = [0, 3, 6, 8, 10, 11];
+const SNARE = [4, 12];
 
 // Progresiones por clima: [nota raíz MIDI, 'm' menor | 'M' mayor]
 const MOODS = [
@@ -85,6 +103,7 @@ class AudioEngine {
     this.musicOn = true;
     this.sfxOn = true;
     this.mood = 0;
+    this.track = 'ambient';
     this.last = {};
     this.failed = false;
   }
@@ -119,7 +138,7 @@ class AudioEngine {
       this.musicGain.gain.value = this.musicOn ? 0.5 : 0;
       this.musicFilter = ctx.createBiquadFilter();
       this.musicFilter.type = 'lowpass';
-      this.musicFilter.frequency.value = 1500;
+      this.musicFilter.frequency.value = this.track === 'battle' ? 4200 : 1500;
       this.musicFilter.connect(this.musicGain);
       this.musicGain.connect(this.master);
       const len = ctx.sampleRate;
@@ -167,7 +186,7 @@ class AudioEngine {
     osc.stop(t + dur + 0.05);
   }
 
-  noise(dur, { gain = 0.1, filter = 1500, sweepTo = null, delay = 0, type = 'lowpass' } = {}) {
+  noise(dur, { gain = 0.1, filter = 1500, sweepTo = null, delay = 0, type = 'lowpass', dest = this.sfxGain } = {}) {
     const ctx = this.ctx;
     const t = ctx.currentTime + delay;
     const src = ctx.createBufferSource();
@@ -179,7 +198,7 @@ class AudioEngine {
     const g = ctx.createGain();
     g.gain.setValueAtTime(gain, t);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    src.connect(f).connect(g).connect(this.sfxGain);
+    src.connect(f).connect(g).connect(dest);
     src.start(t);
     src.stop(t + dur + 0.05);
   }
@@ -188,6 +207,22 @@ class AudioEngine {
 
   setMood(i) {
     this.mood = ((i % MOODS.length) + MOODS.length) % MOODS.length;
+  }
+
+  /** 'ambient' (menús) o 'battle' (partida). El cambio entra al momento, desde el compás 0. */
+  setTrack(name) {
+    if (this.track === name) return;
+    this.track = name;
+    if (!this.ctx) return;
+    this.musicFilter.frequency.setTargetAtTime(name === 'battle' ? 4200 : 1500, this.ctx.currentTime, 0.2);
+    if (this.musicTimer) {
+      this.bar = 0;
+      this.nextBar = this.ctx.currentTime + 0.12;
+    }
+  }
+
+  barLen() {
+    return this.track === 'battle' ? BATTLE_BAR : BAR;
   }
 
   setMusic(on) {
@@ -209,8 +244,10 @@ class AudioEngine {
     this.musicTimer = setInterval(() => {
       try {
         while (this.nextBar < this.ctx.currentTime + 0.8) {
-          this.playBar(this.nextBar);
-          this.nextBar += BAR;
+          const len = this.barLen();
+          if (this.track === 'battle') this.playBattleBar(this.nextBar);
+          else this.playBar(this.nextBar);
+          this.nextBar += len;
           this.bar++;
         }
       } catch (err) {
@@ -238,6 +275,91 @@ class AudioEngine {
     osc.connect(g).connect(this.musicFilter);
     osc.start(t);
     osc.stop(t + dur + 1.3);
+  }
+
+  // ---------- Pista de combate ----------
+
+  /** Nota con timbre de metal/cuerda: diente de sierra con filtro que se abre y se cierra. */
+  brass(m, t, dur, gain, { cutoff = 1600, attack = 0.03, type = 'sawtooth', detune = 0 } = {}) {
+    const ctx = this.ctx;
+    const osc = ctx.createOscillator();
+    const f = ctx.createBiquadFilter();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = midi(m);
+    osc.detune.value = detune;
+    f.type = 'lowpass';
+    f.Q.value = 2;
+    f.frequency.setValueAtTime(cutoff * 0.35, t);
+    f.frequency.linearRampToValueAtTime(cutoff, t + attack + 0.05);
+    f.frequency.exponentialRampToValueAtTime(cutoff * 0.5, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(gain, t + attack);
+    g.gain.setValueAtTime(gain, t + Math.max(attack, dur - 0.06));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.12);
+    osc.connect(f).connect(g).connect(this.musicFilter);
+    osc.start(t);
+    osc.stop(t + dur + 0.2);
+  }
+
+  /** Tambor grave tipo taiko: seno que cae de tono. */
+  kick(t, gain = 0.32) {
+    const ctx = this.ctx;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(42, t + 0.28);
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
+    osc.connect(g).connect(this.musicFilter);
+    osc.start(t);
+    osc.stop(t + 0.42);
+  }
+
+  playBattleBar(t) {
+    const now = this.ctx.currentTime;
+    const bar = this.bar;
+    const [root, q] = MOODS[this.mood][bar % 4];
+    const third = root + (q === 'm' ? 3 : 4);
+    const section = Math.floor(bar / 4) % 4; // 0 entrada, 1 y 2 melodía, 3 puente más intenso
+    const lastBeat = bar % 4 === 3;
+
+    // Tambores
+    KICK.forEach((s) => this.kick(t + s * S16, s === 0 ? 0.34 : 0.22));
+    if (section > 0) SNARE.forEach((s) => this.noise(0.16, { gain: 0.11, filter: 1900, type: 'bandpass', delay: t + s * S16 - now, dest: this.musicFilter }));
+    for (let s = 0; s < 16; s += section === 3 ? 1 : 2) {
+      this.noise(0.04, { gain: s % 4 === 0 ? 0.035 : 0.02, filter: 7000, type: 'highpass', delay: t + s * S16 - now, dest: this.musicFilter });
+    }
+    // Redoble al final de cada frase de 4 compases
+    if (lastBeat) for (let s = 12; s < 16; s++) this.kick(t + s * S16, 0.16 + (s - 12) * 0.04);
+
+    // Bajo en corcheas (octava baja de la raíz)
+    for (let s = 0; s < 16; s += 2) this.brass(root - 12, t + s * S16, S16 * 1.6, 0.05, { cutoff: 520, attack: 0.01 });
+
+    // Ostinato de cuerdas en semicorcheas: raíz, quinta, octava, quinta
+    const ost = [root, root + 7, root + 12, root + 7];
+    for (let s = 0; s < 16; s++) {
+      this.brass(ost[s % 4] + 12, t + s * S16, S16 * 0.7, s % 4 === 0 ? 0.03 : 0.022, { cutoff: 2400, attack: 0.008 });
+    }
+
+    // Acorde largo de metales (quinta vacía + octava) y coro suave
+    for (const n of [root, root + 7, root + 12]) this.brass(n, t, BATTLE_BAR * 0.96, 0.022, { cutoff: 1100, attack: 0.18 });
+    for (const [n, det] of [[third + 12, -6], [third + 12, 6], [root + 19, 0]]) {
+      this.brass(n, t, BATTLE_BAR, 0.012, { cutoff: 1800, attack: 0.4, type: 'triangle', detune: det });
+    }
+
+    // Melodía heroica (en la entrada solo suena el ritmo)
+    if (section > 0) {
+      const motif = MOTIFS[(bar % 4 + (section === 3 ? 2 : 0)) % MOTIFS.length];
+      for (const [s, d, len] of motif) {
+        const n = root + 12 + degree(d, q);
+        const dur = len * S16 * 0.95;
+        this.brass(n, t + s * S16, dur, 0.06, { cutoff: section === 3 ? 3200 : 2400, attack: 0.025 });
+        // Segunda voz una octava abajo en el puente
+        if (section === 3) this.brass(n - 12, t + s * S16, dur, 0.035, { cutoff: 1600, attack: 0.025 });
+      }
+    }
   }
 
   playBar(t) {

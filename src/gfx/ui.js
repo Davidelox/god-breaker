@@ -5,18 +5,18 @@ import { audio } from '../audio/audio.js';
 /** Botones MUSICA / SONIDO que activan o desactivan el audio y lo guardan. */
 export function makeAudioToggles(scene, y, save) {
   const s = save.data.settings;
-  const label = (name, on) => `${name} ${on ? 'SI' : 'NO'}`;
-  const music = makeButton(scene, scene.scale.width / 2 - 72, y, 136, 30, label('MUSICA', s.music), () => {
+  const label = (name, on) => `${name} ${on ? 'ON' : 'OFF'}`;
+  const music = makeButton(scene, scene.scale.width / 2 - 72, y, 136, 30, label('MUSIC', s.music), () => {
     s.music = !s.music;
     audio.setMusic(s.music);
     save.write();
-    music.setLabel(label('MUSICA', s.music));
+    music.setLabel(label('MUSIC', s.music));
   });
-  const sfx = makeButton(scene, scene.scale.width / 2 + 72, y, 136, 30, label('SONIDO', s.sfx), () => {
+  const sfx = makeButton(scene, scene.scale.width / 2 + 72, y, 136, 30, label('SOUND', s.sfx), () => {
     s.sfx = !s.sfx;
     audio.setSfx(s.sfx);
     save.write();
-    sfx.setLabel(label('SONIDO', s.sfx));
+    sfx.setLabel(label('SOUND', s.sfx));
   });
   return [music, sfx];
 }

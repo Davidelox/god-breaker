@@ -1,14 +1,14 @@
 import Phaser from 'phaser';
 import {
   W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y, BOARD_FLOOR_Y,
-  BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE,
+  BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, CREATURE_FROM_TURN, BOSS_EVERY, SHINY_RATE,
   CORNER_JITTER, BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
   HP_PER_TURN, CREATURE_HP_BONUS, CREATURE_HP_PER_RARITY, BALLS_PER_TURN, PICKUP_CHANCE, PICKUP_COOLDOWN, ROW_GROWTH_TURNS, BOSS_HP
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
-import { TYPES, effectiveness, hexToNum } from '../data/types.js';
-import { SPECIAL_COST, specialById } from '../data/specials.js';
+import { TYPES, hexToNum } from '../data/types.js';
+import { SPECIAL_COST, specialById, ELEMENTS } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from '../data/balls.js';
 import { creatureKey, addCreatureImage, texScale } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, COLORS } from '../gfx/ui.js';
@@ -20,7 +20,8 @@ import { newlyCompleted, MISSIONS } from '../data/missions.js';
 
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
-const TRAIL_POINTS = 5;
+const TRAIL_POINTS = 9; // puntos guardados de la estela de luz de cada orbe
+const TRAIL_LENGTH = 48; // longitud máxima de la estela (px), menor que la separación entre orbes
 const WATER_PIERCE = 3; // bloques que atraviesa cada bola con Torrente normal (MAX: todos)
 const VERTICAL_ATTACK_BOUNCES = 6; // rebotes verticales seguidos antes del Ataque vertical
 const VERTICAL_ATTACK_BONUS = 200; // + 50 por bloque roto
@@ -82,7 +83,6 @@ export default class GameScene extends Phaser.Scene {
     this.toLaunch = 0;
     this.launchTimer = null;
     this.runCaptures = [];
-    this.lastEffTextAt = 0;
     this.paused = false;
     this.anyDead = false;
     this.pendingCaptures = 0;
@@ -97,8 +97,9 @@ export default class GameScene extends Phaser.Scene {
   create() {
     this.drawBoard();
     this.aimG = this.add.graphics().setDepth(5);
-    this.trailG = this.add.graphics().setDepth(7);
+    this.trailG = this.add.graphics().setDepth(7).setBlendMode(Phaser.BlendModes.ADD);
     audio.setMood(0);
+    audio.setTrack('battle');
     this.fxG = this.add.graphics().setDepth(25);
     this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball_normal').setDepth(6).setScale((BALL_R / BALL_TEXTURE_R) * texScale('ball_normal'));
     this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball_normal').setDepth(6).setAlpha(0.4).setVisible(false).setScale((BALL_R / BALL_TEXTURE_R) * texScale('ball_normal'));
@@ -159,7 +160,7 @@ export default class GameScene extends Phaser.Scene {
     const w = this.weather.next();
     audio.setMood(this.weather.index);
     audio.play('weather');
-    this.showToast(`El clima cambia: ${w.name}`, '#3a5a8a');
+    this.showToast(`The weather changes: ${w.name}`, '#3a5a8a');
   }
 
   createHud() {
@@ -168,7 +169,7 @@ export default class GameScene extends Phaser.Scene {
     this.bestText = text(this, 14, 28, '', 8, '#56607c').setOrigin(0, 0);
     this.turnText = text(this, 14, 42, '', 8, '#56607c').setOrigin(0, 0);
     this.captText = text(this, 130, 42, '', 8, '#56607c').setOrigin(0, 0);
-    this.boostText = text(this, W - 14, 42, '', 8, '#c0409c').setOrigin(1, 0);
+    this.boostText = text(this, W - 14, 42, '', 8, '#b07800').setOrigin(1, 0);
     this.menuBtn = makeButton(this, W - 26, 22, 30, 24, 'II', () => this.openPause());
     // Velocidad x1/x2/x3: se mantiene entre turnos y entre partidas.
     this.speedBtn = makeButton(this, W - 112, 22, 44, 24, `x${this.speedMul}`, () => {
@@ -183,8 +184,8 @@ export default class GameScene extends Phaser.Scene {
   // Barra inferior: medidores de poder y shiny, 2 huecos de poder y selector de bola.
   createSpecialBar() {
     const barY = BOARD_FLOOR_Y + 10;
-    text(this, BOARD_X, barY, 'PODER', 8, '#4ce0e8').setOrigin(0, 0);
-    text(this, W / 2 + 4, barY, 'SHINY', 8, '#ff7cd0').setOrigin(0, 0);
+    text(this, BOARD_X, barY, 'MAGIC', 8, '#4ce0e8').setOrigin(0, 0);
+    text(this, W / 2 + 4, barY, 'GOLD', 8, '#ffd84a').setOrigin(0, 0);
     this.energyG = this.add.graphics();
     this.slotButtons = [];
     for (let i = 0; i < MAX_POWERS; i++) {
@@ -210,11 +211,11 @@ export default class GameScene extends Phaser.Scene {
 
   refreshHud() {
     const best = Math.max(this.save.data.bestScore, Math.floor(this.score));
-    this.scoreText.setText(`PUNTOS ${Math.floor(this.score)}`);
-    this.bestText.setText(`RECORD ${best}`);
-    this.turnText.setText(`TURNO ${this.turn}`);
-    this.captText.setText(`CAPTURAS ${this.runCaptures.length}`);
-    this.boostText.setText(this.shinyBoostTurns > 0 ? `SHINY ${pct(SHINY_BOOST_RATE)} x${this.shinyBoostTurns}` : '');
+    this.scoreText.setText(`SCORE ${Math.floor(this.score)}`);
+    this.bestText.setText(`BEST ${best}`);
+    this.turnText.setText(`TURN ${this.turn}`);
+    this.captText.setText(`CAPTURED ${this.runCaptures.length}`);
+    this.boostText.setText(this.shinyBoostTurns > 0 ? `GOLD ${pct(SHINY_BOOST_RATE)} x${this.shinyBoostTurns}` : '');
     const shooting = this.state === 'shooting';
     const turbo = this.turbo && this.state === 'shooting';
     this.speedBtn.setLabel(turbo ? `x${TURBO_SPEED}` : `x${this.speedMul}`).setSelected(turbo || this.speedMul > 1);
@@ -231,19 +232,19 @@ export default class GameScene extends Phaser.Scene {
     this.energyG.clear();
     const locked = this.powers.length >= MAX_POWERS;
     this.drawMeter(BOARD_X + 44, barY, W / 2 - BOARD_X - 52, this.energy / SPECIAL_COST, locked ? 0x56607c : 0x4ce0e8);
-    this.drawMeter(W / 2 + 48, barY, W / 2 - BOARD_X - 48, this.shinyMeter / SHINY_METER_MAX, 0xff7cd0);
+    this.drawMeter(W / 2 + 48, barY, W / 2 - BOARD_X - 48, this.shinyMeter / SHINY_METER_MAX, 0xffd84a);
     const aim = this.state === 'aim';
     this.slotButtons.forEach((btn, i) => {
       const sp = specialById(this.powers[i]);
-      btn.setLabel(sp ? TYPES[sp.type].short : '-');
-      btn.setFill(sp ? hexToNum(TYPES[sp.type].base) : 0x3a4668, '#ffffff');
+      btn.setLabel(sp ? ELEMENTS[sp.type].short : '-');
+      btn.setFill(sp ? hexToNum(ELEMENTS[sp.type].base) : 0x3a4668, '#ffffff');
       btn.setEnabled(!!sp && aim);
       btn.setSelected(this.selectedSlots.has(i));
     });
     for (const id of BALL_ORDER) {
       const n = this.ballInv[id];
       const btn = this.ballButtons[id];
-      btn.setLabel(id === 'normal' ? 'NORMAL' : `${BALL_TYPES[id].name.toUpperCase()}\n${n}`);
+      btn.setLabel(id === 'normal' ? upper(BALL_TYPES[id].name) : `${upper(BALL_TYPES[id].name)}\n${n}`);
       btn.setEnabled(n > 0 && aim);
       btn.setSelected(this.selectedBall === id);
     }
@@ -373,13 +374,17 @@ export default class GameScene extends Phaser.Scene {
       const col = randInt(0, COLS - 2);
       this.addBlock({ col, row, size: 2, kind: 'boss', creature: this.nextLegendary(), hp: BOSS_HP(t) });
       taken.add(col).add(col + 1);
-      this.showToast('¡Aparece un legendario!', '#b07800');
+      this.showToast('A god descends!', '#b07800');
       audio.play('bossAppear');
     }
     const free = shuffle([...Array(COLS).keys()].filter((c) => !taken.has(c)));
     const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / ROW_GROWTH_TURNS));
     const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
-    for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(row, free[i], t);
+    // Como mucho una bestia por turno (y ninguna si en este turno ya baja un dios).
+    let beastAllowed = !this.isBossTurn(t);
+    for (let i = 0; i < Math.min(count, free.length - 1); i++) {
+      if (this.addRandomBlock(row, free[i], t, beastAllowed)) beastAllowed = false;
+    }
     // La bola extra +1 ya no sale en todas las filas
     // Bola extra +1: solo una en pantalla, y no vuelve a salir hasta que pasen PICKUP_COOLDOWN tiradas tras recogerla
     if (!this.pickups.length && this.pickupCooldown <= 0 && Math.random() < this.pickupChance) {
@@ -393,15 +398,17 @@ export default class GameScene extends Phaser.Scene {
     return this.legendBag.pop();
   }
 
-  addRandomBlock(row, col, t) {
-    if (Math.random() < CREATURE_CHANCE) {
+  /** Añade un bloque normal o, si se permite, quizá una bestia. Devuelve true si ha salido una bestia. */
+  addRandomBlock(row, col, t, beastAllowed = true) {
+    if (beastAllowed && t >= CREATURE_FROM_TURN && Math.random() < CREATURE_CHANCE) {
       const rarity = weightedPick([[1, 60], [2, 30], [3, 10]]);
       const creature = pick(NORMAL_CREATURES.filter((c) => c.rarity === rarity));
       const bonus = CREATURE_HP_BONUS + CREATURE_HP_PER_RARITY * (rarity - 1);
       this.addBlock({ row, col, size: 1, kind: 'creature', creature, hp: Math.ceil(this.baseHp(t) * (1 + bonus)) });
-    } else {
-      this.addBlock({ row, col, size: 1, kind: 'plain', hp: this.baseHp(t) });
+      return true;
     }
+    this.addBlock({ row, col, size: 1, kind: 'plain', hp: this.baseHp(t) });
+    return false;
   }
 
   /** Vida base de un bloque en el turno t (con algo de variación). */
@@ -423,7 +430,7 @@ export default class GameScene extends Phaser.Scene {
     blk.bg = bg;
     blk.color = color;
     if (d.creature) {
-      const spr = addCreatureImage(this, 0, d.kind === 'boss' ? -14 : -7, d.creature.id, blk.shiny, d.kind === 'boss' ? 3 : 2);
+      const spr = addCreatureImage(this, 0, d.kind === 'boss' ? -13 : -7, d.creature.id, blk.shiny, d.kind === 'boss' ? 3.3 : 2);
       cont.add(spr);
       blk.sprite = spr;
       this.tweens.add({ targets: spr, y: spr.y - 2, duration: 400 + Math.random() * 300, yoyo: true, repeat: -1 });
@@ -467,7 +474,7 @@ export default class GameScene extends Phaser.Scene {
     // Haz de luz que cae sobre el bloque
     const beam = this.add.rectangle(cont.x, BOARD_TOP, 10, cont.y - BOARD_TOP, COLORS.gold, 0.45).setOrigin(0.5, 0).setDepth(18);
     this.tweens.add({ targets: beam, scaleX: 4, alpha: 0, duration: 700, ease: 'Quad.easeOut', onComplete: () => beam.destroy() });
-    this.showToast(`¡Ha aparecido un ${blk.creature.name} SHINY!`, '#b07800');
+    this.showToast(`A GOLD ${blk.creature.name} appeared!`, '#b07800');
     audio.play('shiny');
   }
 
@@ -487,7 +494,7 @@ export default class GameScene extends Phaser.Scene {
       this.bossWarn.label = label;
       this.tweens.add({ targets: bar, alpha: 0.08, duration: 600, yoyo: true, repeat: -1 });
     }
-    this.bossWarn.label.setText(left === 1 ? '¡LEGENDARIO EL PROXIMO TURNO!' : 'LEGENDARIO EN 2 TURNOS');
+    this.bossWarn.label.setText(left === 1 ? 'A GOD COMES NEXT TURN!' : 'A GOD IN 2 TURNS');
     this.bossWarn.setVisible(true);
   }
 
@@ -621,7 +628,7 @@ export default class GameScene extends Phaser.Scene {
     const img = this.add.image(this.shotX, LAUNCH_Y, ballKey).setDepth(8).setScale((r / BALL_TEXTURE_R) * texScale(ballKey));
     let trailColor = BALL_TYPES[this.shotBall].trail;
     if (extra) trailColor = PLANT_COLOR;
-    else if (others.length) trailColor = hexToNum(TYPES[others[0].type].light);
+    else if (others.length) trailColor = hexToNum(ELEMENTS[others[0].type].light);
     if (powered) img.setTint(trailColor);
     if (extra) {
       // Bola añadida por Enredadera: destello verde al salir y brillo que late
@@ -682,7 +689,7 @@ export default class GameScene extends Phaser.Scene {
     this.shotTime += dt;
     if (this.shotTime > 12 && !this.recallHinted) {
       this.recallHinted = true;
-      this.showToast('Pulsa ▼ para recoger las bolas');
+      this.showToast('Press ▼ to recall your orbs');
     }
     const speed = this.turbo ? Math.max(TURBO_SPEED, this.speedMul) : this.speedMul;
     if (this.launchTimer) this.launchTimer.timeScale = speed;
@@ -735,19 +742,38 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  // Estela leve: puntos que se encogen y se desvanecen detrás de cada bola.
+  // Estela de luz: halo del color del orbe y núcleo blanco que se estrechan y se apagan hacia atrás,
+  // dibujados con mezcla aditiva para que brillen sobre el tablero.
   drawTrails() {
     const g = this.trailG;
     g.clear();
     for (const b of this.balls) {
       if (!b.img) continue;
-      const n = b.trail.length / 2;
-      for (let i = 0; i < n - 1; i++) {
-        const k = (i + 1) / n;
-        const size = Math.max(1, Math.round(b.r * 1.4 * k));
-        g.fillStyle(b.trailColor, 0.28 * k);
-        g.fillRect(Math.round(b.trail[i * 2] - size / 2), Math.round(b.trail[i * 2 + 1] - size / 2), size, size);
+      const t = b.trail;
+      // La estela mide como mucho TRAIL_LENGTH px (menos que la separación entre orbes),
+      // así los disparos seguidos no se funden en una línea continua.
+      let dist = 0;
+      for (let i = t.length / 2 - 1; i > 0 && dist < TRAIL_LENGTH; i--) {
+        let [x1, y1, x0, y0] = [t[i * 2], t[i * 2 + 1], t[i * 2 - 2], t[i * 2 - 1]];
+        const seg = Math.hypot(x1 - x0, y1 - y0);
+        if (dist + seg > TRAIL_LENGTH && seg > 0) {
+          const f = (TRAIL_LENGTH - dist) / seg;
+          x0 = x1 + (x0 - x1) * f;
+          y0 = y1 + (y0 - y1) * f;
+        }
+        const k1 = 1 - dist / TRAIL_LENGTH; // 1 junto al orbe, 0 al final
+        dist += seg;
+        const k = Math.max(0, (k1 + Math.max(0, 1 - dist / TRAIL_LENGTH)) / 2);
+        // Halo
+        g.lineStyle(Math.max(1, b.r * 2 * k), b.trailColor, 0.2 * k);
+        g.lineBetween(x0, y0, x1, y1);
+        // Núcleo
+        g.lineStyle(Math.max(1, b.r * 0.7 * k), 0xffffff, 0.5 * k);
+        g.lineBetween(x0, y0, x1, y1);
       }
+      // Resplandor alrededor del orbe
+      g.fillStyle(b.trailColor, 0.12);
+      g.fillCircle(b.x, b.y, b.r * 1.2);
     }
   }
 
@@ -875,21 +901,16 @@ export default class GameScene extends Phaser.Scene {
   // ---------- Daño, especiales y captura ----------
 
   hitBlock(blk, ball = null) {
-    // Con dos poderes activos se usa la mejor eficacia de sus tipos.
-    const eff = this.activeSpecials.length
-      ? Math.max(...this.activeSpecials.map((s) => effectiveness(s.type, blk.creature?.type)))
-      : 1;
-    // Escarcha: x2 (MAX x3). Torrente MAX: x2.
+    // Lanza de hielo: x2 (MAX x3). Maremoto MAX: x2. No hay debilidades por elemento.
     const ice = this.powerLevel('escarcha');
-    const mult = (ice === 2 ? 3 : ice ? 2 : 1) * (this.powerLevel('torrente') === 2 ? 2 : 1);
-    const dmg = mult * eff;
+    const dmg = (ice === 2 ? 3 : ice ? 2 : 1) * (this.powerLevel('torrente') === 2 ? 2 : 1);
     const { x, y } = blk.cont;
     this.powerHitFx(blk, x, y, ball);
-    this.damage(blk, dmg, eff);
+    this.damage(blk, dmg);
     const fire = this.powerLevel('estallido');
     if (fire) {
       // MAX: daño completo y alcance de 2 casillas
-      for (const n of this.neighbors(blk, fire)) this.damage(n, (fire === 2 ? 1 : 0.5) * effectiveness('fuego', n.creature?.type));
+      for (const n of this.neighbors(blk, fire)) this.damage(n, fire === 2 ? 1 : 0.5);
     }
     const elec = this.powerLevel('arco');
     if (elec) {
@@ -903,7 +924,7 @@ export default class GameScene extends Phaser.Scene {
       for (const { o } of near) {
         this.bolts.push({ x1: x, y1: y, x2: o.cont.x, y2: o.cont.y, ttl: 0.16, max: 0.16 });
         this.fxBurst(o.cont.x, o.cont.y, [0xfff07a, 0xffffff], 4, 18, 200);
-        this.damage(o, effectiveness('electrico', o.creature?.type));
+        this.damage(o, 1);
       }
     }
   }
@@ -941,19 +962,18 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.shake(260, 0.01);
     this.cameras.main.flash(160, 255, 250, 220);
     floatText(this, cx, BOARD_TOP + CELL * 3, `+${gained}`, COLORS.goldHex, 16);
-    this.showToast(`¡ATAQUE VERTICAL! +${gained}`, '#b07800');
+    this.showToast(`VERTICAL STRIKE! +${gained}`, '#b07800');
     audio.play('vertical');
   }
 
-  damage(blk, dmg, eff = 1) {
+  damage(blk, dmg) {
     if (blk.dead || dmg <= 0) return;
     this.addScore(Math.min(dmg, blk.hp));
     blk.hp -= dmg;
     blk.bg.setFillStyle(0xffffff);
     if (blk.sprite) {
       // La criatura parpadea en rojo al recibir el golpe
-      // Rojo normal; naranja si es muy eficaz; gris si es poco eficaz
-      blk.sprite.setTint(eff > 1 ? 0xff9020 : eff < 1 ? 0x8a8a8a : 0xff3030);
+      blk.sprite.setTint(0xff3030);
       blk.redUntil = this.time.now + 90;
       this.time.delayedCall(90, () => {
         if (!blk.dead && this.time.now >= blk.redUntil - 1) blk.sprite.clearTint();
@@ -962,10 +982,6 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(50, () => !blk.dead && blk.bg.setFillStyle(blk.color));
     this.punch(blk);
     audio.play('hit', { boss: blk.kind === 'boss' });
-    if (eff !== 1 && this.time.now - this.lastEffTextAt > 400) {
-      this.lastEffTextAt = this.time.now;
-      floatText(this, blk.cont.x, blk.cont.y - 16, eff > 1 ? '¡MUY EFICAZ!' : 'poco eficaz', eff > 1 ? COLORS.goldHex : '#a8b4cc');
-    }
     if (blk.hp <= 0.001) this.destroyBlock(blk);
     else this.updateBlockText(blk);
   }
@@ -1069,7 +1085,7 @@ export default class GameScene extends Phaser.Scene {
   powerIntro(specials) {
     const max = specials.length === 2 && specials[0].id === specials[1].id;
     const combo = specials.length === 2 && !max;
-    const main = TYPES[specials[0].type];
+    const main = ELEMENTS[specials[0].type];
     const tint = this.add
       .rectangle(BOARD_X, BOARD_TOP, COLS * CELL, BOARD_FLOOR_Y - BOARD_TOP, hexToNum(main.base), max ? 0.4 : 0.28)
       .setOrigin(0)
@@ -1080,10 +1096,10 @@ export default class GameScene extends Phaser.Scene {
     const hold = combo || max ? 900 : 520;
     if (combo) {
       // Combinación: banda partida con el color de cada tipo
-      const [a, b] = specials.map((sp) => TYPES[sp.type]);
+      const [a, b] = specials.map((sp) => ELEMENTS[sp.type]);
       objs.push(this.add.rectangle(W / 4, y, W / 2, 64, hexToNum(a.dark), 0.9));
       objs.push(this.add.rectangle((3 * W) / 4, y, W / 2, 64, hexToNum(b.dark), 0.9));
-      objs.push(text(this, W / 2, y - 18, '¡COMBO!', 16, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 4));
+      objs.push(text(this, W / 2, y - 18, 'COMBO!', 16, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 4));
       objs.push(text(this, W / 4, y + 6, a.short, 16, '#ffffff').setOrigin(0.5).setStroke('#101828', 4));
       objs.push(text(this, W / 2, y + 6, '+', 16, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 4));
       objs.push(text(this, (3 * W) / 4, y + 6, b.short, 16, '#ffffff').setOrigin(0.5).setStroke('#101828', 4));
@@ -1091,7 +1107,7 @@ export default class GameScene extends Phaser.Scene {
     } else {
       objs.push(this.add.rectangle(W / 2, y, W, max ? 64 : 40, hexToNum(main.dark), 0.9).setStrokeStyle(max ? 3 : 0, COLORS.gold));
       objs.push(text(this, W / 2, y - (max ? 10 : 0), upper(specials[0].name), 16, '#ffffff').setOrigin(0.5).setStroke('#101828', 4));
-      if (max) objs.push(text(this, W / 2, y + 16, '¡PODER MAX!', 8, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 3));
+      if (max) objs.push(text(this, W / 2, y + 16, 'MAX SPELL!', 8, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 3));
     }
     const layer = this.add.container(0, 0, objs).setDepth(46).setAlpha(0);
     layer.setScale(1, 0.2);
@@ -1104,11 +1120,11 @@ export default class GameScene extends Phaser.Scene {
     audio.play('powerCast');
     if (max) audio.play('shiny');
     for (const sp of specials) {
-      const t = TYPES[sp.type];
+      const t = ELEMENTS[sp.type];
       this.fxBurst(this.launchX, LAUNCH_Y, [hexToNum(t.base), hexToNum(t.light), 0xffffff], 14, 34, 500, -10);
     }
     // Indicador durante el lanzamiento
-    const tag = max ? `${main.short} MAX` : specials.map((sp) => TYPES[sp.type].short).join('+');
+    const tag = max ? `${main.short} MAX` : specials.map((sp) => ELEMENTS[sp.type].short).join('+');
     this.powerTag?.destroy();
     this.powerTag = text(this, BOARD_X + 4, LAUNCH_Y - 2, tag, 8, max || combo ? COLORS.goldHex : '#ffffff').setOrigin(0, 0.5).setDepth(6).setStroke('#101828', 3);
   }
@@ -1204,7 +1220,7 @@ export default class GameScene extends Phaser.Scene {
       const sp = specialById(rollPower());
       this.powers.push(sp.id);
       audio.play('power');
-      this.showToast(`¡Nuevo poder: ${sp.name}!`, TYPES[sp.type].dark);
+      this.showToast(`New spell: ${sp.name}!`, ELEMENTS[sp.type].dark);
     }
     this.refreshSpecials();
   }
@@ -1253,7 +1269,7 @@ export default class GameScene extends Phaser.Scene {
     // Cartel
     const cy = BOARD_TOP + CELL * 2.4;
     const band = this.add.rectangle(W / 2, cy, W, 58, hexToNum(t.dark), 0.92).setDepth(50).setStrokeStyle(3, COLORS.gold).setScale(1, 0);
-    const title = text(this, W / 2, cy - 10, '¡LEGENDARIO DERROTADO!', 8, COLORS.goldHex).setOrigin(0.5).setDepth(51).setStroke('#101828', 3).setAlpha(0);
+    const title = text(this, W / 2, cy - 10, 'GOD DEFEATED!', 8, COLORS.goldHex).setOrigin(0.5).setDepth(51).setStroke('#101828', 3).setAlpha(0);
     const name = text(this, W / 2, cy + 10, upper(blk.creature.name), 16, '#ffffff').setOrigin(0.5).setDepth(51).setStroke('#101828', 4).setScale(0);
     this.tweens.add({ targets: band, scaleY: 1, duration: 180, ease: 'Back.easeOut', delay: 150 });
     this.tweens.add({ targets: title, alpha: 1, duration: 200, delay: 250 });
@@ -1310,8 +1326,8 @@ export default class GameScene extends Phaser.Scene {
       });
     }
     // Cartel
-    const title = text(this, cx, cy - 14, '¡PANTALLA\nLIMPIA!', 24, COLORS.goldHex).setOrigin(0.5).setDepth(50).setStroke('#101828', 6).setScale(0);
-    const bonus = text(this, cx, cy + 40, '+500  BOLA ESPECIAL', 8, '#ffffff').setOrigin(0.5).setDepth(50).setStroke('#101828', 4).setAlpha(0);
+    const title = text(this, cx, cy - 14, 'BOARD\nCLEARED!', 24, COLORS.goldHex).setOrigin(0.5).setDepth(50).setStroke('#101828', 6).setScale(0);
+    const bonus = text(this, cx, cy + 40, '+500  SPECIAL ORB', 8, '#ffffff').setOrigin(0.5).setDepth(50).setStroke('#101828', 4).setAlpha(0);
     this.tweens.add({ targets: title, scale: 1, duration: 420, ease: 'Back.easeOut' });
     this.tweens.add({ targets: title, angle: { from: -4, to: 4 }, duration: 260, yoyo: true, repeat: 2, delay: 420 });
     this.tweens.add({ targets: bonus, alpha: 1, y: cy + 34, delay: 300, duration: 250 });
@@ -1325,7 +1341,7 @@ export default class GameScene extends Phaser.Scene {
     try {
       const fresh = this.save.completeMissions(newlyCompleted(this.save.data, { score: this.score, turn: this.turn }).map((m) => m.id));
       for (const id of fresh) {
-        this.showToast(`¡Misión cumplida! ${this.missionTitle(id)}`, '#2a8a40');
+        this.showToast(`Mission complete! ${this.missionTitle(id)}`, '#2a8a40');
         audio.play('mission');
       }
     } catch (err) {
@@ -1343,7 +1359,7 @@ export default class GameScene extends Phaser.Scene {
       this.shinyMeter = 0;
       this.shinyBoostTurns = SHINY_BOOST_TURNS;
       audio.play('shiny');
-      this.showToast(`¡Shiny al ${pct(SHINY_BOOST_RATE)} durante ${SHINY_BOOST_TURNS} turnos!`, '#c0409c');
+      this.showToast(`Gold chance ${pct(SHINY_BOOST_RATE)} for ${SHINY_BOOST_TURNS} turns!`, '#b07800');
     }
     this.refreshSpecials();
     this.refreshHud();
@@ -1353,7 +1369,7 @@ export default class GameScene extends Phaser.Scene {
     const id = rollRewardBall();
     this.ballInv[id]++;
     audio.play('reward');
-    this.showToast(`¡Bola ${BALL_TYPES[id].name.toLowerCase()} conseguida!`, '#2a6aa8');
+    this.showToast(`You got a ${BALL_TYPES[id].name} orb!`, '#2a6aa8');
     this.refreshSpecials();
   }
 
@@ -1478,7 +1494,7 @@ export default class GameScene extends Phaser.Scene {
     const card = this.add.graphics();
     drawPanel(card, -cardW / 2, -cardH / 2, cardW, cardH, { fill: anyShiny ? 0xfff4c8 : COLORS.paper, border: anyShiny ? 0xb07800 : COLORS.ink });
     parts.push(card);
-    const titleStr = single ? (group[0].shiny ? '¡NUEVA SHINY!' : '¡NUEVA CAPTURA!') : `¡${n} NUEVAS CAPTURAS!`;
+    const titleStr = single ? (group[0].shiny ? 'NEW GOLD BEAST!' : 'NEW CAPTURE!') : `${n} NEW CAPTURES!`;
     parts.push(text(this, 0, -cardH / 2 + 14, titleStr, 8, anyShiny ? '#b07800' : '#2a8a40').setOrigin(0.5));
 
     const floaters = [];
@@ -1562,7 +1578,7 @@ export default class GameScene extends Phaser.Scene {
     orb.destroy();
     audio.play('escape');
     spr.setScale(scale * texScale(spr.texture.key));
-    floatText(this, spr.x, spr.y - 12, '¡Escapó!', '#a8b4cc');
+    floatText(this, spr.x, spr.y - 12, 'Escaped!', '#a8b4cc');
     this.tweens.add({ targets: spr, y: spr.y - 20, alpha: 0, duration: 450, onComplete: () => spr.destroy() });
   }
 
@@ -1611,7 +1627,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.shinyBoostTurns > 0) this.shinyBoostTurns--;
     this.updateBossWarning();
     if (BOSS_EVERY - (this.turn % BOSS_EVERY) === 2) {
-      this.showToast('¡Un legendario llegará en 2 turnos!', '#a03030');
+      this.showToast('A god arrives in 2 turns!', '#a03030');
       audio.play('bossAppear');
     }
     this.time.delayedCall(220, () => {
@@ -1634,7 +1650,7 @@ export default class GameScene extends Phaser.Scene {
     layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.6).setOrigin(0).setInteractive());
     layer.add(makePanel(this, 24, 200, W - 48, 270));
     layer.add(makeAudioToggles(this, 390, this.save));
-    const gridLabel = () => `CUADRICULA ${this.save.data.settings.grid ? 'SI' : 'NO'}`;
+    const gridLabel = () => `GRID ${this.save.data.settings.grid ? 'ON' : 'OFF'}`;
     const gridBtn = makeButton(this, W / 2, 432, 200, 30, gridLabel(), () => {
       const st = this.save.data.settings;
       st.grid = !st.grid;
@@ -1643,14 +1659,14 @@ export default class GameScene extends Phaser.Scene {
       gridBtn.setLabel(gridLabel());
     });
     layer.add(gridBtn);
-    layer.add(text(this, W / 2, 228, 'PAUSA', 16, COLORS.inkHex).setOrigin(0.5));
-    layer.add(makeButton(this, W / 2, 285, 180, 34, 'CONTINUAR', () => {
+    layer.add(text(this, W / 2, 228, 'PAUSED', 16, COLORS.inkHex).setOrigin(0.5));
+    layer.add(makeButton(this, W / 2, 285, 180, 34, 'RESUME', () => {
       layer.destroy();
       this.tweens.resumeAll();
       this.time.paused = false;
       this.paused = false;
     }));
-    layer.add(makeButton(this, W / 2, 335, 180, 34, 'SALIR AL MENU', () => {
+    layer.add(makeButton(this, W / 2, 335, 180, 34, 'QUIT TO MENU', () => {
       this.time.paused = false;
       this.save.recordGame(Math.floor(this.score), this.turn);
       this.checkMissions();
@@ -1675,15 +1691,15 @@ export default class GameScene extends Phaser.Scene {
     const layer = this.add.container(0, 0).setDepth(60);
     layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.65).setOrigin(0).setInteractive());
     layer.add(makePanel(this, 30, 170, W - 60, 290));
-    layer.add(text(this, W / 2, 200, 'FIN DE LA\nPARTIDA', 16, COLORS.inkHex).setOrigin(0.5));
+    layer.add(text(this, W / 2, 200, 'GAME\nOVER', 16, COLORS.inkHex).setOrigin(0.5));
     const lines = [
-      `PUNTOS  ${score}`,
-      isBest ? '¡NUEVO RECORD!' : `RECORD  ${this.save.data.bestScore}`,
-      `TURNOS  ${this.turn}`,
-      `CAPTURAS ${this.runCaptures.length}${shinies ? `  SHINY ${shinies}` : ''}`
+      `SCORE  ${score}`,
+      isBest ? 'NEW BEST!' : `BEST  ${this.save.data.bestScore}`,
+      `TURNS  ${this.turn}`,
+      `CAPTURED ${this.runCaptures.length}${shinies ? `  GOLD ${shinies}` : ''}`
     ];
     layer.add(text(this, W / 2, 290, lines.join('\n'), 8, isBest ? '#b07800' : COLORS.inkHex).setOrigin(0.5));
-    layer.add(makeButton(this, W / 2, 370, 180, 34, 'REINTENTAR', () => this.scene.restart()));
+    layer.add(makeButton(this, W / 2, 370, 180, 34, 'RETRY', () => this.scene.restart()));
     layer.add(makeButton(this, W / 2, 418, 180, 34, 'MENU', () => this.scene.start('title')));
   }
 }

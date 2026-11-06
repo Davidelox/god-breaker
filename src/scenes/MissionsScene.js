@@ -7,8 +7,8 @@ import { text, makeButton, drawPanel, COLORS } from '../gfx/ui.js';
 const PER_PAGE = 6;
 const ROW_H = 72;
 const TABS = [
-  ['captura', 'CAPTURA'],
-  ['progreso', 'PROGRESO']
+  ['captura', 'CAPTURE'],
+  ['progreso', 'PROGRESS']
 ];
 
 export default class MissionsScene extends Phaser.Scene {
@@ -25,8 +25,8 @@ export default class MissionsScene extends Phaser.Scene {
     this.save = this.registry.get('save');
     this.add.rectangle(0, 0, W, H, COLORS.night).setOrigin(0);
     const done = MISSIONS.filter((m) => this.save.data.missions[m.id]).length;
-    text(this, W / 2, 20, 'MISIONES', 16, COLORS.goldHex).setOrigin(0.5);
-    text(this, W / 2, 44, `Completadas ${done}/${MISSIONS.length}`, 8, '#a8b4cc').setOrigin(0.5);
+    text(this, W / 2, 20, 'MISSIONS', 16, COLORS.goldHex).setOrigin(0.5);
+    text(this, W / 2, 44, `Completed ${done}/${MISSIONS.length}`, 8, '#a8b4cc').setOrigin(0.5);
     this.tabButtons = TABS.map(([id, label], i) =>
       makeButton(this, W / 2 + (i === 0 ? -82 : 82), 74, 156, 30, label, () => {
         this.tab = id;
@@ -37,7 +37,7 @@ export default class MissionsScene extends Phaser.Scene {
     this.layer = this.add.container(0, 0);
     this.pageText = text(this, W / 2, H - 62, '', 8, '#a8b4cc').setOrigin(0.5);
     makeButton(this, 44, H - 30, 56, 34, '<', () => this.go(-1), { size: 16 });
-    makeButton(this, W / 2, H - 30, 150, 34, 'VOLVER', () => this.scene.start('title'));
+    makeButton(this, W / 2, H - 30, 150, 34, 'BACK', () => this.scene.start('title'));
     makeButton(this, W - 44, H - 30, 56, 34, '>', () => this.go(1), { size: 16 });
     this.input.keyboard?.on('keydown-ESC', () => this.scene.start('title'));
     this.render();
@@ -80,6 +80,6 @@ export default class MissionsScene extends Phaser.Scene {
         this.tweens.add({ targets: star, angle: 90, duration: 1600, repeat: -1 });
       }
     });
-    this.layer.add(text(this, W / 2, H - 82, 'Recompensas: próximamente', 8, '#56607c').setOrigin(0.5));
+    this.layer.add(text(this, W / 2, H - 82, 'Rewards: coming soon', 8, '#56607c').setOrigin(0.5));
   }
 }

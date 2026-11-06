@@ -20,7 +20,7 @@ export function logError(source, err, extra) {
     t: new Date().toISOString(),
     v: VERSION,
     source,
-    message: String(err?.message ?? err ?? 'Error desconocido'),
+    message: String(err?.message ?? err ?? 'Unknown error'),
     stack: typeof err?.stack === 'string' ? err.stack.split('\n').slice(0, 8).join('\n') : undefined,
     extra
   };
@@ -57,22 +57,22 @@ export function showFatal(entry) {
   const box = document.createElement('div');
   box.className = 'box';
   const title = document.createElement('p');
-  title.textContent = '¡Vaya! Algo ha fallado.';
+  title.textContent = 'Oops! Something went wrong.';
   const info = document.createElement('p');
-  info.textContent = 'Tu colección está guardada. Reinicia para seguir jugando.';
+  info.textContent = 'Your collection is saved. Restart to keep playing.';
   const pre = document.createElement('pre');
   pre.textContent = `v${entry.v} · ${entry.source}\n${entry.message}`;
   const restart = document.createElement('button');
-  restart.textContent = 'Reiniciar';
+  restart.textContent = 'Restart';
   restart.onclick = () => location.reload();
   const copy = document.createElement('button');
-  copy.textContent = 'Copiar informe';
+  copy.textContent = 'Copy report';
   copy.onclick = async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(getErrorLog(), null, 2));
-      copy.textContent = 'Copiado';
+      copy.textContent = 'Copied';
     } catch {
-      copy.textContent = 'No se pudo copiar';
+      copy.textContent = 'Could not copy';
     }
   };
   box.append(title, info, pre, restart, copy);

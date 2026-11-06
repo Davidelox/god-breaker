@@ -18,7 +18,7 @@ describe('guardado', () => {
   });
 
   it('rechaza guardados de una versión futura', () => {
-    expect(() => parseSave(JSON.stringify({ version: 99 }))).toThrow(/más nueva/);
+    expect(() => parseSave(JSON.stringify({ version: 99 }))).toThrow(/newer version/);
   });
 
   it('recupera un guardado corrupto y guarda una copia', () => {
