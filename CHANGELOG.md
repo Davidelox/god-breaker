@@ -5,6 +5,24 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-06
+
+### Added
+- Ataque vertical: si una bola queda rebotando en vertical, a los 6 rebotes rompe la columna entera. Da los puntos de romper esos bloques más 200 de bonus y 50 por bloque, con haz de luz, sacudida, mensaje y sonido. Vale también contra legendarios.
+- COMBO: al lanzar 2 poderes distintos aparece una banda partida con el color de cada tipo, «¡COMBO!», las siglas y los nombres.
+- Poderes MAX: dos poderes iguales a la vez dan una versión mejorada, con banda dorada y «¡PODER MAX!».
+  - Estallido MAX: daño completo (no la mitad) y alcance de 2 casillas.
+  - Torrente MAX: bolas aún más grandes y doble daño.
+  - Enredadera MAX: triple de bolas.
+  - Arco voltaico MAX: salta a 4 bloques y llega más lejos.
+  - Escarcha MAX: triple daño.
+  - Derrumbe MAX: golpea a los 4 bloques con más vida.
+- Indicador del poder activo junto al lanzador durante el turno (p. ej. «FUE+ELE» o «PLA MAX»).
+
+### Changed
+- Enredadera: solo las bolas añadidas son verdes. Salen con un destello verde, laten mientras vuelan y sueltan hojas al golpear. Las bolas normales mantienen su color (o el del otro poder o bola especial).
+- Los nombres de los poderes en mayúsculas se muestran sin tilde, porque la fuente no tiene esos glifos.
+
 ## [0.9.0] - 2026-11-06
 
 ### Added

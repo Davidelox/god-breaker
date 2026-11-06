@@ -20,6 +20,11 @@ import { newlyCompleted, MISSIONS } from '../data/missions.js';
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
 const TRAIL_POINTS = 5;
+const VERTICAL_ATTACK_BOUNCES = 6; // rebotes verticales seguidos antes del Ataque vertical
+const VERTICAL_ATTACK_BONUS = 200; // + 50 por bloque roto
+const PLANT_COLOR = 0x8ce070;
+// Sin tildes en mayúsculas: la fuente pixel no tiene esos glifos.
+const upper = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 const ROCK_PCT = 0.5; // Derrumbe: % de la vida actual que quita
 const ROCK_BOSS_PCT = 0.3;
 const TURBO_SPEED = 5; // velocidad automática cuando ninguna bola puede golpear nada más
@@ -472,6 +477,11 @@ export default class GameScene extends Phaser.Scene {
     return this.activeSpecials.some((s) => s.id === id);
   }
 
+  /** 1 = normal, 2 = MAX (los dos huecos con el mismo poder). */
+  powerLevel(id) {
+    return this.activeSpecials.filter((s) => s.id === id).length;
+  }
+
   toggleSlot(i) {
     if (this.state !== 'aim' || this.paused || !this.powers[i]) return;
     if (this.selectedSlots.has(i)) this.selectedSlots.delete(i);
@@ -516,7 +526,10 @@ export default class GameScene extends Phaser.Scene {
     // Posición y dirección fijas durante todo el turno.
     this.shotX = this.launchX;
     this.shotAngle = this.aimAngle;
-    this.toLaunch = this.ballCount * (this.hasSpecial('enredadera') ? 2 : 1);
+    // Enredadera añade bolas extra (x2; en MAX, x3). Solo las añadidas son verdes.
+    this.shotBase = this.ballCount;
+    this.launchedCount = 0;
+    this.toLaunch = this.ballCount * (1 + this.powerLevel('enredadera'));
     if (this.hasSpecial('derrumbe')) this.rockslide();
     this.launchOne();
     this.launchTimer = this.time.addEvent({ delay: LAUNCH_DELAY, loop: true, callback: () => this.launchOne() });
@@ -531,17 +544,29 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     this.toLaunch--;
-    const big = this.hasSpecial('torrente');
-    const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale((big ? WATER_BALL_R : BALL_R) / BALL_TEXTURE_R);
+    const extra = this.hasSpecial('enredadera') && this.launchedCount >= this.shotBase;
+    this.launchedCount++;
+    const water = this.powerLevel('torrente');
+    const r = water === 2 ? WATER_BALL_R + 3 : water ? WATER_BALL_R : BALL_R;
+    const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale(r / BALL_TEXTURE_R);
     let trailColor = 0xffffff;
-    if (this.activeSpecials.length) trailColor = hexToNum(TYPES[this.activeSpecials[0].type].light);
+    const others = this.activeSpecials.filter((sp) => sp.id !== 'enredadera');
+    if (extra) trailColor = PLANT_COLOR;
+    else if (others.length) trailColor = hexToNum(TYPES[others[0].type].light);
     else if (BALL_TYPES[this.shotBall].tint) trailColor = BALL_TYPES[this.shotBall].tint;
     if (trailColor !== 0xffffff) img.setTint(trailColor);
+    if (extra) {
+      // Bola añadida por Enredadera: destello verde al salir y brillo que late
+      this.fxRing(this.shotX, LAUNCH_Y, PLANT_COLOR, 14, 260, 2);
+      this.fxBurst(this.shotX, LAUNCH_Y, [PLANT_COLOR, 0x4cb04c, 0xf070a0], 5, 18, 360, -8);
+      this.tweens.add({ targets: img, scale: (r / BALL_TEXTURE_R) * 1.35, duration: 180, yoyo: true, repeat: -1 });
+    }
     audio.play('launch');
     this.balls.push({
+      extra,
       x: this.shotX,
       y: LAUNCH_Y - 1,
-      r: big ? WATER_BALL_R : BALL_R,
+      r,
       vx: Math.cos(this.shotAngle) * BALL_SPEED,
       vy: Math.sin(this.shotAngle) * BALL_SPEED,
       img,
@@ -662,9 +687,11 @@ export default class GameScene extends Phaser.Scene {
       b.x = BOARD_RIGHT - b.r;
       b.vx = -Math.abs(b.vx);
     }
+    let verticalBounce = false;
     if (b.y < BOARD_TOP + b.r) {
       b.y = BOARD_TOP + b.r;
       b.vy = Math.abs(b.vy);
+      verticalBounce = b.vx === 0;
     }
     if (b.y >= LAUNCH_Y) {
       b.done = true;
@@ -691,7 +718,7 @@ export default class GameScene extends Phaser.Scene {
       if (piercing) {
         if (!b.inside.has(blk)) {
           b.inside.add(blk);
-          this.hitBlock(blk);
+          this.hitBlock(blk, b);
         }
         continue;
       }
@@ -718,9 +745,12 @@ export default class GameScene extends Phaser.Scene {
       }
       b.x += nx * (b.r - d);
       b.y += ny * (b.r - d);
-      this.hitBlock(blk);
+      this.hitBlock(blk, b);
+      if (b.vx === 0) verticalBounce = true;
       break;
     }
+    if (verticalBounce) this.noteVerticalBounce(b);
+    else if (b.vx !== 0) b.vBounces = 0;
 
     // Evita bolas atrapadas rebotando casi en horizontal.
     if (Math.abs(b.vy) < BALL_SPEED * 0.08) {
@@ -762,25 +792,32 @@ export default class GameScene extends Phaser.Scene {
 
   // ---------- Daño, especiales y captura ----------
 
-  hitBlock(blk) {
+  hitBlock(blk, ball = null) {
     // Con dos poderes activos se usa la mejor eficacia de sus tipos.
     const eff = this.activeSpecials.length
       ? Math.max(...this.activeSpecials.map((s) => effectiveness(s.type, blk.creature?.type)))
       : 1;
-    const dmg = (this.hasSpecial('escarcha') ? 2 : 1) * eff;
+    // Escarcha: x2 (MAX x3). Torrente MAX: x2.
+    const ice = this.powerLevel('escarcha');
+    const mult = (ice === 2 ? 3 : ice ? 2 : 1) * (this.powerLevel('torrente') === 2 ? 2 : 1);
+    const dmg = mult * eff;
     const { x, y } = blk.cont;
-    this.powerHitFx(blk, x, y);
+    this.powerHitFx(blk, x, y, ball);
     this.damage(blk, dmg, eff);
-    if (this.hasSpecial('estallido')) {
-      for (const n of this.neighbors(blk)) this.damage(n, 0.5 * effectiveness('fuego', n.creature?.type));
+    const fire = this.powerLevel('estallido');
+    if (fire) {
+      // MAX: daño completo y alcance de 2 casillas
+      for (const n of this.neighbors(blk, fire)) this.damage(n, (fire === 2 ? 1 : 0.5) * effectiveness('fuego', n.creature?.type));
     }
-    if (this.hasSpecial('arco')) {
+    const elec = this.powerLevel('arco');
+    if (elec) {
+      // MAX: salta a 4 bloques y llega más lejos
       const near = this.blocks
         .filter((o) => !o.dead && o !== blk)
         .map((o) => ({ o, d: Phaser.Math.Distance.Between(x, y, o.cont.x, o.cont.y) }))
-        .filter((e) => e.d < CELL * 2.6)
+        .filter((e) => e.d < CELL * (elec === 2 ? 4 : 2.6))
         .sort((a, b2) => a.d - b2.d)
-        .slice(0, 2);
+        .slice(0, elec === 2 ? 4 : 2);
       for (const { o } of near) {
         this.bolts.push({ x1: x, y1: y, x2: o.cont.x, y2: o.cont.y, ttl: 0.16, max: 0.16 });
         this.fxBurst(o.cont.x, o.cont.y, [0xfff07a, 0xffffff], 4, 18, 200);
@@ -789,12 +826,41 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  neighbors(blk) {
+  neighbors(blk, range = 1) {
     return this.blocks.filter(
       (o) => !o.dead && o !== blk &&
-        o.col <= blk.col + blk.size && o.col + o.size >= blk.col &&
-        o.row <= blk.row + blk.size && o.row + o.size >= blk.row
+        o.col <= blk.col + blk.size - 1 + range && o.col + o.size - 1 >= blk.col - range &&
+        o.row <= blk.row + blk.size - 1 + range && o.row + o.size - 1 >= blk.row - range
     );
+  }
+
+  // ---------- Ataque vertical ----------
+
+  noteVerticalBounce(b) {
+    b.vBounces = (b.vBounces ?? 0) + 1;
+    if (b.vBounces >= VERTICAL_ATTACK_BOUNCES && !b.verticalDone) this.verticalAttack(b);
+  }
+
+  /** Bola atrapada en vertical: rompe la columna entera, con bonus. */
+  verticalAttack(b) {
+    const col = Phaser.Math.Clamp(Math.floor((b.x - BOARD_X) / CELL), 0, COLS - 1);
+    const targets = this.blocks.filter((o) => !o.dead && o.col <= col && o.col + o.size - 1 >= col);
+    if (!targets.length) return;
+    b.verticalDone = true;
+    const before = this.score;
+    targets.forEach((o) => this.damage(o, o.hp + 0.01));
+    this.addScore(VERTICAL_ATTACK_BONUS + 50 * targets.length);
+    const gained = Math.floor(this.score - before);
+    const cx = BOARD_X + col * CELL + CELL / 2;
+    const beam = this.add.rectangle(cx, BOARD_TOP, CELL - 4, LAUNCH_Y - BOARD_TOP, 0xffffff, 0.9).setOrigin(0.5, 0).setDepth(23);
+    this.tweens.add({ targets: beam, scaleX: 2.2, alpha: 0, duration: 520, ease: 'Quad.easeOut', onComplete: () => beam.destroy() });
+    const core = this.add.rectangle(cx, BOARD_TOP, 8, LAUNCH_Y - BOARD_TOP, COLORS.gold, 1).setOrigin(0.5, 0).setDepth(24);
+    this.tweens.add({ targets: core, scaleX: 0, duration: 420, onComplete: () => core.destroy() });
+    this.cameras.main.shake(260, 0.01);
+    this.cameras.main.flash(160, 255, 250, 220);
+    floatText(this, cx, BOARD_TOP + CELL * 3, `+${gained}`, COLORS.goldHex, 16);
+    this.showToast(`¡ATAQUE VERTICAL! +${gained}`, '#b07800');
+    audio.play('vertical');
   }
 
   damage(blk, dmg, eff = 1) {
@@ -904,32 +970,54 @@ export default class GameScene extends Phaser.Scene {
 
   /** Presentación del poder: destello del tablero, cartel que cruza la pantalla y sonido. */
   powerIntro(specials) {
+    const max = specials.length === 2 && specials[0].id === specials[1].id;
+    const combo = specials.length === 2 && !max;
     const main = TYPES[specials[0].type];
     const tint = this.add
-      .rectangle(BOARD_X, BOARD_TOP, COLS * CELL, LAUNCH_Y + 6 - BOARD_TOP, hexToNum(main.base), 0.28)
+      .rectangle(BOARD_X, BOARD_TOP, COLS * CELL, LAUNCH_Y + 6 - BOARD_TOP, hexToNum(main.base), max ? 0.4 : 0.28)
       .setOrigin(0)
       .setDepth(17);
     this.tweens.add({ targets: tint, alpha: 0, duration: 650, onComplete: () => tint.destroy() });
     const y = BOARD_TOP + CELL * 4.5;
-    const band = this.add.rectangle(W / 2, y, W, 40, hexToNum(main.dark), 0.85).setDepth(46).setScale(1, 0);
-    const name = specials.map((s) => s.name.toUpperCase()).join(' + ');
-    const label = text(this, W + 160, y, name, specials.length > 1 ? 8 : 16, '#ffffff').setOrigin(0.5).setDepth(47).setStroke('#101828', 4);
-    this.tweens.add({ targets: band, scaleY: 1, duration: 120, yoyo: true, hold: 520, onComplete: () => band.destroy() });
+    const objs = [];
+    const hold = combo || max ? 900 : 520;
+    if (combo) {
+      // Combinación: banda partida con el color de cada tipo
+      const [a, b] = specials.map((sp) => TYPES[sp.type]);
+      objs.push(this.add.rectangle(W / 4, y, W / 2, 64, hexToNum(a.dark), 0.9));
+      objs.push(this.add.rectangle((3 * W) / 4, y, W / 2, 64, hexToNum(b.dark), 0.9));
+      objs.push(text(this, W / 2, y - 18, '¡COMBO!', 16, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 4));
+      objs.push(text(this, W / 4, y + 6, a.short, 16, '#ffffff').setOrigin(0.5).setStroke('#101828', 4));
+      objs.push(text(this, W / 2, y + 6, '+', 16, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 4));
+      objs.push(text(this, (3 * W) / 4, y + 6, b.short, 16, '#ffffff').setOrigin(0.5).setStroke('#101828', 4));
+      objs.push(text(this, W / 2, y + 24, specials.map((sp) => upper(sp.name)).join(' + '), 8, '#ffffff').setOrigin(0.5).setStroke('#101828', 3));
+    } else {
+      objs.push(this.add.rectangle(W / 2, y, W, max ? 64 : 40, hexToNum(main.dark), 0.9).setStrokeStyle(max ? 3 : 0, COLORS.gold));
+      objs.push(text(this, W / 2, y - (max ? 10 : 0), upper(specials[0].name), 16, '#ffffff').setOrigin(0.5).setStroke('#101828', 4));
+      if (max) objs.push(text(this, W / 2, y + 16, '¡PODER MAX!', 8, COLORS.goldHex).setOrigin(0.5).setStroke('#101828', 3));
+    }
+    const layer = this.add.container(0, 0, objs).setDepth(46).setAlpha(0);
+    layer.setScale(1, 0.2);
+    layer.y = y * 0.8;
     this.tweens.add({
-      targets: label, x: W / 2, duration: 220, ease: 'Back.easeOut',
-      onComplete: () =>
-        this.tweens.add({ targets: label, x: -200, delay: 380, duration: 200, ease: 'Quad.easeIn', onComplete: () => label.destroy() })
+      targets: layer, alpha: 1, scaleY: 1, y: 0, duration: 160, ease: 'Back.easeOut',
+      onComplete: () => this.tweens.add({ targets: layer, alpha: 0, delay: hold, duration: 220, onComplete: () => layer.destroy() })
     });
-    this.cameras.main.shake(120, 0.003);
+    this.cameras.main.shake(max ? 220 : 120, max ? 0.006 : 0.003);
     audio.play('powerCast');
+    if (max) audio.play('shiny');
     for (const sp of specials) {
       const t = TYPES[sp.type];
       this.fxBurst(this.launchX, LAUNCH_Y, [hexToNum(t.base), hexToNum(t.light), 0xffffff], 14, 34, 500, -10);
     }
+    // Indicador durante el lanzamiento
+    const tag = max ? `${main.short} MAX` : specials.map((sp) => TYPES[sp.type].short).join('+');
+    this.powerTag?.destroy();
+    this.powerTag = text(this, BOARD_X + 4, LAUNCH_Y - 2, tag, 8, max || combo ? COLORS.goldHex : '#ffffff').setOrigin(0, 0.5).setDepth(6).setStroke('#101828', 3);
   }
 
   /** Efecto de cada golpe según los poderes activos (limitado por bloque para no saturar). */
-  powerHitFx(blk, x, y) {
+  powerHitFx(blk, x, y, ball = null) {
     if (!this.activeSpecials.length) return;
     const now = this.time.now;
     if (now - (blk.lastFx ?? 0) < 90) return;
@@ -944,8 +1032,8 @@ export default class GameScene extends Phaser.Scene {
       this.fxBurst(x, y, [0x78c0ff, 0xd8f4ff], 5, 22, 320, 16);
       audio.play('splash');
     }
-    if (this.hasSpecial('enredadera')) {
-      this.fxBurst(x, y, [0x8ce070, 0x4cb04c, 0xf070a0], 5, 20, 420, 18);
+    if (ball?.extra) {
+      this.fxBurst(x, y, [PLANT_COLOR, 0x4cb04c, 0xf070a0], 5, 20, 420, 18);
     }
     if (this.hasSpecial('arco')) audio.play('zap');
     if (this.hasSpecial('escarcha')) {
@@ -962,7 +1050,7 @@ export default class GameScene extends Phaser.Scene {
     const targets = this.blocks
       .filter((b) => !b.dead)
       .sort((a, b) => b.hp - a.hp)
-      .slice(0, 2);
+      .slice(0, this.powerLevel('derrumbe') === 2 ? 4 : 2); // MAX: 4 bloques
     targets.forEach((blk, i) => {
       const rock = this.add.image(blk.cont.x, BOARD_TOP - 10, 'rock').setScale(blk.kind === 'boss' ? 7 : 4).setDepth(22);
       this.tweens.add({ targets: rock, angle: 220, duration: 320, delay: i * 60 });
@@ -1130,6 +1218,8 @@ export default class GameScene extends Phaser.Scene {
     this.blocks = this.blocks.filter((b) => !b.dead);
     if (this.nextLaunchX !== null) this.launchX = this.nextLaunchX;
     this.nextMarker.setVisible(false);
+    this.powerTag?.destroy();
+    this.powerTag = null;
     this.trailG.clear();
     this.ballCount += this.pendingBalls;
     this.pendingBalls = 0;

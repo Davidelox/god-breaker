@@ -60,6 +60,11 @@ const SFX = {
     a.tone(90, 0.3, { type: 'triangle', gain: 0.12, slideTo: 45 });
   },
   mission: (a) => [784, 1047, 1319, 1568, 2093].forEach((f, i) => a.tone(f, 0.16, { type: 'triangle', gain: 0.06, delay: i * 0.07 })),
+  vertical: (a) => {
+    a.noise(0.6, { gain: 0.2, filter: 4000, sweepTo: 200 });
+    a.tone(1800, 0.5, { type: 'square', gain: 0.06, slideTo: 120 });
+    [523, 784, 1047, 1568].forEach((f, i) => a.tone(f, 0.14, { type: 'square', gain: 0.05, delay: 0.3 + i * 0.07 }));
+  },
   shake: (a) => a.tone(240, 0.05, { type: 'triangle', gain: 0.07 }),
   capture: (a) => [523, 659, 784, 1047].forEach((f, i) => a.tone(f, 0.09, { type: 'square', gain: 0.05, delay: i * 0.07 })),
   shiny: (a) => [1047, 1319, 1568, 2093, 2637].forEach((f, i) => a.tone(f, 0.12, { type: 'triangle', gain: 0.07, delay: i * 0.05 })),

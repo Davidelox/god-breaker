@@ -179,7 +179,7 @@ export default class GuideScene extends Phaser.Scene {
       this.add2(text(this, 100, y - 16, sp.name, 8, INK).setOrigin(0, 0));
       this.add2(text(this, 100, y - 2, sp.desc, 8, SOFT, { align: 'left', lineSpacing: 3, wordWrap: { width: 228 } }).setOrigin(0, 0));
     });
-    this.label(W / 2, 490, 'Puedes usar los 2 a la vez.', '#2a6aa8');
+    this.label(W / 2, 490, '2 a la vez = COMBO. 2 iguales = MAX.', '#2a6aa8');
     this.label(W / 2, 526, 'Con poder activo, o con los 2\nhuecos llenos, la barra no carga.', SOFT);
   }
 
