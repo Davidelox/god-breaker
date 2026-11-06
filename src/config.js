@@ -2,7 +2,24 @@
 const params = new URLSearchParams(globalThis.location?.search ?? '');
 
 export const W = 360;
-export const H = 640;
+// Alto lógico: 640 (pantalla 9:16) o más en móviles alargados como el iPhone (hasta 800),
+// para llenar la pantalla sin franjas negras. El tablero mide siempre lo mismo: el alto extra
+// se reparte entre el menú superior (HUD_EXTRA) y el inferior (BOTTOM_EXTRA) de la partida.
+function screenRatio() {
+  try {
+    const el = globalThis.document?.getElementById('game');
+    const w = el?.clientWidth || globalThis.innerWidth;
+    const h = el?.clientHeight || globalThis.innerHeight;
+    return w && h ? h / w : 16 / 9;
+  } catch {
+    return 16 / 9;
+  }
+}
+export const BASE_H = 640;
+export const H = Math.max(BASE_H, Math.min(800, Math.round((W * screenRatio()) / 2) * 2));
+export const EXTRA_H = H - BASE_H;
+export const HUD_EXTRA = Math.round(EXTRA_H * 0.45);
+export const BOTTOM_EXTRA = EXTRA_H - HUD_EXTRA;
 export const FONT = '"Press Start 2P", monospace';
 
 // Tablero
@@ -10,7 +27,7 @@ export const COLS = 7;
 export const ROWS = 10; // si un bloque llega a la última fila, fin de la partida
 export const CELL = 48;
 export const BOARD_X = (W - COLS * CELL) / 2;
-export const BOARD_TOP = 64;
+export const BOARD_TOP = 64 + HUD_EXTRA;
 export const BOARD_BOTTOM = BOARD_TOP + ROWS * CELL;
 export const BOARD_RIGHT = BOARD_X + COLS * CELL;
 // El disparo sale desde la línea de derrota (arriba de la última fila). Las bolas vuelven a esa línea.
@@ -34,8 +51,8 @@ export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sal
 export const CREATURE_CHANCE = 0.11; // probabilidad de que un bloque nuevo sea una bestia
 export const CREATURE_FROM_TURN = 5; // en los 4 primeros turnos no salen bestias (los dioses van aparte)
 export const BOSS_EVERY = 8; // un legendario cada 10 turnos
-export const SHINY_RATE = params.has('shiny') || params.has('gold') ? 0.25 : 0.01; // probabilidad base de la versión dorada (gold)
-export const SHINY_BOOST_RATE = 0.05; // probabilidad de gold con el medidor gold lleno
+export const SHINY_RATE = params.has('shiny') || params.has('gold') ? 0.25 : 0.03; // probabilidad base de la versión dorada (gold)
+export const SHINY_BOOST_RATE = 0.11; // probabilidad de gold con el medidor gold lleno
 export const SHINY_BOOST_TURNS = 3;
 export const SHINY_METER_MAX = 100;
 // Lo que suma al medidor shiny

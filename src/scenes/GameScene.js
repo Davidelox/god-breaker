@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y, BOARD_FLOOR_Y,
+  W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y, BOARD_FLOOR_Y, HUD_EXTRA, BOTTOM_EXTRA,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, CREATURE_FROM_TURN, BOSS_EVERY, SHINY_RATE,
   BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
@@ -173,38 +173,55 @@ export default class GameScene extends Phaser.Scene {
     this.showToast(`The weather changes: ${w.name}`, '#3a5a8a');
   }
 
+  // Menú superior. En pantallas alargadas (iPhone) crece con HUD_EXTRA: panel más alto,
+  // marcador más grande y botones más grandes. El tablero no cambia de tamaño.
   createHud() {
-    makePanel(this, 4, 4, W - 8, 54);
-    this.scoreText = text(this, 14, 14, '', 8, COLORS.inkHex).setOrigin(0, 0);
-    this.bestText = text(this, 14, 28, '', 8, '#56607c').setOrigin(0, 0);
-    this.turnText = text(this, 14, 42, '', 8, '#56607c').setOrigin(0, 0);
-    this.captText = text(this, 130, 42, '', 8, '#56607c').setOrigin(0, 0);
-    this.boostText = text(this, W - 14, 42, '', 8, '#b07800').setOrigin(1, 0);
-    this.menuBtn = makeButton(this, W - 26, 22, 30, 24, 'II', () => this.openPause());
+    const k = HUD_EXTRA;
+    const big = k >= 36;
+    const hudH = 54 + k;
+    makePanel(this, 4, 4, W - 8, hudH);
+    const rowY = (f) => 4 + hudH * f;
+    this.scoreText = text(this, 14, rowY(0.25), '', big ? 16 : 8, COLORS.inkHex).setOrigin(0, 0.5);
+    this.bestText = text(this, 14, rowY(big ? 0.55 : 0.52), '', 8, '#56607c').setOrigin(0, 0.5);
+    this.turnText = text(this, 14, rowY(0.78), '', 8, '#56607c').setOrigin(0, 0.5);
+    this.captText = text(this, 130, rowY(0.78), '', 8, '#56607c').setOrigin(0, 0.5);
+    this.boostText = text(this, W - 14, rowY(big ? 0.55 : 0.78), '', 8, '#b07800').setOrigin(1, 0.5);
+    // Botones: pausa, recoger y velocidad, alineados a la derecha
+    const bh = Math.min(40, 24 + k * 0.35);
+    const by = big ? rowY(0.27) : 22;
+    const pw = 30 + k * 0.2, rw = 40 + k * 0.25, sw = 44 + k * 0.25;
+    const px = W - 10 - pw / 2, rx = px - pw / 2 - 4 - rw / 2, sx = rx - rw / 2 - 4 - sw / 2;
+    this.menuBtn = makeButton(this, px, by, pw, bh, 'II', () => this.openPause(), { size: big ? 16 : 8 });
     // Velocidad x1/x2/x3: se mantiene entre turnos y entre partidas.
-    this.speedBtn = makeButton(this, W - 112, 22, 44, 24, `x${this.speedMul}`, () => {
+    this.speedBtn = makeButton(this, sx, by, sw, bh, `x${this.speedMul}`, () => {
       this.speedMul = SPEEDS[(SPEEDS.indexOf(this.speedMul) + 1) % SPEEDS.length];
       this.save.data.settings.speed = this.speedMul;
       this.save.write();
       this.refreshHud();
     });
-    this.recallBtn = makeButton(this, W - 68, 22, 40, 24, '▼', () => this.recallBalls());
+    this.recallBtn = makeButton(this, rx, by, rw, bh, '▼', () => this.recallBalls(), { size: big ? 16 : 8 });
   }
 
-  // Barra inferior: medidores de poder y shiny, 2 huecos de poder y selector de bola.
+  // Barra inferior: medidores de magia y gold, 2 huecos de hechizo y selector de orbe.
+  // En pantallas alargadas los botones crecen con BOTTOM_EXTRA para ocupar el espacio.
   createSpecialBar() {
-    const barY = BOARD_FLOOR_Y + 10;
+    const b = BOTTOM_EXTRA;
+    const big = b >= 40;
+    const barY = BOARD_FLOOR_Y + 10 + Math.round(b * 0.12);
+    this.barY = barY;
     text(this, BOARD_X, barY, 'MAGIC', 8, '#4ce0e8').setOrigin(0, 0);
     text(this, W / 2 + 4, barY, 'GOLD', 8, '#ffd84a').setOrigin(0, 0);
     this.energyG = this.add.graphics();
+    const bh = Math.min(84, 44 + b * 0.55);
+    const by = b ? Math.round((barY + 16 + H - 8) / 2) : BOTTOM_BAR_Y;
     this.slotButtons = [];
     for (let i = 0; i < MAX_POWERS; i++) {
-      const btn = makeButton(this, 4 + 37 + i * 78, BOTTOM_BAR_Y, 74, 44, '-', () => this.toggleSlot(i));
+      const btn = makeButton(this, 4 + 37 + i * 78, by, 74, bh, '-', () => this.toggleSlot(i), { size: big ? 16 : 8 });
       this.slotButtons.push(btn);
     }
     this.ballButtons = {};
     BALL_ORDER.forEach((id, i) => {
-      const btn = makeButton(this, 162 + 31 + i * 65, BOTTOM_BAR_Y, 62, 44, '', () => this.selectBall(id), {
+      const btn = makeButton(this, 162 + 31 + i * 65, by, 62, bh, '', () => this.selectBall(id), {
         fill: BALL_TYPES[id].fill
       });
       this.ballButtons[id] = btn;
@@ -238,7 +255,7 @@ export default class GameScene extends Phaser.Scene {
   refreshSpecials() {
     const ballKey = `ball_${this.selectedBall}`;
     this.launcher?.setTexture(ballKey).setScale((BALL_R / BALL_TEXTURE_R) * texScale(ballKey));
-    const barY = BOARD_FLOOR_Y + 10;
+    const barY = this.barY ?? BOARD_FLOOR_Y + 10;
     this.energyG.clear();
     const locked = this.powers.length >= MAX_POWERS;
     this.drawMeter(BOARD_X + 44, barY, W / 2 - BOARD_X - 52, this.energy / SPECIAL_COST, locked ? 0x56607c : 0x4ce0e8);

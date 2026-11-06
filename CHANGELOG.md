@@ -5,10 +5,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Colección
+- La colección se divide en secciones por mitología: un selector «< NORSE 7/103 >» bajo la cabecera recorre «ALL BEASTS» y los 14 orígenes, con las capturadas y el total de cada uno (en la vista gold, las capturadas en gold). Al tocar el nombre se abre una lista con todas las mitologías y su progreso para saltar a cualquiera. Las flechas arriba/abajo del teclado también cambian de sección. La sección y el filtro «CAUGHT ONLY» se recuerdan mientras el juego esté abierto.
+- La cuadrícula aprovecha el alto disponible: 6 filas en pantallas 9:16 y hasta 8 en móviles alargados.
+
+### Pantalla
+- En móviles alargados (iPhone) el juego ocupa todo el alto, sin franjas negras: el alto lógico se adapta a la pantalla (de 640 a 800). En la partida el tablero no cambia de tamaño; el espacio extra hace más grandes el menú superior (marcador en grande y botones mayores) y el inferior (botones de hechizos y orbes más altos). En pantallas 9:16 o de escritorio todo queda igual que antes.
+
 ### Balance
 - En el turno en que baja un dios no sale ningún otro bloque ni bestia (solo puede salir el orbe extra +1).
 - Si la llegada de un dios (que hace bajar el tablero 2 filas) te haría perder, se pospone: ese turno el tablero baja solo 1 fila y aparece el aviso «A GOD WAITS FOR ROOM». El dios llega en el primer turno en que haya sitio.
-- Con la barra gold llena, la probabilidad de gold sube al 5 % (antes 3 %) durante 3 turnos.
+- Probabilidad de gold: 3 % siempre (antes 1 %) y 11 % con la barra gold llena, durante 3 turnos (antes 3 %).
 - Capturar bestias también llena la barra gold: +10 por bestia y +25 por dios. La guía lo menciona.
 
 ### Física
