@@ -137,7 +137,7 @@ export default class GuideScene extends Phaser.Scene {
     });
     this.block(W / 2, 340, 88, hexToNum(TYPES.agua.light), 80, LEGENDARIES[1]);
     this.label(W / 2, 410, `Legendario: cada ${BOSS_EVERY} turnos.`);
-    this.label(W / 2, 436, 'Te avisamos 2 turnos antes.', SOFT);
+    this.label(W / 2, 434, 'Aviso 2 turnos antes. Al llegar,\ntodo baja 2 filas.', SOFT);
     const warn = this.add.rectangle(W / 2, 480, 260, 28, 0xe05858, 0.3);
     this.add2(warn);
     this.tweens.add({ targets: warn, alpha: 0.1, duration: 600, yoyo: true, repeat: -1 });

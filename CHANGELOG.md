@@ -5,6 +5,16 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-06
+
+### Added
+- Recogida anticipada: una bola que va hacia abajo y ya está por debajo de todos los bloques y bolas extra se recoge sola. Vuela en curva hasta el punto exacto donde habría caído, con destello y nota.
+- Ese punto cuenta como su caída, así que la última bola en desaparecer sigue marcando el siguiente lanzamiento.
+
+### Changed
+- Cuando llega un legendario, el tablero baja 2 filas y el legendario aparece arriba del todo, por encima de los bloques actuales. Ya no ocupa un hueco reservado entre ellos. El resto de turnos sigue bajando 1 fila.
+- La guía explica que con el legendario se bajan 2 filas.
+
 ## [0.7.0] - 2026-11-06
 
 ### Added

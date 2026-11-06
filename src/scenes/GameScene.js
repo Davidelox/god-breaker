@@ -43,6 +43,7 @@ export default class GameScene extends Phaser.Scene {
     this.shotBall = 'normal';
     this.shotKills = 0;
     this.collecting = false;
+    this.earlyCollected = 0;
     this.shinyMeter = 0;
     this.shinyBoostTurns = 0;
     this.blocks = [];
@@ -58,7 +59,6 @@ export default class GameScene extends Phaser.Scene {
     this.speedMul = SPEEDS.includes(this.save.data.settings.speed) ? this.save.data.settings.speed : 1;
     this.shotTime = 0;
     this.recallHinted = false;
-    this.reservedBossCol = null;
     this.toLaunch = 0;
     this.launchTimer = null;
     this.runCaptures = [];
@@ -341,20 +341,15 @@ export default class GameScene extends Phaser.Scene {
   spawnRow() {
     const t = this.turn;
     const taken = new Set();
-    // El legendario ocupa 2x2. Para que el tablero baje siempre una sola fila,
-    // el turno anterior deja libres sus dos columnas, que tras bajar quedan vacías justo debajo.
-    // Los bloques nuevos aparecen en SPAWN_ROW: la fila de arriba del todo siempre queda vacía.
+    // El legendario ocupa 2x2 y aparece por encima de todo: en su turno el tablero baja 2 filas
+    // (ver endTurn), así que siempre queda hueco libre arriba. La fila superior sigue vacía.
     const row = SPAWN_ROW;
-    if (this.isBossTurn(t) && this.reservedBossCol !== null) {
-      const col = this.reservedBossCol;
-      this.reservedBossCol = null;
+    if (this.isBossTurn(t)) {
+      const col = randInt(0, COLS - 2);
       this.addBlock({ col, row, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: 20 + t * 6 });
       taken.add(col).add(col + 1);
       this.showToast('¡Aparece un legendario!', '#b07800');
       audio.play('bossAppear');
-    } else if (this.isBossTurn(t + 1)) {
-      this.reservedBossCol = randInt(0, COLS - 2);
-      taken.add(this.reservedBossCol).add(this.reservedBossCol + 1);
     }
     const free = shuffle([...Array(COLS).keys()].filter((c) => !taken.has(c)));
     const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / 6));
@@ -514,6 +509,7 @@ export default class GameScene extends Phaser.Scene {
     this.shotTime = 0;
     this.shotKills = 0;
     this.collecting = false;
+    this.earlyCollected = 0;
     this.nextLaunchX = null;
     // Posición y dirección fijas durante todo el turno.
     this.shotX = this.launchX;
@@ -602,6 +598,7 @@ export default class GameScene extends Phaser.Scene {
     }
     // Pantalla limpia en mitad del lanzamiento: se recogen solas las bolas que quedan.
     if (!this.collecting && this.blocks.length === 0) this.collectAll();
+    else if (!this.collecting) this.collectFinishedBalls();
     for (const b of this.balls) {
       if (b.done && b.img) {
         b.img.destroy();
@@ -626,34 +623,71 @@ export default class GameScene extends Phaser.Scene {
     const tx = this.nextLaunchX ?? this.shotX;
     this.nextLaunchX = tx;
     this.nextMarker.setPosition(tx, LAUNCH_Y).setVisible(true);
-    const flying = this.balls.filter((b) => !b.done);
+    const flying = this.balls.filter((b) => !b.done && !b.collecting);
     if (!flying.length) return;
     this.showToast('Recogiendo bolas...', '#2a8a40');
-    flying.forEach((b, i) => {
-      b.collecting = true;
-      const delay = i * 35;
-      const midX = (b.img.x + tx) / 2 + (Math.random() - 0.5) * 80;
-      const midY = Math.min(b.img.y, LAUNCH_Y) - 40 - Math.random() * 60;
-      const curve = new Phaser.Curves.QuadraticBezier(
-        new Phaser.Math.Vector2(b.img.x, b.img.y), new Phaser.Math.Vector2(midX, midY), new Phaser.Math.Vector2(tx, LAUNCH_Y)
-      );
-      const p = new Phaser.Math.Vector2();
-      this.tweens.addCounter({
-        from: 0, to: 1, duration: 420, delay, ease: 'Cubic.easeIn',
-        onUpdate: (tw) => {
-          if (!b.img) return;
-          curve.getPoint(tw.getValue(), p);
-          b.img.setPosition(p.x, p.y);
-        },
-        onComplete: () => {
-          b.done = true;
-          audio.play('collect', { step: i });
-          const sp = this.add.image(tx, LAUNCH_Y, 'spark').setDepth(9).setScale(1.5);
-          this.tweens.add({ targets: sp, y: LAUNCH_Y - 14, scale: 0, angle: 90, duration: 260, onComplete: () => sp.destroy() });
+    flying.forEach((b, i) => this.collectBall(b, tx, i * 35, i, false));
+  }
+
+  /**
+   * Bola que baja y ya no puede tocar ningún bloque ni bola extra: se recoge en curva
+   * hasta el punto donde habría caído, que cuenta como su punto de caída.
+   */
+  collectFinishedBalls() {
+    let lowest = -Infinity;
+    for (const blk of this.blocks) if (!blk.dead) lowest = Math.max(lowest, this.blockRect(blk).y1);
+    for (const p of this.pickups) if (!p.taken) lowest = Math.max(lowest, BOARD_TOP + p.row * CELL + CELL / 2 + 8);
+    for (const b of this.balls) {
+      if (b.done || b.collecting || b.vy <= 0 || b.y - b.r <= lowest) continue;
+      this.collectBall(b, this.landingX(b), 0, this.earlyCollected++, true);
+    }
+  }
+
+  /** Dónde tocaría fondo la bola si siguiera rebotando en las paredes. */
+  landingX(b) {
+    const L = BOARD_X + b.r;
+    const R = BOARD_RIGHT - b.r;
+    const w = R - L;
+    const t = (LAUNCH_Y - b.y) / b.vy;
+    let u = (b.x + b.vx * t - L) % (2 * w);
+    if (u < 0) u += 2 * w;
+    const x = u <= w ? L + u : L + 2 * w - u;
+    return Phaser.Math.Clamp(x, BOARD_X + 8, BOARD_RIGHT - 8);
+  }
+
+  collectBall(b, tx, delay, step, setsLanding) {
+    b.collecting = true;
+    const sx = b.img.x;
+    const sy = b.img.y;
+    const midX = (sx + tx) / 2 + (Math.random() - 0.5) * 60;
+    const midY = Math.min(sy, LAUNCH_Y) - 30 - Math.random() * 40;
+    const curve = new Phaser.Curves.QuadraticBezier(
+      new Phaser.Math.Vector2(sx, sy), new Phaser.Math.Vector2(midX, midY), new Phaser.Math.Vector2(tx, LAUNCH_Y)
+    );
+    const p = new Phaser.Math.Vector2();
+    this.tweens.addCounter({
+      from: 0, to: 1, duration: setsLanding ? 300 : 420, delay, ease: 'Cubic.easeIn',
+      onUpdate: (tw) => {
+        if (!b.img) return;
+        curve.getPoint(tw.getValue(), p);
+        b.img.setPosition(p.x, p.y);
+      },
+      onComplete: () => {
+        b.done = true;
+        if (this.state !== 'shooting') return; // el turno ya terminó (p. ej. con ▼)
+        if (setsLanding && !this.collecting) {
+          // La última bola en desaparecer marca el siguiente punto de lanzamiento.
+          this.nextLaunchX = tx;
+          this.nextMarker.setPosition(tx, LAUNCH_Y).setVisible(true);
+        }
+        audio.play('collect', { step });
+        const sp = this.add.image(tx, LAUNCH_Y, 'spark').setDepth(9).setScale(1.5);
+        this.tweens.add({ targets: sp, y: LAUNCH_Y - 14, scale: 0, angle: 90, duration: 260, onComplete: () => sp.destroy() });
+        if (Math.abs(tx - this.launchX) < 1) {
           this.launcher.setScale((BALL_R / BALL_TEXTURE_R) * 1.5);
           this.tweens.add({ targets: this.launcher, scale: BALL_R / BALL_TEXTURE_R, duration: 120 });
         }
-      });
+      }
     });
   }
 
@@ -1171,8 +1205,8 @@ export default class GameScene extends Phaser.Scene {
       this.save.bumpStat('clears');
     }
 
-    // Siempre baja exactamente una fila.
-    this.shiftAll(1, true);
+    // Baja una fila; si llega un legendario, dos (aparece encima de los bloques actuales).
+    this.shiftAll(this.isBossTurn(this.turn) ? 2 : 1, true);
     // Las bolas extra que llegan abajo se recogen solas.
     for (const p of [...this.pickups]) if (p.row >= ROWS - 1) this.takePickup(p);
     if (this.blocks.some((b) => b.row + b.size - 1 >= ROWS - 1)) {
