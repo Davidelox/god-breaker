@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-11-06
+
+### Changed
+- Bola extra +1: como máximo una en pantalla. Tras recogerla deben pasar 2 tiradas antes de que pueda salir otra (`PICKUP_COOLDOWN`). Cuando está permitido, sale con un 50 % de probabilidad por fila (`PICKUP_CHANCE`).
+- Legendarios: salen en orden aleatorio y no se repiten hasta que hayan salido los 8.
+- El primer turno empieza con una sola fila de bloques.
+
 ## [0.12.0] - 2026-11-06
 
 ### Added

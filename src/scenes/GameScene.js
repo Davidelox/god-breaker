@@ -4,7 +4,7 @@ import {
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE,
   CORNER_JITTER, BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
-  HP_PER_TURN, CREATURE_HP_BONUS, CREATURE_HP_PER_RARITY, BALLS_PER_TURN, PICKUP_CHANCE, ROW_GROWTH_TURNS, BOSS_HP
+  HP_PER_TURN, CREATURE_HP_BONUS, CREATURE_HP_PER_RARITY, BALLS_PER_TURN, PICKUP_CHANCE, PICKUP_COOLDOWN, ROW_GROWTH_TURNS, BOSS_HP
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, effectiveness, hexToNum } from '../data/types.js';
@@ -46,6 +46,8 @@ export default class GameScene extends Phaser.Scene {
     // Valores de dificultad (en la escena para poder ajustarlos y simularlos)
     this.hpPerTurn = HP_PER_TURN;
     this.pickupChance = PICKUP_CHANCE;
+    this.pickupCooldown = 0; // turnos que faltan para que pueda salir otra bola extra
+    this.legendBag = []; // legendarios pendientes de salir, en orden aleatorio
     this.pendingBalls = 0;
     this.energy = 0;
     this.powers = []; // ids de poderes guardados (máx. MAX_POWERS)
@@ -98,9 +100,7 @@ export default class GameScene extends Phaser.Scene {
     this.createHud();
     this.createSpecialBar();
 
-    this.spawnRow();
-    this.shiftAll(1, false);
-    this.spawnRow();
+    this.spawnRow(); // primer turno: una sola fila
 
     this.setupInput();
     this.updateBossWarning();
@@ -363,7 +363,7 @@ export default class GameScene extends Phaser.Scene {
     const row = SPAWN_ROW;
     if (this.isBossTurn(t)) {
       const col = randInt(0, COLS - 2);
-      this.addBlock({ col, row, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: BOSS_HP(t) });
+      this.addBlock({ col, row, size: 2, kind: 'boss', creature: this.nextLegendary(), hp: BOSS_HP(t) });
       taken.add(col).add(col + 1);
       this.showToast('¡Aparece un legendario!', '#b07800');
       audio.play('bossAppear');
@@ -373,7 +373,16 @@ export default class GameScene extends Phaser.Scene {
     const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
     for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(row, free[i], t);
     // La bola extra +1 ya no sale en todas las filas
-    if (Math.random() < this.pickupChance) this.addPickup(row, free[free.length - 1]);
+    // Bola extra +1: solo una en pantalla, y no vuelve a salir hasta que pasen PICKUP_COOLDOWN tiradas tras recogerla
+    if (!this.pickups.length && this.pickupCooldown <= 0 && Math.random() < this.pickupChance) {
+      this.addPickup(row, free[free.length - 1]);
+    }
+  }
+
+  /** Legendario al azar sin repetir hasta que hayan salido los 8. */
+  nextLegendary() {
+    if (!this.legendBag.length) this.legendBag = shuffle([...LEGENDARIES]);
+    return this.legendBag.pop();
   }
 
   addRandomBlock(row, col, t) {
@@ -810,6 +819,7 @@ export default class GameScene extends Phaser.Scene {
   takePickup(p) {
     p.taken = true;
     this.pendingBalls++;
+    this.pickupCooldown = PICKUP_COOLDOWN + 1; // se descuenta al final de este turno y de los 2 siguientes
     audio.play('pickup');
     floatText(this, p.img.x, p.img.y, '+1', '#7cf07c');
     this.tweens.killTweensOf(p.img);
@@ -1350,6 +1360,7 @@ export default class GameScene extends Phaser.Scene {
       this.save.bumpStat('clears');
     }
 
+    if (this.pickupCooldown > 0) this.pickupCooldown--;
     // Baja una fila; si llega un legendario, dos (aparece encima de los bloques actuales).
     this.shiftAll(this.isBossTurn(this.turn) ? 2 : 1, true);
     // Las bolas extra que llegan abajo se recogen solas.
