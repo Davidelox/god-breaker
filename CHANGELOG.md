@@ -5,6 +5,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-11-06
+
+### Changed
+- Torrente (agua): cada bola atraviesa como máximo 3 bloques (`WATER_PIERCE`). Al agotarse hace una pequeña salpicadura, pierde el color azul y vuelve a rebotar normal.
+- Torrente MAX: atraviesa todos los bloques sin límite y conserva las bolas más grandes y el doble daño.
+
 ## [0.10.0] - 2026-11-06
 
 ### Added

@@ -20,6 +20,7 @@ import { newlyCompleted, MISSIONS } from '../data/missions.js';
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
 const TRAIL_POINTS = 5;
+const WATER_PIERCE = 3; // bloques que atraviesa cada bola con Torrente normal (MAX: todos)
 const VERTICAL_ATTACK_BOUNCES = 6; // rebotes verticales seguidos antes del Ataque vertical
 const VERTICAL_ATTACK_BONUS = 200; // + 50 por bloque roto
 const PLANT_COLOR = 0x8ce070;
@@ -702,7 +703,8 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
 
-    const piercing = this.hasSpecial('torrente');
+    // Torrente: cada bola atraviesa hasta WATER_PIERCE bloques (MAX: sin límite) y luego rebota normal.
+    const water = this.powerLevel('torrente');
     for (const blk of this.blocks) {
       if (blk.dead) continue;
       const r = this.blockRect(blk);
@@ -712,13 +714,19 @@ export default class GameScene extends Phaser.Scene {
       const dy = b.y - cy;
       const d2 = dx * dx + dy * dy;
       if (d2 >= b.r * b.r) {
-        if (piercing) b.inside.delete(blk);
+        b.inside.delete(blk);
         continue;
       }
-      if (piercing) {
-        if (!b.inside.has(blk)) {
-          b.inside.add(blk);
-          this.hitBlock(blk, b);
+      if (b.inside.has(blk)) continue; // sigue dentro de un bloque que ya atravesó
+      if (water && (water === 2 || (b.pierced ?? 0) < WATER_PIERCE)) {
+        b.inside.add(blk);
+        b.pierced = (b.pierced ?? 0) + 1;
+        this.hitBlock(blk, b);
+        if (water === 1 && b.pierced === WATER_PIERCE && b.img) {
+          // Se agota el torrente de esta bola: pequeña salpicadura y vuelve a rebotar
+          b.img.setTint(0xffffff);
+          b.trailColor = 0xffffff;
+          this.fxRing(b.x, b.y, 0x78c0ff, 12, 240, 2);
         }
         continue;
       }
