@@ -395,6 +395,7 @@ export default class GameScene extends Phaser.Scene {
       blk.sprite = spr;
       this.tweens.add({ targets: spr, y: spr.y - 2, duration: 400 + Math.random() * 300, yoyo: true, repeat: -1 });
       if (blk.shiny) this.decorateShiny(blk, cont, size);
+      if (!this.save.entry(d.creature.id)) this.addNewMark(blk, cont, size);
     }
     blk.hpText = text(this, 0, d.creature ? size / 2 - 10 : 0, '', 8).setOrigin(0.5).setStroke('#101828', 3);
     cont.add(blk.hpText);
@@ -908,9 +909,16 @@ export default class GameScene extends Phaser.Scene {
     const size = blk.size * CELL - 4;
     const boss = blk.kind === 'boss';
     const flash = this.add.rectangle(x, y, size, size, 0xffffff).setDepth(19);
-    this.tweens.add({ targets: flash, scale: 1.35, alpha: 0, duration: boss ? 380 : 200, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
-    const ring = this.add.circle(x, y, size * 0.35).setStrokeStyle(2, blk.color).setDepth(19);
-    this.tweens.add({ targets: ring, scale: boss ? 2.6 : 1.8, alpha: 0, duration: boss ? 500 : 280, onComplete: () => ring.destroy() });
+    this.tweens.add({ targets: flash, scale: 1.5, alpha: 0, duration: boss ? 420 : 240, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
+    // Onda expansiva: anillo del color del bloque + anillo blanco más rápido + relleno tenue
+    const ring = this.add.circle(x, y, size * 0.35).setStrokeStyle(boss ? 5 : 3, blk.color).setDepth(19);
+    this.tweens.add({ targets: ring, scale: boss ? 5.5 : 3.6, alpha: 0, duration: boss ? 750 : 450, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+    const ring2 = this.add.circle(x, y, size * 0.3).setStrokeStyle(2, 0xffffff).setDepth(19);
+    this.tweens.add({ targets: ring2, scale: boss ? 4.2 : 2.7, alpha: 0, duration: boss ? 520 : 320, ease: 'Quad.easeOut', onComplete: () => ring2.destroy() });
+    const wave = this.add.circle(x, y, size * 0.4, blk.color, 0.22).setDepth(18);
+    this.tweens.add({ targets: wave, scale: boss ? 4.5 : 3, alpha: 0, duration: boss ? 600 : 380, ease: 'Quad.easeOut', onComplete: () => wave.destroy() });
+    // Los bloques cercanos acusan la onda
+    for (const n of this.neighbors(blk, boss ? 2 : 1)) this.punch(n);
     const pieces = boss ? 28 : blk.creature ? 16 : 12;
     for (let i = 0; i < pieces; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -1190,8 +1198,31 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Exclamación pequeña en criaturas que aún no están en la colección. */
+  addNewMark(blk, cont, size) {
+    const x = -size / 2 + 8;
+    const y = -size / 2 + 8;
+    const dot = this.add.circle(x, y, 6, 0xe05858).setStrokeStyle(1, 0x101828);
+    // «!» dibujado en píxeles para que se lea bien a este tamaño
+    const mark = this.add.graphics();
+    mark.fillStyle(0xffffff);
+    mark.fillRect(x - 1, y - 4, 2, 5);
+    mark.fillRect(x - 1, y + 2, 2, 2);
+    const badge = this.add.container(0, 0, [dot, mark]);
+    cont.add(badge);
+    blk.newMark = badge;
+    this.tweens.add({ targets: badge, y: -2, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
   captureSuccess(c, shiny, orb, x, y) {
     const res = this.save.recordCapture(c.id, shiny);
+    // Ya capturada: quitar la exclamación al resto de bloques de esa criatura
+    for (const o of this.blocks) {
+      if (o.creature?.id === c.id && o.newMark) {
+        o.newMark.destroy();
+        o.newMark = null;
+      }
+    }
     this.time.delayedCall(600, () => this.checkMissions());
     audio.play(shiny ? 'shiny' : 'capture');
     this.runCaptures.push({ id: c.id, shiny });

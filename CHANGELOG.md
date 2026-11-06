@@ -5,6 +5,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-11-06
+
+### Added
+- Las criaturas que aún no tienes en la colección llevan una pequeña exclamación roja que flota en la esquina de su bloque. Al capturar una, la exclamación desaparece del resto de bloques de esa criatura.
+
+### Changed
+- Onda expansiva más grande al destruir bloques: anillo del color del bloque de mayor alcance, segundo anillo blanco y una onda de relleno tenue. Los bloques vecinos se sacuden con la onda (con los legendarios, hasta 2 casillas).
+
 ## [0.10.1] - 2026-11-06
 
 ### Changed
