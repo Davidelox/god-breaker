@@ -25,9 +25,9 @@ export const BALL_TEXTURE_R = 4; // radio del sprite 'ball' (8x8 px); se escala 
 export const SPAWN_ROW = 1; // la fila 0 (arriba del todo) siempre queda vacía
 export const BALL_SPEED = 620;
 export const START_BALLS = 1;
-export const LAUNCH_DELAY = 95; // ms entre bolas: separación visible (~60 px) en lugar de una línea
+export const LAUNCH_DELAY = 115; // ms entre orbes a x1: separación de ~70 px (crece con la velocidad, ver SPACING_GROWTH)
 export const SPEEDS = [1, 1.5, 2, 3, 4]; // velocidades del botón de velocidad
-export const CORNER_JITTER = (14 * Math.PI) / 180; // desvío máximo al chocar justo en una esquina
+// (Las esquinas de los bloques son redondeadas en la física: ver CORNER_R en GameScene.js)
 export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sale en vertical pura
 
 // Contenido

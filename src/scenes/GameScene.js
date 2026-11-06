@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {
   W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y, BOARD_FLOOR_Y,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, CREATURE_FROM_TURN, BOSS_EVERY, SHINY_RATE,
-  CORNER_JITTER, BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
+  BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
   HP_PER_TURN, CREATURE_HP_BONUS, CREATURE_HP_PER_RARITY, BALLS_PER_TURN, PICKUP_CHANCE, PICKUP_COOLDOWN, ROW_GROWTH_TURNS, BOSS_HP
 } from '../config.js';
@@ -20,8 +20,14 @@ import { newlyCompleted, MISSIONS } from '../data/missions.js';
 
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
-const TRAIL_POINTS = 9; // puntos guardados de la estela de luz de cada orbe
-const TRAIL_LENGTH = 48; // longitud máxima de la estela (px), menor que la separación entre orbes
+const TRAIL_POINTS = 9; // posiciones recientes guardadas de cada orbe (para colocar su sombra)
+const GHOST_DIST = 14; // a cuántos px por detrás del orbe va su sombra
+const GHOST_ALPHA = 0.18; // opacidad de la sombra (muy transparente)
+const CORNER_R = 4; // radio de las esquinas redondeadas de los bloques en la física (px)
+// Separación entre orbes: a velocidad x1 sale uno cada LAUNCH_DELAY ms; a más velocidad la
+// separación en pantalla crece un SPACING_GROWTH por cada punto de velocidad (x4: +60 %),
+// para que la ráfaga no se vea tan cargada.
+const SPACING_GROWTH = 0.2;
 const WATER_PIERCE = 3; // bloques que atraviesa cada bola con Torrente normal (MAX: todos)
 const VERTICAL_ATTACK_BOUNCES = 6; // rebotes verticales seguidos antes del Ataque vertical
 const VERTICAL_ATTACK_BONUS = 200; // + 50 por bloque roto
@@ -355,11 +361,12 @@ export default class GameScene extends Phaser.Scene {
     return { x0, y0, x1: x0 + b.size * CELL - 4, y1: y0 + b.size * CELL - 4 };
   }
 
+  /** Mismo choque que la física (esquinas redondeadas), para la línea de apuntado. */
   circleHitsRect(x, y, b) {
     const r = this.blockRect(b);
-    const cx = Phaser.Math.Clamp(x, r.x0, r.x1);
-    const cy = Phaser.Math.Clamp(y, r.y0, r.y1);
-    return (x - cx) ** 2 + (y - cy) ** 2 < BALL_R * BALL_R;
+    const cx = Phaser.Math.Clamp(x, r.x0 + CORNER_R, r.x1 - CORNER_R);
+    const cy = Phaser.Math.Clamp(y, r.y0 + CORNER_R, r.y1 - CORNER_R);
+    return (x - cx) ** 2 + (y - cy) ** 2 < (BALL_R + CORNER_R) ** 2;
   }
 
   plainColor(hp) {
@@ -634,6 +641,9 @@ export default class GameScene extends Phaser.Scene {
     if (extra) trailColor = PLANT_COLOR;
     else if (others.length) trailColor = hexToNum(ELEMENTS[others[0].type].light);
     if (powered) img.setTint(trailColor);
+    // Sombra: copia del orbe muy transparente que le sigue a GHOST_DIST px
+    const ghost = this.add.image(this.shotX, LAUNCH_Y, ballKey).setDepth(7).setScale(img.scale).setAlpha(GHOST_ALPHA);
+    if (powered) ghost.setTint(trailColor);
     if (extra) {
       // Bola añadida por Enredadera: destello verde al salir y brillo que late
       this.fxRing(this.shotX, LAUNCH_Y, PLANT_COLOR, 14, 260, 2);
@@ -649,6 +659,7 @@ export default class GameScene extends Phaser.Scene {
       vx: Math.cos(this.shotAngle) * BALL_SPEED,
       vy: Math.sin(this.shotAngle) * BALL_SPEED,
       img,
+      ghost,
       trail: [],
       trailColor,
       inside: new Set(),
@@ -703,7 +714,8 @@ export default class GameScene extends Phaser.Scene {
       this.showToast('Press ▼ to recall your orbs');
     }
     const speed = this.turbo ? Math.max(TURBO_SPEED, this.speedMul) : this.speedMul;
-    if (this.launchTimer) this.launchTimer.timeScale = speed;
+    // A más velocidad los orbes salen algo más espaciados (en distancia) para no saturar la pantalla
+    if (this.launchTimer) this.launchTimer.timeScale = speed / (1 + SPACING_GROWTH * (speed - 1));
 
     const total = dt * speed;
     const steps = Math.max(1, Math.ceil((total * BALL_SPEED) / 3));
@@ -725,6 +737,8 @@ export default class GameScene extends Phaser.Scene {
       if (b.done && b.img) {
         b.img.destroy();
         b.img = null;
+        b.ghost?.destroy();
+        b.ghost = null;
       } else if (b.img) {
         b.img.setPosition(b.x, b.y);
         b.trail.push(b.x, b.y);
@@ -756,34 +770,34 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  // Estela de luz: halo del color del orbe y núcleo blanco que se estrechan y se apagan hacia atrás,
-  // dibujados con mezcla aditiva para que brillen sobre el tablero.
+  // Sombra del orbe (una copia muy transparente que le sigue a GHOST_DIST px por su recorrido)
+  // y resplandor suave alrededor del orbe.
   drawTrails() {
     const g = this.trailG;
     g.clear();
     for (const b of this.balls) {
       if (!b.img) continue;
       const t = b.trail;
-      // La estela mide como mucho TRAIL_LENGTH px (menos que la separación entre orbes),
-      // así los disparos seguidos no se funden en una línea continua.
-      let dist = 0;
-      for (let i = t.length / 2 - 1; i > 0 && dist < TRAIL_LENGTH; i--) {
-        let [x1, y1, x0, y0] = [t[i * 2], t[i * 2 + 1], t[i * 2 - 2], t[i * 2 - 1]];
+      // Punto del recorrido reciente que está a GHOST_DIST px por detrás (sigue los rebotes)
+      let gx = b.x, gy = b.y, dist = 0;
+      for (let i = t.length / 2 - 1; i > 0; i--) {
+        const x1 = t[i * 2], y1 = t[i * 2 + 1], x0 = t[i * 2 - 2], y0 = t[i * 2 - 1];
         const seg = Math.hypot(x1 - x0, y1 - y0);
-        if (dist + seg > TRAIL_LENGTH && seg > 0) {
-          const f = (TRAIL_LENGTH - dist) / seg;
-          x0 = x1 + (x0 - x1) * f;
-          y0 = y1 + (y0 - y1) * f;
+        if (dist + seg >= GHOST_DIST && seg > 0) {
+          const f = (GHOST_DIST - dist) / seg;
+          gx = x1 + (x0 - x1) * f;
+          gy = y1 + (y0 - y1) * f;
+          dist = GHOST_DIST;
+          break;
         }
-        const k1 = 1 - dist / TRAIL_LENGTH; // 1 junto al orbe, 0 al final
         dist += seg;
-        const k = Math.max(0, (k1 + Math.max(0, 1 - dist / TRAIL_LENGTH)) / 2);
-        // Halo
-        g.lineStyle(Math.max(1, b.r * 2 * k), b.trailColor, 0.2 * k);
-        g.lineBetween(x0, y0, x1, y1);
-        // Núcleo
-        g.lineStyle(Math.max(1, b.r * 0.7 * k), 0xffffff, 0.5 * k);
-        g.lineBetween(x0, y0, x1, y1);
+        gx = x0;
+        gy = y0;
+      }
+      if (b.ghost) {
+        b.ghost.setPosition(gx, gy).setScale(b.img.scale);
+        // Al salir del lanzador aún no hay recorrido: la sombra aparece poco a poco
+        b.ghost.setAlpha(GHOST_ALPHA * Math.min(1, dist / GHOST_DIST));
       }
       // Resplandor alrededor del orbe
       g.fillStyle(b.trailColor, 0.12);
@@ -819,59 +833,85 @@ export default class GameScene extends Phaser.Scene {
     // Torrente: cada bola atraviesa hasta WATER_PIERCE bloques (MAX: sin límite) y luego rebota normal.
     const water = this.waterLevel;
     const br = b.r;
+    // Esquinas redondeadas: el bloque se trata como un rectángulo encogido CORNER_R px por lado
+    // y el orbe como un círculo de radio br + CORNER_R. En los lados es lo mismo que antes;
+    // en las esquinas la normal gira de forma continua, así el rebote depende del punto exacto.
+    const effR = br + CORNER_R;
+
     for (const blk of this.blocks) {
       if (blk.dead) continue;
       const r = blk.rect ?? this.blockRect(blk);
-      // Descarte rápido: el orbe ni siquiera toca la caja del bloque
+
+      // Descarte rápido (usamos los límites originales de la caja real)
       if (b.x + br <= r.x0 || b.x - br >= r.x1 || b.y + br <= r.y0 || b.y - br >= r.y1) {
         if (b.inside.size) b.inside.delete(blk);
         continue;
       }
-      const cx = b.x < r.x0 ? r.x0 : b.x > r.x1 ? r.x1 : b.x;
-      const cy = b.y < r.y0 ? r.y0 : b.y > r.y1 ? r.y1 : b.y;
+
+      // Encogemos lógicamente el rectángulo para crear la curva en las esquinas
+      const shrinkX0 = r.x0 + CORNER_R;
+      const shrinkX1 = r.x1 - CORNER_R;
+      const shrinkY0 = r.y0 + CORNER_R;
+      const shrinkY1 = r.y1 - CORNER_R;
+
+      // Buscamos el punto más cercano en el rectángulo encogido
+      const cx = b.x < shrinkX0 ? shrinkX0 : b.x > shrinkX1 ? shrinkX1 : b.x;
+      const cy = b.y < shrinkY0 ? shrinkY0 : b.y > shrinkY1 ? shrinkY1 : b.y;
+
       const dx = b.x - cx;
       const dy = b.y - cy;
       const d2 = dx * dx + dy * dy;
-      if (d2 >= br * br) {
+
+      // Comprobamos la distancia contra el radio expandido (effR)
+      if (d2 >= effR * effR) {
         if (b.inside.size) b.inside.delete(blk);
         continue;
       }
+
       if (b.inside.has(blk)) continue; // sigue dentro de un bloque que ya atravesó
+      
       if (water && (water === 2 || (b.pierced ?? 0) < WATER_PIERCE)) {
         b.inside.add(blk);
         b.pierced = (b.pierced ?? 0) + 1;
         this.hitBlock(blk, b);
         if (water === 1 && b.pierced === WATER_PIERCE && b.img) {
-          // Se agota el torrente de esta bola: pequeña salpicadura y vuelve a rebotar
           b.img.setTint(0xffffff);
+          b.ghost?.setTint(0xffffff);
           b.trailColor = 0xffffff;
           this.fxRing(b.x, b.y, 0x78c0ff, 12, 240, 2);
         }
         continue;
       }
+
       let nx;
       let ny;
-      let d = Math.sqrt(d2);
+      let push;
+      const d = Math.sqrt(d2);
       if (d > 0.0001) {
         nx = dx / d;
         ny = dy / d;
+        push = effR - d; // cuánto hay que sacar el orbe para que quede justo tocando
       } else {
-        // El centro de la bola está dentro: salimos por el lado más cercano.
+        // El centro del orbe está dentro del rectángulo encogido: sale por el lado más cercano
         const pen = [b.x - r.x0, r.x1 - b.x, b.y - r.y0, r.y1 - b.y];
         const m = pen.indexOf(Math.min(...pen));
         [nx, ny] = [[-1, 0], [1, 0], [0, -1], [0, 1]][m];
-        d = -pen[m];
+        push = br + pen[m];
       }
+
       const dot = b.vx * nx + b.vy * ny;
       if (dot < 0) {
+        // Rebote: reflexión sobre la normal (conserva la velocidad)
         b.vx -= 2 * dot * nx;
         b.vy -= 2 * dot * ny;
-        // Golpe justo en la esquina: rebote irregular y, muy rara vez, la bola queda en vertical.
-        const corner = (b.x < r.x0 || b.x > r.x1) && (b.y < r.y0 || b.y > r.y1);
-        if (corner) this.cornerBounce(b);
+        // Golpe en la parte curva de una esquina: muy de vez en cuando el orbe queda en
+        // vertical, que es lo que permite el Ataque vertical.
+        const onCorner = (b.x < shrinkX0 || b.x > shrinkX1) && (b.y < shrinkY0 || b.y > shrinkY1);
+        if (onCorner) this.cornerBounce(b);
       }
-      b.x += nx * (b.r - d);
-      b.y += ny * (b.r - d);
+
+      b.x += nx * push;
+      b.y += ny * push;
       this.hitBlock(blk, b);
       if (b.vx === 0) verticalBounce = true;
       break;
@@ -895,16 +935,13 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
+  /** Golpe en esquina: rara vez el orbe queda en vertical (Ataque vertical). Ya no hay desvío
+   * aleatorio: con las esquinas redondeadas el ángulo de salida sale de la propia curva. */
   cornerBounce(b) {
     if (Math.random() < VERTICAL_LOCK_CHANCE) {
       b.vy = (b.vy < 0 ? -1 : 1) * BALL_SPEED;
       b.vx = 0;
-      return;
     }
-    const jitter = (Math.random() * 2 - 1) * CORNER_JITTER;
-    const cos = Math.cos(jitter);
-    const sin = Math.sin(jitter);
-    [b.vx, b.vy] = [b.vx * cos - b.vy * sin, b.vx * sin + b.vy * cos];
   }
 
   takePickup(p) {

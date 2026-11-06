@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Física
+- La estela de luz de los orbes se sustituye por una sombra: una copia del orbe muy transparente (18 %) que le sigue a 14 px por su recorrido, incluidos los rebotes. Se mantiene el resplandor suave alrededor del orbe. Ajustable con GHOST_DIST y GHOST_ALPHA en GameScene.js.
+- Esquinas de los bloques redondeadas en la física (CORNER_R = 4 px): el ángulo de salida depende del punto exacto del golpe y desaparece el desvío aleatorio en las esquinas. La línea de apuntado usa el mismo choque.
+- Corregido el empuje tras el rebote con las esquinas redondeadas, que metía el orbe ~4 px dentro del bloque y podía contar varios golpes por rebote.
+- El Ataque vertical sigue siendo posible: un golpe en la curva de una esquina puede dejar el orbe en vertical (2 %).
+- Más separación entre orbes: ~70 px a x1 (antes ~59) y creciendo con la velocidad (~110 px a x4), para que la ráfaga no se vea tan cargada.
+
 ### Performance
 - Tablero con muchos bloques y dioses mucho más ligero de dibujar (de 134 a 38 llamadas de dibujo por fotograma con 40 bloques y 2 dioses): el fondo de cada bloque es una imagen en lugar de una forma, el número de vida usa una fuente de mapa de bits generada al arrancar (sin rasterizar texto) y la marca «!» y las barras de vida de los dioses son imágenes. Antes cada bloque cortaba el lote de dibujo varias veces.
 - Menos tirones en móvil durante los lanzamientos:
