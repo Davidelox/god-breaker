@@ -5,6 +5,25 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Orbes e impactos
+- Estela tipo cometa: en lugar de una sola sombra, cuatro copias del orbe cada vez más pequeñas y transparentes siguen su recorrido (también en los rebotes), formando una cola continua y suave. Ajustable con GHOSTS en GameScene.js.
+- Al rebotar en un bloque se marca el punto exacto de contacto con un pequeño destello en su borde.
+- Los bloques ya no cambian de color ni de tamaño al recibir un golpe (antes destello blanco, tinte rojo en las bestias y encogimiento): ahora solo vibran un poco en horizontal. Al no encogerse, el orbe siempre se ve tocando el borde real del bloque.
+
+### Vibración
+- Vibración al golpear bloques (toque corto, como mucho cada 70 ms), al romperlos (toque más largo) y al derrotar a un dios o hacer un Ataque vertical (tres toques). En Android usa la API de vibración; en iPhone (iOS 18 o posterior) usa el toque háptico de un interruptor nativo oculto, porque Safari no tiene API de vibración. En iOS anteriores no vibra.
+- Opción «VIBRATION ON/OFF» en la pausa; se guarda con los ajustes (activada por defecto).
+
+### Pantalla
+- En el móvil el juego cubre toda la pantalla, sin franjas en los laterales ni abajo: el lienzo tiene exactamente la proporción de la pantalla y se extiende también por la zona de la hora y la de la barra de inicio. Los fondos llegan hasta los bordes y el contenido se mantiene dentro de la zona segura (SAFE_TOP / SAFE_BOTTOM en config.js). En escritorio todo queda igual (360x640).
+- Parámetro de prueba ?safe=59,34 para simular en el navegador la zona segura de un iPhone (arriba, abajo).
+
+### Colección
+- 19 seres divinos de otras mitologías pasan a ser dioses (legendarios): Cailleach y Fomorian (celtas), Simargl (eslavo), Nuberu y Basajaun (ibéricos), Laume e Hiisi (europeos), Yatagarasu y Daidarabotchi (japoneses), Zhulong (Asia oriental), Garuda, Kamadhenu y Shesha (hindúes), Pazuzu y Lamassu (Oriente Medio), Camazotz y Amaru (americanos), Inkanyamba (africano) y Taniwha (oceánico). Ahora hay 119 dioses y 481 seres. Bajan como jefes igual que el resto de dioses, y la colección muestra su panteón («Japanese god»…). Ninguna bestia cambia de número, así que el guardado sigue valiendo.
+- Marco de color por rareza en la colección: verde común, azul poco común, morado rara y dorado los dioses.
+- El selector de mitología pasa a ser una fila de botones (ALL y uno por cada mitología, con su color y abreviatura), en lugar de flechas y lista desplegable. Debajo se muestra la sección elegida y su progreso.
+- Nuevo filtro «GODS» para ver solo los legendarios (dioses), combinable con la mitología, «CAUGHT» y la vista gold.
+
 ### Colección
 - La colección se divide en secciones por mitología: un selector «< NORSE 7/103 >» bajo la cabecera recorre «ALL BEASTS» y los 14 orígenes, con las capturadas y el total de cada uno (en la vista gold, las capturadas en gold). Al tocar el nombre se abre una lista con todas las mitologías y su progreso para saltar a cualquiera. Las flechas arriba/abajo del teclado también cambian de sección. La sección y el filtro «CAUGHT ONLY» se recuerdan mientras el juego esté abierto.
 - La cuadrícula aprovecha el alto disponible: 6 filas en pantallas 9:16 y hasta 8 en móviles alargados.

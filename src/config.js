@@ -1,22 +1,48 @@
 // Constantes del juego. Resolución lógica vertical pensada para móvil.
 const params = new URLSearchParams(globalThis.location?.search ?? '');
 
-export const W = 360;
-// Alto lógico: 640 (pantalla 9:16) o más en móviles alargados como el iPhone (hasta 800),
-// para llenar la pantalla sin franjas negras. El tablero mide siempre lo mismo: el alto extra
-// se reparte entre el menú superior (HUD_EXTRA) y el inferior (BOTTOM_EXTRA) de la partida.
-function screenRatio() {
+// Tamaño lógico. La maqueta base es 360x640 (9:16). En el móvil el lienzo ocupa toda la pantalla,
+// también la zona de la hora y la de la barra de inicio, sin franjas: se calcula un ancho (W) y un
+// alto total (FULL_H) con la misma proporción que la pantalla. El contenido se coloca en la zona
+// segura: H es el alto útil (sin SAFE_TOP arriba ni SAFE_BOTTOM abajo) y las escenas desplazan la
+// cámara SAFE_TOP hacia abajo (ver fitCamera en gfx/ui.js). En escritorio todo queda en 360x640.
+// El tablero mide siempre lo mismo: el alto extra se reparte entre el menú superior (HUD_EXTRA)
+// y el inferior (BOTTOM_EXTRA) de la partida.
+export const BASE_W = 360;
+export const BASE_H = 640;
+function screenInfo() {
+  const desktop = { mobile: false };
   try {
-    const el = globalThis.document?.getElementById('game');
-    const w = el?.clientWidth || globalThis.innerWidth;
-    const h = el?.clientHeight || globalThis.innerHeight;
-    return w && h ? h / w : 16 / 9;
+    const doc = globalThis.document;
+    if (!doc) return desktop;
+    const el = doc.getElementById('game');
+    const w = el?.clientWidth || globalThis.innerWidth, h = el?.clientHeight || globalThis.innerHeight;
+    const touch = globalThis.matchMedia?.('(pointer: coarse)').matches;
+    if (!w || !h || !touch || Math.min(w, h) > 600) return desktop;
+    // Márgenes de la zona segura (muesca / isla y barra de inicio), en px de CSS
+    const probe = doc.createElement('div');
+    probe.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
+    doc.body.appendChild(probe);
+    const cs = getComputedStyle(probe);
+    let top = parseFloat(cs.paddingTop) || 0, bottom = parseFloat(cs.paddingBottom) || 0;
+    probe.remove();
+    // Prueba: ?safe=59,34 simula la zona segura de un iPhone (arriba, abajo) en el navegador
+    const sim = params.get('safe')?.split(',').map(Number);
+    if (sim?.length === 2 && sim.every((v) => v >= 0)) [top, bottom] = sim;
+    return { mobile: true, w, h, top, bottom };
   } catch {
-    return 16 / 9;
+    return desktop;
   }
 }
-export const BASE_H = 640;
-export const H = Math.max(BASE_H, Math.min(800, Math.round((W * screenRatio()) / 2) * 2));
+const S = screenInfo();
+// Unidades lógicas por px: que quepan 360 de ancho y 640 de alto útil
+const K = S.mobile ? Math.max(BASE_W / S.w, BASE_H / Math.max(1, S.h - S.top - S.bottom)) : 1;
+export const MOBILE = S.mobile;
+export const W = S.mobile ? Math.round(S.w * K) : BASE_W;
+export const FULL_H = S.mobile ? Math.round(S.h * K) : BASE_H;
+export const SAFE_TOP = S.mobile ? Math.round(S.top * K) : 0;
+export const SAFE_BOTTOM = S.mobile ? Math.round(S.bottom * K) : 0;
+export const H = FULL_H - SAFE_TOP - SAFE_BOTTOM;
 export const EXTRA_H = H - BASE_H;
 export const HUD_EXTRA = Math.round(EXTRA_H * 0.45);
 export const BOTTOM_EXTRA = EXTRA_H - HUD_EXTRA;

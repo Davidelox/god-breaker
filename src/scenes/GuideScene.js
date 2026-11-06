@@ -9,7 +9,7 @@ import { TYPES, hexToNum } from '../data/types.js';
 import { SPECIALS, ELEMENTS } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER } from '../data/balls.js';
 import { addCreatureImage } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, drawPanel, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, drawPanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 
 const INK = COLORS.inkHex;
 const SOFT = '#56607c';
@@ -24,7 +24,8 @@ export default class GuideScene extends Phaser.Scene {
   }
 
   create() {
-    this.add.rectangle(0, 0, W, H, COLORS.night).setOrigin(0);
+    fitCamera(this);
+    fullRect(this, COLORS.night);
     this.pages = [
       ['GOAL', () => this.pageGoal()],
       ['BLOCKS', () => this.pageBlocks()],

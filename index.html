@@ -15,12 +15,9 @@
     <title>God Breaker</title>
     <style>
       html, body { margin: 0; height: 100%; background: #0c1020; overflow: hidden; }
-      /* Respeta la muesca y la barra inferior del iPhone al abrirse a pantalla completa */
-      #game {
-        width: 100vw;
-        height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        margin-top: env(safe-area-inset-top);
-      }
+      /* El juego ocupa toda la pantalla, también la zona de la hora y la barra de inicio;
+         el propio juego deja libre la zona segura (ver SAFE_TOP / SAFE_BOTTOM en config.js) */
+      #game { width: 100vw; height: 100dvh; }
       canvas { touch-action: none; image-rendering: pixelated; }
       #error-overlay {
         display: none; position: fixed; inset: 0; z-index: 10;

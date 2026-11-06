@@ -23,6 +23,7 @@ Con `npm run dev` en marcha, abre `http://localhost:5173/tools/bestiario.html` p
 |---|---|
 | `?gold` (o `?shiny`) | Probabilidad de versión dorada del 25 % |
 | `?debug` | Expone `window.__game` también en la versión final |
+| `?safe=59,34` | En vista de móvil, simula la zona segura de un iPhone (px arriba, abajo) |
 
 Ejemplo: `http://localhost:5173/?gold`
 

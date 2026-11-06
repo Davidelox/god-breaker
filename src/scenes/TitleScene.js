@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
-import { W, H } from '../config.js';
+import { W, H, FULL_H, SAFE_TOP, SAFE_BOTTOM } from '../config.js';
 import { VERSION } from '../version.js';
 import { CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES } from '../data/types.js';
 import { addCreatureImage } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, makeAudioToggles, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { pick, shuffle } from '../core/rng.js';
 import { audio } from '../audio/audio.js';
 
@@ -17,6 +17,7 @@ export default class TitleScene extends Phaser.Scene {
 
   create() {
     const save = this.registry.get('save');
+    fitCamera(this);
     this.drawBackdrop();
     audio.setTrack('ambient');
 
@@ -49,7 +50,7 @@ export default class TitleScene extends Phaser.Scene {
 
   confirmReset(save) {
     const layer = this.add.container(0, 0).setDepth(50);
-    layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.7).setOrigin(0).setInteractive());
+    layer.add(fullRect(this, 0x000000, 0.7).setInteractive());
     layer.add(makePanel(this, 24, 210, W - 48, 210, { fill: 0xfff0f0 }));
     layer.add(text(this, W / 2, 244, 'RESET PROGRESS?', 16, '#a03030').setOrigin(0.5));
     layer.add(text(this, W / 2, 296, 'Captures, missions, best score\nand stats will be erased.\nThis cannot be undone.', 8, COLORS.inkHex).setOrigin(0.5));
@@ -255,9 +256,9 @@ export default class TitleScene extends Phaser.Scene {
   drawBackdrop() {
     const g = this.add.graphics();
     g.fillStyle(COLORS.night);
-    g.fillRect(0, 0, W, H);
+    g.fillRect(0, -SAFE_TOP, W, FULL_H);
     g.fillStyle(0x141c34);
-    for (let y = 0; y < H; y += 24) {
+    for (let y = -Math.ceil(SAFE_TOP / 24) * 24; y < H + SAFE_BOTTOM; y += 24) {
       for (let x = (y / 24) % 2 ? 12 : 0; x < W; x += 24) g.fillRect(x, y, 12, 12);
     }
   }

@@ -21,12 +21,12 @@ describe('pack de criaturas', () => {
     expect(errors.length).toBe(4);
   });
 
-  it('el pack incluido es el bestiario completo (600 bestias, 100 dioses)', () => {
+  it('el pack incluido es el bestiario completo (600 bestias, 119 dioses)', () => {
     const pack = JSON.parse(readFileSync(new URL('../public/pack/criaturas.json', import.meta.url), 'utf8'));
     const { list, errors } = validateCreatures(pack.criaturas);
     expect(errors).toEqual([]);
     expect(list.length).toBe(600);
-    expect(list.filter((c) => c.legendary).length).toBe(100);
+    expect(list.filter((c) => c.legendary).length).toBe(119);
     for (const c of DEFAULT_CREATURES) {
       expect(list.find((x) => x.id === c.id)).toMatchObject({ name: c.name, type: c.type, pantheon: c.pantheon, art: c.art });
     }

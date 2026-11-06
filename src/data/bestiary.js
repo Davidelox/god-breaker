@@ -2,7 +2,9 @@
 // (griegos, nórdicos y egipcios), agrupados por su procedencia mitológica.
 // Los nombres vienen de mitos de dominio público; los diseños del juego son originales.
 //
-// Cada ser: [nombre, rareza (1 común, 2 poco común, 3 rara), descriptor del sprite].
+// Cada ser: [nombre, rareza (1 común, 2 poco común, 3 rara), descriptor del sprite, 'god' opcional].
+// Con 'god' es un dios (legendario) de esa mitología; la rareza solo fija su posición en el catálogo,
+// para no cambiar los id (el guardado usa el id).
 // Cada dios: [nombre, descriptor del sprite]. El descriptor lo interpreta src/gfx/beastArt.js.
 
 export const BEINGS = {
@@ -200,8 +202,8 @@ export const BEINGS = {
     ['Wulver', 2, 'hum head:wolf fur:brown c:brown'],
     ['Green Man', 2, 'head skin:leaf hair:leaves hairc:leaf beard beardc:leaf'],
     ['Cait Sith', 2, 'quad kind:cat c:black c2:white'],
-    ['Cailleach', 2, 'hum fem c:navy crown:veil hoodc:gray skin:ice eyes:one item:staff itemc:ice'],
-    ['Fomorian', 3, 'hum big head:goat fur:moss body:loin c:black'],
+    ['Cailleach', 2, 'hum fem c:navy crown:veil hoodc:gray skin:ice eyes:one item:staff itemc:ice', 'god'],
+    ['Fomorian', 3, 'hum big head:goat fur:moss body:loin c:black', 'god'],
     ['Dullahan', 3, 'hum body:armor c:black c2:slate headless cape:black'],
     ['Ddraig Goch', 3, 'drag c:red c2:gold']
   ],
@@ -222,7 +224,7 @@ export const BEINGS = {
     ['Kikimora', 2, 'hum small fem skin:gray c:brown hair:wild hairc:black item:spindle'],
     ['Domovoi', 2, 'hum small c:red beard:long hairc:gray body:fur fur:gray'],
     ['Leshy', 2, 'hum big skin:wood c:moss hair:leaves beard beardc:moss horns:antler hornc:wood'],
-    ['Simargl', 2, 'quad kind:dog c:fire wings:fire flames'],
+    ['Simargl', 2, 'quad kind:dog c:fire wings:fire flames', 'god'],
     ['Smok', 2, 'drag c:green c2:yellow fire'],
     ['Koschei', 2, 'hum head:skull body:armor c:black c2:gray crown:crown item:sword'],
     ['Baba Yaga', 2, 'hum fem c:brown crown:veil hoodc:red hair:wild hairc:gray item:broom fangs'],
@@ -237,13 +239,13 @@ export const BEINGS = {
     ['Trasgo', 1, 'hum small c:red crown:redcap tail:thin tailc:black hair:wild hairc:black fangs'],
     ['Anjana', 1, 'hum fem c:white wings:white item:staff hairc:black crown:flowers'],
     ['Meiga', 1, 'hum fem c:black crown:witch hatc:black item:broom hairc:gray'],
-    ['Nuberu', 1, 'cloud c:slate hat:black beard rain'],
+    ['Nuberu', 1, 'cloud c:slate hat:black beard rain', 'god'],
     ['Odei', 1, 'cloud c:night rain'],
     ['Washerwoman', 1, 'ghost c:white hood:white'],
     ['Santa Compaña', 1, 'ghost c:gray hood:black empty item:lantern'],
     ['Sacamantecas', 1, 'hum c:black crown:brim hatc:black body:robe item:knife item2:sack skin:pale'],
     ['Busgosu', 2, 'hum legs:goat fur:brown body:bare skin:skin2 horns:goat beard hairc:moss'],
-    ['Basajaun', 2, 'hum big body:fur fur:brown hair:wild hairc:brown beard:long item:staff'],
+    ['Basajaun', 2, 'hum big body:fur fur:brown hair:wild hairc:brown beard:long item:staff', 'god'],
     ['Tartalo', 2, 'hum big eyes:one skin:skin2 body:fur fur:brown hair:wild hairc:black'],
     ['Ojáncanu', 2, 'hum big eyes:one skin:skin2 body:fur fur:gray beard:long hairc:red'],
     ['Cuélebre', 2, 'serp c:green c2:yellow wings:moss'],
@@ -273,7 +275,7 @@ export const BEINGS = {
     ["Will-o'-wisp", 1, 'wisp c:cyan'],
     ['Etiäinen', 1, 'ghost c:white hair hairc:brown'],
     ['Homunculus', 1, 'obj kind:flask skin:peach body:bare'],
-    ['Laume', 1, 'hum fem c:white hairc:gold'],
+    ['Laume', 1, 'hum fem c:white hairc:gold', 'god'],
     ['Cockatrice', 2, 'bird c:white c2:yellow wingc:green tail:long tailc:green crest:red'],
     ['Wyvern', 2, 'drag legs:2 c:slate c2:sand'],
     ['Kulshedra', 2, 'serp c:black horns wings:black fire'],
@@ -282,7 +284,7 @@ export const BEINGS = {
     ['Melusine', 2, 'hum fem legs:snake tailc:blue wings:bat wingc:navy c:blue hairc:gold'],
     ['Lorelei', 2, 'hum fem c:gold hairc:gold item:harp'],
     ['Iku-Turso', 2, 'kraken c:navy arms:6'],
-    ['Hiisi', 2, 'hum skin:moss body:loin c:black horns:small hair:wild hairc:black fangs'],
+    ['Hiisi', 2, 'hum skin:moss body:loin c:black horns:small hair:wild hairc:black fangs', 'god'],
     ['Solomonar', 2, 'hum c:black crown:wizard hatc:black beard:long hairc:gray item:staff aura:storm'],
     ['Hippogriff', 2, 'quad kind:horse c:white head:eagle wings:white'],
     ['Krampus', 2, 'hum body:fur fur:black legs:goat horns:goat hornc:black skin:red tongue fangs item:chain'],
@@ -336,7 +338,7 @@ export const BEINGS = {
     ['Nurikabe', 1, 'obj kind:wall'],
     ['Kasha', 2, 'quad kind:cat c:black tail:fire eye:yellow glow flames'],
     ['Wanyudo', 2, 'head wheel skin:skin2 hair:wild hairc:black eye:red fangs'],
-    ['Yatagarasu', 2, 'bird c:black legs:3 beak:gray aura:fire'],
+    ['Yatagarasu', 2, 'bird c:black legs:3 beak:gray aura:fire', 'god'],
     ['Nure-onna', 2, 'hum fem legs:snake tailc:navy c:navy hairc:black fangs'],
     ['Ushi-oni', 2, 'spider face:oni c:black headc:red'],
     ['Isonade', 2, 'fish kind:shark c:slate'],
@@ -357,7 +359,7 @@ export const BEINGS = {
     ['Akkorokamui', 3, 'kraken c:red arms:8'],
     ['Jubokko', 3, 'tree kind:dead blood eye:red'],
     ['Oni', 3, 'hum big head:oni skin:red body:loin c:yellow hair:wild hairc:black fangs item:club'],
-    ['Daidarabotchi', 3, 'hum big skin:skin2 body:loin c:brown hair:topknot hairc:black scale:1.1'],
+    ['Daidarabotchi', 3, 'hum big skin:skin2 body:loin c:brown hair:topknot hairc:black scale:1.1', 'god'],
     ['Kitsune', 3, 'quad kind:fox c:white tails:9 tailc:white aura:cyan']
   ],
   asiatica: [
@@ -388,7 +390,7 @@ export const BEINGS = {
     ['Jiangshi', 2, 'hum skin:pale c:navy body:robe c2:gold crown:cap capc:black pose:wide'],
     ['Jade Rabbit', 2, 'quad kind:rabbit c:white aura:white'],
     ['Luduan', 2, 'quad kind:lion c:jade horn hornc:gold'],
-    ['Zhulong', 3, 'ldrag c:red c2:gold manec:fire'],
+    ['Zhulong', 3, 'ldrag c:red c2:gold manec:fire', 'god'],
     ['Zhuque', 3, 'bird c:red wingc:crimson tail:long crest:gold fire'],
     ['Fenghuang', 3, 'bird c:gold wingc:red tail:peacock tailc:teal crest:red'],
     ['Xiezhi', 3, 'quad kind:goat c:navy horn hornc:gold'],
@@ -424,10 +426,10 @@ export const BEINGS = {
     ['Jatayu', 3, 'bird c:brown wingc:ochre beak:gold scale:1.1'],
     ['Sampati', 3, 'bird c:red wingc:fire beak:gold'],
     ['Gandaberunda', 3, 'bird front heads:2 c:gold wingc:red'],
-    ['Garuda', 3, 'hum head:eagle fur:red body:bare skin:gold wings:gold c:red crown:crown'],
+    ['Garuda', 3, 'hum head:eagle fur:red body:bare skin:gold wings:gold c:red crown:crown', 'god'],
     ['Rakshasa', 3, 'hum big skin:purple body:armor c:gold c2:gold fangs horns:small crown:crown item:sword eye:red'],
-    ['Kamadhenu', 3, 'quad kind:cow c:white head:human hairc:black fem wings:white tail:fan tailc:teal'],
-    ['Shesha', 3, 'serp heads:5 hood c:gold c2:white']
+    ['Kamadhenu', 3, 'quad kind:cow c:white head:human hairc:black fem wings:white tail:fan tailc:teal', 'god'],
+    ['Shesha', 3, 'serp heads:5 hood c:gold c2:white', 'god']
   ],
   medioriental: [
     ['Girtablilu', 1, 'hum legs:scorpion fur:copper body:bare skin:skin2 beard hairc:black crown:hornhelm item:bow'],
@@ -438,10 +440,10 @@ export const BEINGS = {
     ['Chamrosh', 1, 'quad kind:dog c:tan wings:brown head:eagle'],
     ['Mushussu', 2, 'quad kind:lizard c:lapis head:snake horns tail:scorpion'],
     ['Vishap', 2, 'serp c:teal c2:slate horns'],
-    ['Pazuzu', 2, 'hum head:dog fur:slate body:bare skin:slate wings:slate legs:bird legc:gold tail:thin claws'],
+    ['Pazuzu', 2, 'hum head:dog fur:slate body:bare skin:slate wings:slate legs:bird legc:gold tail:thin claws', 'god'],
     ['Ugallu', 2, 'hum head:lion fur:ochre body:kilt item:knife legs:bird'],
     ['Anzu', 2, 'bird front c:lapis wingc:navy headc:ochre'],
-    ['Lamassu', 2, 'quad kind:bull c:sand head:human hairc:black beard wings:gold skin:skin2'],
+    ['Lamassu', 2, 'quad kind:bull c:sand head:human hairc:black beard wings:gold skin:skin2', 'god'],
     ['Manticore', 2, 'quad kind:lion c:red head:human hairc:black tail:scorpion fangs mane manec:ochre'],
     ['Tepegoz', 2, 'hum big eyes:one skin:skin2 body:fur fur:brown hair:wild hairc:black'],
     ['Ghoul', 2, 'hum skin:gray c:gray fangs eye:yellow hair:wild hairc:black claws'],
@@ -504,7 +506,7 @@ export const BEINGS = {
     ['Kiwakwe', 2, 'hum big skin:ice body:loin c:slate hair:wild hairc:white fangs'],
     ['Wendigo', 2, 'hum big slim head:skull horns:antler hornc:bone body:bones skin:pale claws eye:red glow'],
     ['Lobisón', 2, 'quad kind:dog c:brown scale:1.15 eye:red fangs'],
-    ['Camazotz', 2, 'hum head:bat fur:black wings:bat body:loin skin:black c:red'],
+    ['Camazotz', 2, 'hum head:bat fur:black wings:bat body:loin skin:black c:red', 'god'],
     ['Nahual', 2, 'hum head:leopard fur:ochre body:loin c:white skin:skin2'],
     ['Ucumar', 2, 'hum big body:fur fur:black head:bear'],
     ['Mapinguari', 2, 'hum big body:fur fur:rust eyes:one claws'],
@@ -512,7 +514,7 @@ export const BEINGS = {
     ['Thunderbird', 3, 'bird front c:red wingc:brown c2:yellow bolts beak:gold'],
     ['Sachamama', 3, 'serp c:moss c2:leaf scale:1.15 eye:yellow'],
     ['Sasquatch', 3, 'hum big body:fur fur:brown head:monkey fur2:skin2'],
-    ['Amaru', 3, 'serp c:jade c2:gold wings:cyan crown:crown']
+    ['Amaru', 3, 'serp c:jade c2:gold wings:cyan crown:crown', 'god']
   ],
   africana: [
     ['Tokoloshe', 1, 'hum small skin:skin3 body:bare c:brown hair:none eye:red fangs'],
@@ -520,7 +522,7 @@ export const BEINGS = {
     ['Impundulu', 1, 'bird c:white wingc:black bolts aura:storm'],
     ['Abada', 2, 'quad kind:horse c:tan horn hornc:bone scale:0.9'],
     ['Sasabonsam', 2, 'hum skin:skin3 body:loin c:red wings:bat fangs eye:red claws'],
-    ['Inkanyamba', 2, 'serp c:navy c2:cyan horns aura:storm'],
+    ['Inkanyamba', 2, 'serp c:navy c2:cyan horns aura:storm', 'god'],
     ['Grootslang', 2, 'quad kind:elephant c:slate tail:snake'],
     ['Mokele-mbembe', 2, 'quad kind:elephant c:gray neck:8 head:snake headc:gray'],
     ['Ninki Nanka', 3, 'drag c:green c2:yellow wings:false']
@@ -530,7 +532,7 @@ export const BEINGS = {
     ['Hakawai', 1, 'bird c:black wingc:slate beakl:long'],
     ['Patupaiarehe', 1, 'hum slim c:white skin:pale hairc:red item:panpipes'],
     ['Bunyip', 2, 'quad kind:bear c:brown c2:tan fangs'],
-    ['Taniwha', 2, 'ldrag c:jade c2:cyan horns:false'],
+    ['Taniwha', 2, 'ldrag c:jade c2:cyan horns:false', 'god'],
     ['Pouakai', 2, 'bird c:black wingc:white scale:1.15 beak:gold'],
     ['Yowie', 2, 'hum big body:fur fur:brown head:monkey']
   ]
@@ -646,7 +648,12 @@ export const GODS = {
   ]
 };
 
-export const PANTHEON_NAMES = { griega: 'Greek', nordica: 'Norse', egipcia: 'Egyptian' };
+// Panteón de cada dios (su mitología), tal como se muestra en la colección: «Greek god», «Celtic god»…
+export const PANTHEON_NAMES = {
+  griega: 'Greek', nordica: 'Norse', egipcia: 'Egyptian', celta: 'Celtic', eslava: 'Slavic', iberica: 'Iberian',
+  europea: 'European', japonesa: 'Japanese', asiatica: 'East Asian', indomalaya: 'Hindu', medioriental: 'Middle Eastern',
+  americana: 'American', africana: 'African', oceanica: 'Oceanian'
+};
 
 /**
  * Catálogo completo, agrupado por origen (en el orden de originOrder): primero los seres de
@@ -658,8 +665,9 @@ export function buildBestiary(originOrder) {
   let id = 1;
   for (const origin of originOrder) {
     const beings = [...(BEINGS[origin] ?? [])].sort((a, b) => a[1] - b[1]);
-    for (const [name, rarity, art] of beings) {
-      list.push({ id: id++, name, type: origin, rarity, legendary: false, pantheon: null, art });
+    for (const [name, rarity, art, kind] of beings) {
+      const god = kind === 'god';
+      list.push({ id: id++, name, type: origin, rarity: god ? 4 : rarity, legendary: god, pantheon: god ? origin : null, art });
     }
     for (const [name, art] of GODS[origin] ?? []) {
       list.push({ id: id++, name, type: origin, rarity: 4, legendary: true, pantheon: origin, art });

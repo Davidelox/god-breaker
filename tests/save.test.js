@@ -87,6 +87,8 @@ describe('ajustes v0.6', () => {
     expect(parseSave(JSON.stringify({ version: 1, settings: { speed: 1.5 } })).settings.speed).toBe(1.5);
     expect(parseSave(JSON.stringify({ version: 1, settings: { speed: 4 } })).settings.speed).toBe(4);
     expect(parseSave(JSON.stringify({ version: 1 })).settings.grid).toBe(false);
+    expect(parseSave(JSON.stringify({ version: 1 })).settings.haptics).toBe(true);
+    expect(parseSave(JSON.stringify({ version: 1, settings: { haptics: false } })).settings.haptics).toBe(false);
   });
 });
 

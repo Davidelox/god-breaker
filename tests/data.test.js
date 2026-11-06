@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import * as types from '../src/data/types.js';
 import { CREATURES, LEGENDARIES, NORMAL_CREATURES } from '../src/data/creatures.js';
 import { SPECIALS, ELEMENTS } from '../src/data/specials.js';
-import { BEINGS, GODS } from '../src/data/bestiary.js';
+import { BEINGS, GODS, PANTHEON_NAMES } from '../src/data/bestiary.js';
 import { parseDesc } from '../src/gfx/beastArt.js';
 
 const { TYPES, TYPE_ORDER } = types;
@@ -13,12 +13,13 @@ describe('datos', () => {
     expect(types.CHART).toBeUndefined();
   });
 
-  it('bestiario: 600 bestias, 500 seres y 100 dioses', () => {
+  it('bestiario: 600 bestias, 481 seres y 119 dioses (100 griegos, nórdicos y egipcios + 19 de otras mitologías)', () => {
     expect(CREATURES.length).toBe(600);
-    expect(NORMAL_CREATURES.length).toBe(500);
-    expect(LEGENDARIES.length).toBe(100);
+    expect(NORMAL_CREATURES.length).toBe(481);
+    expect(LEGENDARIES.length).toBe(119);
+    expect(LEGENDARIES.filter((c) => GODS[c.pantheon]).length).toBe(100);
     expect(Object.keys(GODS).sort()).toEqual(['egipcia', 'griega', 'nordica']);
-    expect(LEGENDARIES.every((c) => c.rarity === 4 && GODS[c.pantheon])).toBe(true);
+    expect(LEGENDARIES.every((c) => c.rarity === 4 && PANTHEON_NAMES[c.pantheon] && c.pantheon === c.type)).toBe(true);
   });
 
   it('cada bestia tiene un origen mitológico y los dioses son de su panteón', () => {

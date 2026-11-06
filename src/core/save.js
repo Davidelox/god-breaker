@@ -12,7 +12,7 @@ export function defaultSave() {
     collection: {}, // id -> { count, shinyCount, firstAt }
     stats: { games: 0, captures: 0, shinies: 0, bossKills: 0, clears: 0, powersUsed: 0, bestTurn: 0 },
     missions: {}, // id de misión -> fecha en que se completó (las recompensas llegarán más adelante)
-    settings: { speed: 1, music: true, sfx: true, grid: false }
+    settings: { speed: 1, music: true, sfx: true, grid: false, haptics: true }
   };
 }
 
@@ -56,7 +56,8 @@ export function sanitize(s, validIds) {
     speed: SPEEDS.includes(speed) ? speed : 1,
     music: s.settings?.music !== false,
     sfx: s.settings?.sfx !== false,
-    grid: s.settings?.grid === true
+    grid: s.settings?.grid === true,
+    haptics: s.settings?.haptics !== false
   };
   const col = s.collection && typeof s.collection === 'object' ? s.collection : {};
   for (const [id, e] of Object.entries(col)) {

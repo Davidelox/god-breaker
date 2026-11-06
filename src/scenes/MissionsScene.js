@@ -2,7 +2,7 @@
 import Phaser from 'phaser';
 import { W, H } from '../config.js';
 import { MISSIONS, missionProgress } from '../data/missions.js';
-import { text, makeButton, drawPanel, COLORS } from '../gfx/ui.js';
+import { text, makeButton, drawPanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 
 const PER_PAGE = 6;
 const ROW_H = 72;
@@ -23,7 +23,8 @@ export default class MissionsScene extends Phaser.Scene {
 
   create() {
     this.save = this.registry.get('save');
-    this.add.rectangle(0, 0, W, H, COLORS.night).setOrigin(0);
+    fitCamera(this);
+    fullRect(this, COLORS.night);
     const done = MISSIONS.filter((m) => this.save.data.missions[m.id]).length;
     text(this, W / 2, 20, 'MISSIONS', 16, COLORS.goldHex).setOrigin(0.5);
     text(this, W / 2, 44, `Completed ${done}/${MISSIONS.length}`, 8, '#a8b4cc').setOrigin(0.5);

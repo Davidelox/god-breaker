@@ -1,7 +1,7 @@
 import '@fontsource/press-start-2p';
 import Phaser from 'phaser';
 import { installErrorHandlers, logError, showFatal } from './core/errors.js';
-import { W, H, DEBUG } from './config.js';
+import { W, FULL_H, MOBILE, DEBUG } from './config.js';
 import { audio } from './audio/audio.js';
 import { loadPack } from './data/pack.js';
 import BootScene from './scenes/BootScene.js';
@@ -23,10 +23,12 @@ function start() {
     type: Phaser.AUTO,
     parent: 'game',
     width: W,
-    height: H,
+    height: FULL_H,
     backgroundColor: '#0c1020',
     pixelArt: true,
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    // En el móvil el lienzo tiene la proporción de la pantalla y la cubre entera (ENVELOP: sin franjas);
+    // en escritorio se encaja (FIT).
+    scale: { mode: MOBILE ? Phaser.Scale.ENVELOP : Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     input: { activePointers: 2 },
     scene: [BootScene, TitleScene, GameScene, CollectionScene, GuideScene, MissionsScene]
   });

@@ -4,6 +4,7 @@ import { SaveStore } from '../core/save.js';
 import { CREATURE_IDS } from '../data/creatures.js';
 import { logError, showFatal } from '../core/errors.js';
 import { audio } from '../audio/audio.js';
+import { haptics } from '../core/haptics.js';
 import { PACK_IMAGES } from '../data/pack.js';
 
 export default class BootScene extends Phaser.Scene {
@@ -23,6 +24,7 @@ export default class BootScene extends Phaser.Scene {
       const store = new SaveStore(undefined, CREATURE_IDS);
       store.load();
       audio.configure(store.data.settings);
+      haptics.setEnabled(store.data.settings.haptics);
       this.registry.set('save', store);
       this.scene.start('title');
     } catch (err) {

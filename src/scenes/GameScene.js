@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y, BOARD_FLOOR_Y, HUD_EXTRA, BOTTOM_EXTRA,
+  W, H, FULL_H, SAFE_TOP, BASE_W, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y, BOARD_FLOOR_Y, HUD_EXTRA, BOTTOM_EXTRA,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, CREATURE_FROM_TURN, BOSS_EVERY, SHINY_RATE,
   BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
@@ -11,18 +11,26 @@ import { TYPES, hexToNum } from '../data/types.js';
 import { SPECIAL_COST, specialById, ELEMENTS } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from '../data/balls.js';
 import { creatureKey, addCreatureImage, texScale, blockBgKey, HP_FONT } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { pick, weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
 import { Weather } from '../gfx/weather.js';
 import { audio } from '../audio/audio.js';
+import { haptics } from '../core/haptics.js';
 import { newlyCompleted, MISSIONS } from '../data/missions.js';
 
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
-const TRAIL_POINTS = 9; // posiciones recientes guardadas de cada orbe (para colocar su sombra)
-const GHOST_DIST = 14; // a cuántos px por detrás del orbe va su sombra
-const GHOST_ALPHA = 0.18; // opacidad de la sombra (muy transparente)
+const TRAIL_POINTS = 12; // posiciones recientes guardadas de cada orbe (para colocar su estela)
+// Estela tipo cometa: copias del orbe cada vez más pequeñas y transparentes que siguen su recorrido
+// (también por los rebotes). d: px por detrás del orbe, a: opacidad, s: escala respecto al orbe.
+const GHOSTS = [
+  { d: 4, a: 0.32, s: 0.86 },
+  { d: 8, a: 0.2, s: 0.72 },
+  { d: 12, a: 0.12, s: 0.58 },
+  { d: 16, a: 0.06, s: 0.46 }
+];
+const IMPACT_TTL = 0.14; // s que dura la marca del punto de impacto en un rebote
 const CORNER_R = 4; // radio de las esquinas redondeadas de los bloques en la física (px)
 // Separación entre orbes: a velocidad x1 sale uno cada LAUNCH_DELAY ms; a más velocidad la
 // separación en pantalla crece un SPACING_GROWTH por cada punto de velocidad (x4: +60 %),
@@ -77,7 +85,8 @@ export default class GameScene extends Phaser.Scene {
     this.pickups = [];
     this.balls = [];
     this.bolts = [];
-    this.hitBlocks = new Set(); // bloques con destello o texto pendientes (ver flushHits)
+    this.hitBlocks = new Set(); // bloques con texto pendiente (ver flushHits)
+    this.impacts = []; // marcas de los puntos de impacto de los rebotes
     this.bossNow = false; // en el turno actual baja un dios
     this.bossPending = false; // dios pospuesto porque su llegada te haría perder
     this.hudDirty = false;
@@ -105,6 +114,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    fitCamera(this);
     this.drawBoard();
     this.aimG = this.add.graphics().setDepth(5);
     this.trailG = this.add.graphics().setDepth(7).setBlendMode(Phaser.BlendModes.ADD);
@@ -149,7 +159,7 @@ export default class GameScene extends Phaser.Scene {
     const paint = (c) => {
       this.bgG.clear();
       this.bgG.fillStyle(COLORS.night);
-      this.bgG.fillRect(0, 0, W, H);
+      this.bgG.fillRect(0, -SAFE_TOP, W, FULL_H);
       this.bgG.fillStyle(c);
       this.bgG.fillRect(BOARD_X, BOARD_TOP, COLS * CELL, BOARD_FLOOR_Y - BOARD_TOP);
     };
@@ -216,12 +226,12 @@ export default class GameScene extends Phaser.Scene {
     const by = b ? Math.round((barY + 16 + H - 8) / 2) : BOTTOM_BAR_Y;
     this.slotButtons = [];
     for (let i = 0; i < MAX_POWERS; i++) {
-      const btn = makeButton(this, 4 + 37 + i * 78, by, 74, bh, '-', () => this.toggleSlot(i), { size: big ? 16 : 8 });
+      const btn = makeButton(this, (W - BASE_W) / 2 + 4 + 37 + i * 78, by, 74, bh, '-', () => this.toggleSlot(i), { size: big ? 16 : 8 });
       this.slotButtons.push(btn);
     }
     this.ballButtons = {};
     BALL_ORDER.forEach((id, i) => {
-      const btn = makeButton(this, 162 + 31 + i * 65, by, 62, bh, '', () => this.selectBall(id), {
+      const btn = makeButton(this, (W - BASE_W) / 2 + 162 + 31 + i * 65, by, 62, bh, '', () => this.selectBall(id), {
         fill: BALL_TYPES[id].fill
       });
       this.ballButtons[id] = btn;
@@ -315,7 +325,7 @@ export default class GameScene extends Phaser.Scene {
   setupInput() {
     this.input.on('pointerdown', (p) => {
       if (this.state !== 'aim' || this.paused) return;
-      if (p.y < BOARD_TOP || p.y > LAUNCH_Y + 4) return;
+      if (p.worldY < BOARD_TOP || p.worldY > LAUNCH_Y + 4) return;
       this.aiming = true;
       this.updateAim(p);
     });
@@ -336,8 +346,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   updateAim(p) {
-    const dx = p.x - this.launchX;
-    const dy = p.y - LAUNCH_Y;
+    const dx = p.worldX - this.launchX;
+    const dy = p.worldY - LAUNCH_Y;
     if (dy > -6) {
       this.aimValid = false;
       this.aimG.clear();
@@ -663,9 +673,12 @@ export default class GameScene extends Phaser.Scene {
     if (extra) trailColor = PLANT_COLOR;
     else if (others.length) trailColor = hexToNum(ELEMENTS[others[0].type].light);
     if (powered) img.setTint(trailColor);
-    // Sombra: copia del orbe muy transparente que le sigue a GHOST_DIST px
-    const ghost = this.add.image(this.shotX, LAUNCH_Y, ballKey).setDepth(7).setScale(img.scale).setAlpha(GHOST_ALPHA);
-    if (powered) ghost.setTint(trailColor);
+    // Estela: copias del orbe que se van encogiendo y apagando (ver GHOSTS)
+    const ghosts = GHOSTS.map(() => {
+      const gimg = this.add.image(this.shotX, LAUNCH_Y, ballKey).setDepth(7).setAlpha(0);
+      if (powered) gimg.setTint(trailColor);
+      return gimg;
+    });
     if (extra) {
       // Bola añadida por Enredadera: destello verde al salir y brillo que late
       this.fxRing(this.shotX, LAUNCH_Y, PLANT_COLOR, 14, 260, 2);
@@ -681,7 +694,7 @@ export default class GameScene extends Phaser.Scene {
       vx: Math.cos(this.shotAngle) * BALL_SPEED,
       vy: Math.sin(this.shotAngle) * BALL_SPEED,
       img,
-      ghost,
+      ghosts,
       trail: [],
       trailColor,
       inside: new Set(),
@@ -759,15 +772,15 @@ export default class GameScene extends Phaser.Scene {
       if (b.done && b.img) {
         b.img.destroy();
         b.img = null;
-        b.ghost?.destroy();
-        b.ghost = null;
+        b.ghosts?.forEach((gimg) => gimg.destroy());
+        b.ghosts = null;
       } else if (b.img) {
         b.img.setPosition(b.x, b.y);
         b.trail.push(b.x, b.y);
         if (b.trail.length > TRAIL_POINTS * 2) b.trail.splice(0, 2);
       }
     }
-    this.drawTrails();
+    this.drawTrails(dt);
     this.balls = this.balls.filter((b) => !b.done);
     if (this.toLaunch === 0 && this.balls.length === 0) this.endTurn();
   }
@@ -792,38 +805,51 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  // Sombra del orbe (una copia muy transparente que le sigue a GHOST_DIST px por su recorrido)
-  // y resplandor suave alrededor del orbe.
-  drawTrails() {
+  /** Punto del recorrido reciente que está a dist px por detrás del orbe (sigue los rebotes). */
+  trailPoint(b, dist) {
+    const t = b.trail;
+    let left = dist;
+    for (let i = t.length / 2 - 1; i > 0; i--) {
+      const x1 = t[i * 2], y1 = t[i * 2 + 1], x0 = t[i * 2 - 2], y0 = t[i * 2 - 1];
+      const seg = Math.hypot(x1 - x0, y1 - y0);
+      if (seg >= left && seg > 0) {
+        const f = left / seg;
+        return { x: x1 + (x0 - x1) * f, y: y1 + (y0 - y1) * f, ok: true };
+      }
+      left -= seg;
+    }
+    return { x: t[0] ?? b.x, y: t[1] ?? b.y, ok: false };
+  }
+
+  // Estela tipo cometa (copias del orbe cada vez más pequeñas y transparentes), resplandor suave
+  // alrededor de cada orbe y marcas de los puntos de impacto de los rebotes.
+  drawTrails(dt = 0) {
     const g = this.trailG;
     g.clear();
     for (const b of this.balls) {
       if (!b.img) continue;
-      const t = b.trail;
-      // Punto del recorrido reciente que está a GHOST_DIST px por detrás (sigue los rebotes)
-      let gx = b.x, gy = b.y, dist = 0;
-      for (let i = t.length / 2 - 1; i > 0; i--) {
-        const x1 = t[i * 2], y1 = t[i * 2 + 1], x0 = t[i * 2 - 2], y0 = t[i * 2 - 1];
-        const seg = Math.hypot(x1 - x0, y1 - y0);
-        if (dist + seg >= GHOST_DIST && seg > 0) {
-          const f = (GHOST_DIST - dist) / seg;
-          gx = x1 + (x0 - x1) * f;
-          gy = y1 + (y0 - y1) * f;
-          dist = GHOST_DIST;
-          break;
-        }
-        dist += seg;
-        gx = x0;
-        gy = y0;
+      if (b.ghosts) {
+        GHOSTS.forEach((cfg, i) => {
+          const p = this.trailPoint(b, cfg.d);
+          // Al salir del lanzador aún no hay recorrido: la estela aparece poco a poco
+          b.ghosts[i].setPosition(p.x, p.y).setScale(b.img.scale * cfg.s).setAlpha(p.ok ? cfg.a : 0);
+        });
       }
-      if (b.ghost) {
-        b.ghost.setPosition(gx, gy).setScale(b.img.scale);
-        // Al salir del lanzador aún no hay recorrido: la sombra aparece poco a poco
-        b.ghost.setAlpha(GHOST_ALPHA * Math.min(1, dist / GHOST_DIST));
-      }
-      // Resplandor alrededor del orbe
       g.fillStyle(b.trailColor, 0.12);
       g.fillCircle(b.x, b.y, b.r * 1.2);
+    }
+    // Puntos de impacto: destello pequeño que crece y se apaga
+    if (this.impacts?.length) {
+      for (const im of this.impacts) {
+        const k = Math.max(0, im.ttl / IMPACT_TTL); // 1 → 0
+        const r = 2 + (1 - k) * 4;
+        g.fillStyle(0xffffff, 0.85 * k);
+        g.fillCircle(im.x, im.y, r * 0.6);
+        g.lineStyle(1, im.color, 0.9 * k);
+        g.strokeCircle(im.x, im.y, r + 1);
+        im.ttl -= dt;
+      }
+      this.impacts = this.impacts.filter((im) => im.ttl > 0);
     }
   }
 
@@ -898,7 +924,7 @@ export default class GameScene extends Phaser.Scene {
         this.hitBlock(blk, b);
         if (water === 1 && b.pierced === WATER_PIERCE && b.img) {
           b.img.setTint(0xffffff);
-          b.ghost?.setTint(0xffffff);
+          b.ghosts?.forEach((gimg) => gimg.setTint(0xffffff));
           b.trailColor = 0xffffff;
           this.fxRing(b.x, b.y, 0x78c0ff, 12, 240, 2);
         }
@@ -923,6 +949,9 @@ export default class GameScene extends Phaser.Scene {
 
       const dot = b.vx * nx + b.vy * ny;
       if (dot < 0) {
+        // Marca del punto de contacto con el bloque (el borde del orbe que lo toca)
+        // (centro del orbe ya sacado del bloque, menos su radio en la dirección de la normal)
+        if (this.impacts.length < 60) this.impacts.push({ x: b.x + nx * (push - br), y: b.y + ny * (push - br), ttl: IMPACT_TTL, color: b.trailColor });
         // Rebote: reflexión sobre la normal (conserva la velocidad)
         b.vx -= 2 * dot * nx;
         b.vy -= 2 * dot * ny;
@@ -1040,6 +1069,7 @@ export default class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: core, scaleX: 0, duration: 420, onComplete: () => core.destroy() });
     this.cameras.main.shake(260, 0.01);
     this.cameras.main.flash(160, 255, 250, 220);
+    haptics.pulse('big');
     floatText(this, cx, BOARD_TOP + CELL * 3, `+${gained}`, COLORS.goldHex, 16);
     this.showToast(`VERTICAL STRIKE! +${gained}`, '#b07800');
     audio.play('vertical');
@@ -1049,16 +1079,9 @@ export default class GameScene extends Phaser.Scene {
     if (blk.dead || dmg <= 0) return;
     this.addScore(Math.min(dmg, blk.hp));
     blk.hp -= dmg;
-    // Destello blanco del bloque y rojo de la criatura. Se apagan en flushHits() (una vez por
-    // fotograma) en lugar de con un temporizador por golpe: en móvil eso pesa mucho.
-    const now = this.time.now;
-    if (!(blk.flashUntil > now)) blk.bg.setTintFill(0xffffff);
-    blk.flashUntil = now + 50;
-    if (blk.sprite) {
-      if (!(blk.redUntil > now)) blk.sprite.setTint(0xff3030);
-      blk.redUntil = now + 90;
-    }
+    // Sin destellos de color: el golpe se nota con una pequeña vibración del bloque (punch)
     this.hitBlocks.add(blk);
+    haptics.pulse('hit');
     this.punch(blk);
     audio.play('hit', { boss: blk.kind === 'boss' });
     if (blk.hp <= 0.001) this.destroyBlock(blk);
@@ -1096,22 +1119,31 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Reacción leve al impacto: el bloque se encoge un instante y vuelve (los legendarios, menos).
+  // Golpe: pequeña vibración horizontal del bloque (unas oscilaciones que se apagan en ~110 ms).
+  // No cambia el tamaño ni el color, así el orbe siempre se ve tocando el borde real.
   punch(blk) {
     const now = this.time.now;
     if (now - (blk.lastPunch ?? 0) < 70) return;
     blk.lastPunch = now;
-    const amount = blk.kind === 'boss' ? 0.04 : 0.09;
     const c = blk.cont;
-    this.tweens.add({ targets: c, scaleX: 1 - amount, scaleY: 1 - amount, duration: 45, yoyo: true, ease: 'Quad.easeOut', onComplete: () => !blk.dead && c.setScale(1) });
-    if (blk.sprite) {
-      this.tweens.add({ targets: blk.sprite, angle: { from: (Math.random() < 0.5 ? -1 : 1) * (blk.kind === 'boss' ? 4 : 8), to: 0 }, duration: 160, ease: 'Back.easeOut' });
-    }
+    const baseX = BOARD_X + blk.col * CELL + (blk.size * CELL) / 2;
+    const amp = blk.kind === 'boss' ? 1 : 1.5;
+    blk.shakeTween?.remove();
+    blk.shakeTween = this.tweens.addCounter({
+      from: 0, to: 1, duration: 110,
+      onUpdate: (tw) => {
+        const v = tw.getValue();
+        if (!blk.dead) c.x = baseX + Math.sin(v * Math.PI * 5) * amp * (1 - v);
+      },
+      onComplete: () => { if (!blk.dead) c.x = baseX; }
+    });
   }
 
   // Destrucción: destello, onda, fragmentos con gravedad y sacudida según el tamaño.
   destroyBlock(blk) {
     blk.dead = true;
     this.anyDead = true;
+    haptics.pulse(blk.kind === 'boss' ? 'big' : 'break');
     const { x, y } = blk.cont;
     const size = blk.size * CELL - 4;
     const boss = blk.kind === 'boss';
@@ -1768,9 +1800,19 @@ export default class GameScene extends Phaser.Scene {
     this.tweens.pauseAll();
     this.time.paused = true;
     const layer = this.add.container(0, 0).setDepth(60);
-    layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.6).setOrigin(0).setInteractive());
-    layer.add(makePanel(this, 24, 200, W - 48, 270));
+    layer.add(fullRect(this, 0x000000, 0.6).setInteractive());
+    layer.add(makePanel(this, 24, 200, W - 48, 300));
     layer.add(makeAudioToggles(this, 390, this.save));
+    const vibLabel = () => `VIBRATION ${this.save.data.settings.haptics ? 'ON' : 'OFF'}`;
+    const vibBtn = makeButton(this, W / 2, 470, 200, 30, vibLabel(), () => {
+      const st = this.save.data.settings;
+      st.haptics = !st.haptics;
+      this.save.write();
+      haptics.setEnabled(st.haptics);
+      vibBtn.setLabel(vibLabel());
+      if (st.haptics) haptics.pulse('break');
+    });
+    layer.add(vibBtn);
     const gridLabel = () => `GRID ${this.save.data.settings.grid ? 'ON' : 'OFF'}`;
     const gridBtn = makeButton(this, W / 2, 432, 200, 30, gridLabel(), () => {
       const st = this.save.data.settings;
@@ -1810,7 +1852,7 @@ export default class GameScene extends Phaser.Scene {
     audio.play('gameover');
     const shinies = this.runCaptures.filter((c) => c.shiny).length;
     const layer = this.add.container(0, 0).setDepth(60);
-    layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.65).setOrigin(0).setInteractive());
+    layer.add(fullRect(this, 0x000000, 0.65).setInteractive());
     layer.add(makePanel(this, 30, 170, W - 60, 290));
     layer.add(text(this, W / 2, 200, 'GAME\nOVER', 16, COLORS.inkHex).setOrigin(0.5));
     const lines = [

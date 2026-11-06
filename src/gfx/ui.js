@@ -1,5 +1,18 @@
 // Componentes de interfaz retro: texto, paneles y botones.
-import { FONT } from '../config.js';
+import { FONT, W, FULL_H, SAFE_TOP } from '../config.js';
+
+/**
+ * Zona segura: la cámara se desplaza SAFE_TOP para que y = 0 quede bajo la hora / la muesca.
+ * Llamar al principio de create() de cada escena.
+ */
+export function fitCamera(scene) {
+  scene.cameras.main.setScroll(0, -SAFE_TOP);
+}
+
+/** Rectángulo que cubre toda la pantalla (también fuera de la zona segura). */
+export function fullRect(scene, color, alpha = 1) {
+  return scene.add.rectangle(0, -SAFE_TOP, W, FULL_H, color, alpha).setOrigin(0);
+}
 import { audio } from '../audio/audio.js';
 
 /** Botones MUSICA / SONIDO que activan o desactivan el audio y lo guardan. */
