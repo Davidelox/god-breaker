@@ -5,6 +5,18 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-06
+
+### Added
+- 32 criaturas nuevas, 4 por tipo (id 41-72). Hay 72 en total: 64 normales y 8 legendarias.
+- Las nuevas se añaden al final, así que los id y los guardados anteriores siguen siendo válidos.
+- Colección paginada: 35 por página, 3 páginas, con < > o las flechas del teclado.
+- Misión «50 bestias distintas».
+
+### Changed
+- Derrumbe (roca): las rocas caen sobre los 2 bloques con más vida y les quitan directamente el 50 % de su vida actual (30 % si es legendario), sin tener en cuenta el tipo. Constantes `ROCK_PCT` y `ROCK_BOSS_PCT`.
+- Las misiones «Todas las de tipo X» piden ahora las 8 criaturas normales de cada tipo. Las que ya estaban completadas siguen completadas.
+
 ## [0.8.1] - 2026-11-06
 
 ### Changed

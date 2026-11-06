@@ -36,6 +36,24 @@ for (const type of TYPE_ORDER) {
   CREATURES.push({ id: id++, name: LEGENDARY[type], type, rarity: 4, legendary: true });
 }
 
+// Segunda generación (id 41+). Se añaden al final para no cambiar los id de los guardados.
+const NAMES_2 = {
+  fuego: ['Chamuscón', 'Hogarín', 'Brasilisco', 'Volcanejo'],
+  agua: ['Charquín', 'Coralito', 'Medusón', 'Mareón'],
+  planta: ['Setín', 'Raicejo', 'Espinillo', 'Florazul'],
+  electrico: ['Pilucho', 'Relampín', 'Bobinón', 'Centellón'],
+  hielo: ['Copito', 'Gelidín', 'Granizón', 'Carambano'],
+  roca: ['Cascajo', 'Peñasquín', 'Pizarrón', 'Obsidión'],
+  fantasma: ['Bruman', 'Fantasmín', 'Penumbro', 'Velador'],
+  psiquico: ['Runín', 'Telepín', 'Augurio', 'Psiconte']
+};
+const RARITY_BY_SLOT_2 = [1, 2, 2, 3];
+for (const type of TYPE_ORDER) {
+  NAMES_2[type].forEach((name, i) => {
+    CREATURES.push({ id: id++, name, type, rarity: RARITY_BY_SLOT_2[i], legendary: false });
+  });
+}
+
 export const NORMAL_CREATURES = CREATURES.filter((c) => !c.legendary);
 export const LEGENDARIES = CREATURES.filter((c) => c.legendary);
 export const CREATURE_IDS = new Set(CREATURES.map((c) => c.id));

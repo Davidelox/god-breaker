@@ -20,6 +20,8 @@ import { newlyCompleted, MISSIONS } from '../data/missions.js';
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
 const TRAIL_POINTS = 5;
+const ROCK_PCT = 0.5; // Derrumbe: % de la vida actual que quita
+const ROCK_BOSS_PCT = 0.3;
 const TURBO_SPEED = 5; // velocidad automática cuando ninguna bola puede golpear nada más
 const pct = (r) => `${Math.round(r * 1000) / 10}%`;
 const DANGER_Y = BOARD_TOP + (ROWS - 1) * CELL;
@@ -956,11 +958,11 @@ export default class GameScene extends Phaser.Scene {
   }
 
   rockslide() {
-    const alive = this.blocks.filter((b) => !b.dead);
-    if (!alive.length) return;
-    const lowest = Math.max(...alive.map((b) => b.row + b.size - 1));
-    const targets = alive.filter((b) => b.row <= lowest && b.row + b.size - 1 >= lowest);
-    const dmg = this.ballCount;
+    // Los 2 bloques con más vida reciben un golpe directo del 50 % de su vida actual (30 % si es legendario).
+    const targets = this.blocks
+      .filter((b) => !b.dead)
+      .sort((a, b) => b.hp - a.hp)
+      .slice(0, 2);
     targets.forEach((blk, i) => {
       const rock = this.add.image(blk.cont.x, BOARD_TOP - 10, 'rock').setScale(blk.kind === 'boss' ? 7 : 4).setDepth(22);
       this.tweens.add({ targets: rock, angle: 220, duration: 320, delay: i * 60 });
@@ -972,9 +974,7 @@ export default class GameScene extends Phaser.Scene {
           audio.play('rumble');
           this.fxRing(blk.cont.x, blk.cont.y, 0xc8b08c, 30, 360);
           this.fxBurst(blk.cont.x, blk.cont.y, [0xa08868, 0x685440, 0xc8b08c], 12, 40, 520, 30);
-          // A un legendario no lo elimina: le quita la mitad de su salud actual.
-          if (blk.kind === 'boss') this.damage(blk, blk.hp * 0.5);
-          else this.damage(blk, dmg * effectiveness('roca', blk.creature?.type));
+          if (!blk.dead) this.damage(blk, blk.hp * (blk.kind === 'boss' ? ROCK_BOSS_PCT : ROCK_PCT));
           this.blocks = this.blocks.filter((b) => !b.dead);
         }
       });

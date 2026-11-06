@@ -10,6 +10,8 @@ const CELL_W = 68;
 const CELL_H = 62;
 const GRID_X = (W - GRID_COLS * CELL_W) / 2;
 const GRID_Y = 76;
+const GRID_ROWS = 7;
+const PER_PAGE = GRID_COLS * GRID_ROWS;
 
 export default class CollectionScene extends Phaser.Scene {
   constructor() {
@@ -18,6 +20,7 @@ export default class CollectionScene extends Phaser.Scene {
 
   init() {
     this.showShiny = false;
+    this.page = 0;
   }
 
   create() {
@@ -30,6 +33,12 @@ export default class CollectionScene extends Phaser.Scene {
     text(this, W / 2, 56, `Bestias atrapadas: ${total}`, 8, COLORS.goldHex).setOrigin(0.5);
 
     this.gridLayer = this.add.container(0, 0);
+    this.pages = Math.ceil(CREATURES.length / PER_PAGE);
+    this.pageText = text(this, W / 2, H - 70, '', 8, '#a8b4cc').setOrigin(0.5);
+    makeButton(this, W / 2 - 80, H - 70, 50, 26, '<', () => this.go(-1), { size: 16 });
+    makeButton(this, W / 2 + 80, H - 70, 50, 26, '>', () => this.go(1), { size: 16 });
+    this.input.keyboard?.on('keydown-LEFT', () => this.go(-1));
+    this.input.keyboard?.on('keydown-RIGHT', () => this.go(1));
     this.drawGrid();
 
     makeButton(this, 90, H - 28, 150, 32, 'VOLVER', () => this.scene.start('title'));
@@ -40,9 +49,15 @@ export default class CollectionScene extends Phaser.Scene {
     });
   }
 
+  go(d) {
+    this.page = (this.page + d + this.pages) % this.pages;
+    this.drawGrid();
+  }
+
   drawGrid() {
     this.gridLayer.removeAll(true);
-    CREATURES.forEach((c, i) => {
+    this.pageText.setText(`${this.page + 1} / ${this.pages}`);
+    CREATURES.slice(this.page * PER_PAGE, (this.page + 1) * PER_PAGE).forEach((c, i) => {
       const cx = GRID_X + (i % GRID_COLS) * CELL_W + CELL_W / 2;
       const cy = GRID_Y + Math.floor(i / GRID_COLS) * CELL_H + CELL_H / 2;
       const entry = this.save.entry(c.id);

@@ -10,7 +10,7 @@ const capture = [
   ...[10, 25, 50, 100, 250].map((n) => ({
     id: `cap_${n}`, title: `Captura ${n} bestias`, target: n, progress: (d) => d.stats.captures
   })),
-  ...[10, 20, 30].map((n) => ({
+  ...[10, 20, 30, 50].map((n) => ({
     id: `uniq_${n}`, title: `${n} bestias distintas`, target: n, progress: (d) => caughtList(d).length
   })),
   { id: 'uniq_all', title: 'Completa la colección', target: CREATURES.length, progress: (d) => caughtList(d).length },

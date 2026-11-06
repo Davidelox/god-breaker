@@ -55,3 +55,16 @@ describe('bolas y poderes', () => {
     for (const r of [0, 0.5, 0.999]) expect(specialById(rollPower(() => r))).not.toBeNull();
   });
 });
+
+describe('ampliación de criaturas', () => {
+  it('mantiene los id antiguos (los guardados siguen siendo válidos)', () => {
+    expect(CREATURES.find((c) => c.id === 1).name).toBe('Ascuín');
+    expect(CREATURES.find((c) => c.id === 33)).toMatchObject({ name: 'Pirovórax', legendary: true });
+    expect(CREATURES.find((c) => c.id === 40)).toMatchObject({ name: 'Cosmóbius', legendary: true });
+  });
+  it('añade 32 criaturas nuevas con nombres únicos', () => {
+    expect(CREATURES.length).toBe(72);
+    expect(new Set(CREATURES.map((c) => c.name)).size).toBe(72);
+    expect(CREATURES.filter((c) => c.id > 40).every((c) => !c.legendary)).toBe(true);
+  });
+});
