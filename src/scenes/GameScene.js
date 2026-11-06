@@ -4,7 +4,7 @@ import {
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE,
   CORNER_JITTER, BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
-  HP_PER_TURN, HEAVY_CHANCE, PICKUP_CHANCE, ROW_GROWTH_TURNS, BOSS_HP
+  HP_PER_TURN, CREATURE_HP_BONUS, CREATURE_HP_PER_RARITY, BALLS_PER_TURN, PICKUP_CHANCE, ROW_GROWTH_TURNS, BOSS_HP
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, effectiveness, hexToNum } from '../data/types.js';
@@ -43,6 +43,9 @@ export default class GameScene extends Phaser.Scene {
     this.turn = 1;
     this.score = 0;
     this.ballCount = START_BALLS;
+    // Valores de dificultad (en la escena para poder ajustarlos y simularlos)
+    this.hpPerTurn = HP_PER_TURN;
+    this.pickupChance = PICKUP_CHANCE;
     this.pendingBalls = 0;
     this.energy = 0;
     this.powers = []; // ids de poderes guardados (máx. MAX_POWERS)
@@ -370,22 +373,24 @@ export default class GameScene extends Phaser.Scene {
     const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
     for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(row, free[i], t);
     // La bola extra +1 ya no sale en todas las filas
-    if (Math.random() < PICKUP_CHANCE) this.addPickup(row, free[free.length - 1]);
+    if (Math.random() < this.pickupChance) this.addPickup(row, free[free.length - 1]);
   }
 
   addRandomBlock(row, col, t) {
     if (Math.random() < CREATURE_CHANCE) {
       const rarity = weightedPick([[1, 60], [2, 30], [3, 10]]);
       const creature = pick(NORMAL_CREATURES.filter((c) => c.rarity === rarity));
-      this.addBlock({ row, col, size: 1, kind: 'creature', creature, hp: Math.ceil(this.baseHp(t) * (1 + 0.4 * rarity)) });
+      const bonus = CREATURE_HP_BONUS + CREATURE_HP_PER_RARITY * (rarity - 1);
+      this.addBlock({ row, col, size: 1, kind: 'creature', creature, hp: Math.ceil(this.baseHp(t) * (1 + bonus)) });
     } else {
-      this.addBlock({ row, col, size: 1, kind: 'plain', hp: Math.ceil(this.baseHp(t) * (Math.random() < HEAVY_CHANCE ? 2 : 1)) });
+      this.addBlock({ row, col, size: 1, kind: 'plain', hp: this.baseHp(t) });
     }
   }
 
   /** Vida base de un bloque en el turno t (con algo de variación). */
+  /** Vida de los bloques nuevos del turno t: progresiva y la misma para todos. */
   baseHp(t) {
-    return Math.max(1, t * HP_PER_TURN * (0.8 + Math.random() * 0.4));
+    return Math.max(1, Math.round(t * this.hpPerTurn));
   }
 
   addBlock(d) {
@@ -1327,7 +1332,9 @@ export default class GameScene extends Phaser.Scene {
     this.powerTag?.destroy();
     this.powerTag = null;
     this.trailG.clear();
-    this.ballCount += this.pendingBalls;
+    // Munición: +1 automática cada ronda, más las bolas extra recogidas
+    this.ballCount += this.pendingBalls + BALLS_PER_TURN;
+    floatText(this, this.launchX, LAUNCH_Y - 26, `+${this.pendingBalls + BALLS_PER_TURN}`, '#7cf07c');
     this.pendingBalls = 0;
     this.activeSpecials = [];
     this.turn++;

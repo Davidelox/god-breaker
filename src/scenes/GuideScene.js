@@ -120,7 +120,7 @@ export default class GuideScene extends Phaser.Scene {
     this.tweens.add({ targets: hand, x: 220, duration: 500, yoyo: true, repeat: -1 });
     this.label(W / 2, 370, 'Apunta y lanza todas tus bolas.');
     this.label(W / 2, 400, 'El número es la vida del bloque.');
-    this.label(W / 2, 430, 'Tras cada turno todo baja 1 fila.');
+    this.label(W / 2, 430, 'Cada ronda: +1 bola y todo baja 1 fila.');
     this.label(W / 2, 466, 'Si un bloque llega a la\nlínea roja, se acaba.', '#a03030');
     this.label(W / 2, 516, 'Haz muchos puntos y\ncompleta la colección.', '#2a6aa8');
   }

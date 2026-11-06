@@ -5,6 +5,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-06
+
+### Added
+- Munición +1 automática en cada ronda (`BALLS_PER_TURN`), además de las bolas extra recogidas. Al acabar el turno sale «+N» sobre el lanzador.
+
+### Changed
+- La vida de los bloques es progresiva y la misma para todos los bloques nuevos de una ronda: turno x1,3 redondeado (`HP_PER_TURN`). Se quitan la variación aleatoria y los bloques pesados.
+- Criaturas: +12 % de vida, +2 % más por cada nivel de rareza (común 12 %, poco común 14 %, rara 16 %). Constantes `CREATURE_HP_BONUS` y `CREATURE_HP_PER_RARITY`.
+- Bola extra +1: del 60 % al 30 % de las filas (`PICKUP_CHANCE`), ajustado con simulaciones al ganar ahora +1 bola fija por ronda.
+- La guía menciona la bola extra de cada ronda.
+
 ## [0.11.0] - 2026-11-06
 
 ### Added
