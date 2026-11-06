@@ -20,6 +20,7 @@ import { newlyCompleted, MISSIONS } from '../data/missions.js';
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
 const TRAIL_POINTS = 5;
+const TURBO_SPEED = 5; // velocidad automática cuando ninguna bola puede golpear nada más
 const pct = (r) => `${Math.round(r * 1000) / 10}%`;
 const DANGER_Y = BOARD_TOP + (ROWS - 1) * CELL;
 
@@ -42,8 +43,7 @@ export default class GameScene extends Phaser.Scene {
     this.selectedBall = 'normal';
     this.shotBall = 'normal';
     this.shotKills = 0;
-    this.collecting = false;
-    this.earlyCollected = 0;
+    this.turbo = false;
     this.shinyMeter = 0;
     this.shinyBoostTurns = 0;
     this.blocks = [];
@@ -194,7 +194,8 @@ export default class GameScene extends Phaser.Scene {
     this.captText.setText(`CAPTURAS ${this.runCaptures.length}`);
     this.boostText.setText(this.shinyBoostTurns > 0 ? `SHINY ${pct(SHINY_BOOST_RATE)} x${this.shinyBoostTurns}` : '');
     const shooting = this.state === 'shooting';
-    this.speedBtn.setLabel(`x${this.speedMul}`).setSelected(this.speedMul > 1);
+    const turbo = this.turbo && this.state === 'shooting';
+    this.speedBtn.setLabel(turbo ? `x${TURBO_SPEED}` : `x${this.speedMul}`).setSelected(turbo || this.speedMul > 1);
     this.recallBtn.setVisible(shooting);
     const n = shooting ? this.toLaunch : this.ballCount;
     this.launchText.setText(n > 0 ? `x${n}` : '').setX(this.launchX);
@@ -508,8 +509,7 @@ export default class GameScene extends Phaser.Scene {
     this.state = 'shooting';
     this.shotTime = 0;
     this.shotKills = 0;
-    this.collecting = false;
-    this.earlyCollected = 0;
+    this.turbo = false;
     this.nextLaunchX = null;
     // Posición y dirección fijas durante todo el turno.
     this.shotX = this.launchX;
@@ -584,28 +584,28 @@ export default class GameScene extends Phaser.Scene {
       this.recallHinted = true;
       this.showToast('Pulsa ▼ para recoger las bolas');
     }
-    if (this.launchTimer) this.launchTimer.timeScale = this.speedMul;
+    const speed = this.turbo ? Math.max(TURBO_SPEED, this.speedMul) : this.speedMul;
+    if (this.launchTimer) this.launchTimer.timeScale = speed;
 
-    const total = dt * this.speedMul;
+    const total = dt * speed;
     const steps = Math.max(1, Math.ceil((total * BALL_SPEED) / 3));
     const s = total / steps;
     for (let i = 0; i < steps; i++) {
-      for (const b of this.balls) if (!b.done && !b.collecting) this.stepBall(b, s);
+      for (const b of this.balls) if (!b.done) this.stepBall(b, s);
       if (this.anyDead) {
         this.blocks = this.blocks.filter((b) => !b.dead);
         this.anyDead = false;
       }
     }
     // Pantalla limpia en mitad del lanzamiento: se recogen solas las bolas que quedan.
-    if (!this.collecting && this.blocks.length === 0) this.collectAll();
-    else if (!this.collecting) this.collectFinishedBalls();
+    this.updateTurbo();
     for (const b of this.balls) {
       if (b.done && b.img) {
         b.img.destroy();
         b.img = null;
       } else if (b.img) {
-        if (!b.collecting) b.img.setPosition(b.x, b.y);
-        b.trail.push(b.img.x, b.img.y);
+        b.img.setPosition(b.x, b.y);
+        b.trail.push(b.x, b.y);
         if (b.trail.length > TRAIL_POINTS * 2) b.trail.splice(0, 2);
       }
     }
@@ -615,80 +615,23 @@ export default class GameScene extends Phaser.Scene {
   }
 
   // Recogida automática: las bolas en vuelo vuelan al lanzador en cascada, con destellos y notas ascendentes.
-  collectAll() {
-    this.collecting = true;
-    this.launchTimer?.remove();
-    this.launchTimer = null;
-    this.toLaunch = 0;
-    const tx = this.nextLaunchX ?? this.shotX;
-    this.nextLaunchX = tx;
-    this.nextMarker.setPosition(tx, LAUNCH_Y).setVisible(true);
-    const flying = this.balls.filter((b) => !b.done && !b.collecting);
-    if (!flying.length) return;
-    this.showToast('Recogiendo bolas...', '#2a8a40');
-    flying.forEach((b, i) => this.collectBall(b, tx, i * 35, i, false));
-  }
-
   /**
-   * Bola que baja y ya no puede tocar ningún bloque ni bola extra: se recoge en curva
-   * hasta el punto donde habría caído, que cuenta como su punto de caída.
+   * Turbo: cuando ya se han lanzado todas las bolas y ninguna puede golpear nada más
+   * (pantalla limpia, o todas bajando por debajo del último bloque y bola extra),
+   * el resto del turno va a x5. No cambia la velocidad elegida por el jugador.
    */
-  collectFinishedBalls() {
+  updateTurbo() {
+    if (this.turbo || this.toLaunch > 0) return;
+    const live = this.balls.filter((b) => !b.done);
+    if (!live.length) return;
     let lowest = -Infinity;
     for (const blk of this.blocks) if (!blk.dead) lowest = Math.max(lowest, this.blockRect(blk).y1);
     for (const p of this.pickups) if (!p.taken) lowest = Math.max(lowest, BOARD_TOP + p.row * CELL + CELL / 2 + 8);
-    for (const b of this.balls) {
-      if (b.done || b.collecting || b.vy <= 0 || b.y - b.r <= lowest) continue;
-      this.collectBall(b, this.landingX(b), 0, this.earlyCollected++, true);
+    const nothingLeft = lowest === -Infinity;
+    if (nothingLeft || live.every((b) => b.vy > 0 && b.y - b.r > lowest)) {
+      this.turbo = true;
+      this.refreshHud();
     }
-  }
-
-  /** Dónde tocaría fondo la bola si siguiera rebotando en las paredes. */
-  landingX(b) {
-    const L = BOARD_X + b.r;
-    const R = BOARD_RIGHT - b.r;
-    const w = R - L;
-    const t = (LAUNCH_Y - b.y) / b.vy;
-    let u = (b.x + b.vx * t - L) % (2 * w);
-    if (u < 0) u += 2 * w;
-    const x = u <= w ? L + u : L + 2 * w - u;
-    return Phaser.Math.Clamp(x, BOARD_X + 8, BOARD_RIGHT - 8);
-  }
-
-  collectBall(b, tx, delay, step, setsLanding) {
-    b.collecting = true;
-    const sx = b.img.x;
-    const sy = b.img.y;
-    const midX = (sx + tx) / 2 + (Math.random() - 0.5) * 60;
-    const midY = Math.min(sy, LAUNCH_Y) - 30 - Math.random() * 40;
-    const curve = new Phaser.Curves.QuadraticBezier(
-      new Phaser.Math.Vector2(sx, sy), new Phaser.Math.Vector2(midX, midY), new Phaser.Math.Vector2(tx, LAUNCH_Y)
-    );
-    const p = new Phaser.Math.Vector2();
-    this.tweens.addCounter({
-      from: 0, to: 1, duration: setsLanding ? 300 : 420, delay, ease: 'Cubic.easeIn',
-      onUpdate: (tw) => {
-        if (!b.img) return;
-        curve.getPoint(tw.getValue(), p);
-        b.img.setPosition(p.x, p.y);
-      },
-      onComplete: () => {
-        b.done = true;
-        if (this.state !== 'shooting') return; // el turno ya terminó (p. ej. con ▼)
-        if (setsLanding && !this.collecting) {
-          // La última bola en desaparecer marca el siguiente punto de lanzamiento.
-          this.nextLaunchX = tx;
-          this.nextMarker.setPosition(tx, LAUNCH_Y).setVisible(true);
-        }
-        audio.play('collect', { step });
-        const sp = this.add.image(tx, LAUNCH_Y, 'spark').setDepth(9).setScale(1.5);
-        this.tweens.add({ targets: sp, y: LAUNCH_Y - 14, scale: 0, angle: 90, duration: 260, onComplete: () => sp.destroy() });
-        if (Math.abs(tx - this.launchX) < 1) {
-          this.launcher.setScale((BALL_R / BALL_TEXTURE_R) * 1.5);
-          this.tweens.add({ targets: this.launcher, scale: BALL_R / BALL_TEXTURE_R, duration: 120 });
-        }
-      }
-    });
   }
 
   // Estela leve: puntos que se encogen y se desvanecen detrás de cada bola.

@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-11-06
+
+### Changed
+- Se quitan las dos recogidas animadas de bolas: la de pantalla limpia y la anticipada.
+- En su lugar, cuando ya se han lanzado todas las bolas y ninguna puede golpear nada más, el resto del turno pasa a velocidad x5 y el botón muestra «x5». Ocurre con la pantalla limpia o cuando todas bajan por debajo del último bloque y de las bolas extra.
+- Las bolas siguen su recorrido real, así que el siguiente lanzamiento sale de donde cae la última. La velocidad elegida por el jugador no cambia.
+
 ## [0.8.0] - 2026-11-06
 
 ### Added
