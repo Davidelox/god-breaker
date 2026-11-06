@@ -5,6 +5,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.15.2] - 2026-11-06
+
+### Changed
+- Al derrotar a un legendario suben todos los bloques y bolas extra desde su fila hacia abajo, en cualquier columna (antes, solo los que estaban bajo sus columnas). Cada uno sube hasta quedar justo debajo de otro bloque o hasta la fila de aparición.
+
 ## [0.15.1] - 2026-11-06
 
 ### Changed

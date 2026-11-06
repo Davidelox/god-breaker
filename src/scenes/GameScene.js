@@ -1450,11 +1450,10 @@ export default class GameScene extends Phaser.Scene {
   // ---------- Hueco del legendario ----------
 
   /**
-   * Al caer un legendario, los bloques (y bolas extra) que estaban debajo de sus columnas
-   * suben hasta quedar justo debajo de otro bloque (o de la fila de aparición).
+   * Al caer un legendario, todos los bloques (y bolas extra) desde su fila hacia abajo, en cualquier
+   * columna, suben hasta quedar justo debajo de otro bloque (o de la fila de aparición).
    */
   riseUnder(boss) {
-    const cols = [boss.col, boss.col + 1];
     const items = [
       ...this.blocks.filter((b) => !b.dead).map((b) => ({ kind: 'block', o: b, col: b.col, size: b.size })),
       ...this.pickups.map((p) => ({ kind: 'pickup', o: p, col: p.col, size: 1 }))
@@ -1462,7 +1461,7 @@ export default class GameScene extends Phaser.Scene {
     const occupied = (row, col, size, self) =>
       items.some((it) => it !== self && it.o.row <= row && it.o.row + it.size - 1 >= row && it.col <= col + size - 1 && it.col + it.size - 1 >= col);
     const movers = items
-      .filter((it) => it.o.row >= boss.row && cols.some((c) => it.col <= c && it.col + it.size - 1 >= c))
+      .filter((it) => it.o.row >= boss.row)
       .sort((a, b) => a.o.row - b.o.row);
     let moved = false;
     for (const it of movers) {
