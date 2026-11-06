@@ -24,9 +24,10 @@ export default class CollectionScene extends Phaser.Scene {
     this.save = this.registry.get('save');
     this.add.rectangle(0, 0, W, H, COLORS.night).setOrigin(0);
 
-    const { caught, shiny } = this.save.counts();
-    text(this, W / 2, 20, 'COLECCION', 16, COLORS.goldHex).setOrigin(0.5);
-    text(this, W / 2, 46, `${caught}/${CREATURES.length} capturadas · * ${shiny} shiny`, 8, '#a8b4cc').setOrigin(0.5);
+    const { caught, shiny, total } = this.save.counts();
+    text(this, W / 2, 18, 'COLECCION', 16, COLORS.goldHex).setOrigin(0.5);
+    text(this, W / 2, 40, `Distintas ${caught}/${CREATURES.length}  Shiny ${shiny}`, 8, '#a8b4cc').setOrigin(0.5);
+    text(this, W / 2, 56, `Bestias atrapadas: ${total}`, 8, COLORS.goldHex).setOrigin(0.5);
 
     this.gridLayer = this.add.container(0, 0);
     this.drawGrid();
@@ -56,9 +57,15 @@ export default class CollectionScene extends Phaser.Scene {
       const img = this.add.image(cx, cy - 6, creatureKey(c.id, this.showShiny)).setScale(c.legendary ? 2 : 2.5);
       if (!owned) img.setTint(0x000000).setAlpha(0.7);
       const num = text(this, cx, cy + CELL_H / 2 - 10, `#${String(c.id).padStart(2, '0')}`, 8, owned ? '#f8f8f8' : '#56607c').setOrigin(0.5);
+      // Contador de capturas de esta bestia (o de su versión shiny)
+      const n = this.showShiny ? entry?.shinyCount ?? 0 : entry?.count ?? 0;
+      const badge = n > 0
+        ? text(this, cx + CELL_W / 2 - 5, cy - CELL_H / 2 + 6, `x${n}`, 8, COLORS.goldHex).setOrigin(1, 0).setStroke('#101828', 3)
+        : null;
       const hit = this.add.zone(cx, cy, CELL_W - 4, CELL_H - 4).setInteractive({ useHandCursor: true });
       hit.on('pointerup', () => this.showDetail(c));
       this.gridLayer.add([g, img, num, hit]);
+      if (badge) this.gridLayer.add(badge);
     });
   }
 

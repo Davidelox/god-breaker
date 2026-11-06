@@ -16,7 +16,7 @@ const MOODS = [
 ];
 
 // Separación mínima entre repeticiones del mismo efecto (s), para que no sature.
-const MIN_GAP = { hit: 0.03, launch: 0.045, break: 0.025, shake: 0.08, click: 0.03 };
+const MIN_GAP = { fireHit: 0.06, splash: 0.06, zap: 0.05, frost: 0.06, rumble: 0.08, collect: 0.03, hit: 0.03, launch: 0.045, break: 0.025, shake: 0.08, click: 0.03 };
 
 const SFX = {
   click: (a) => a.tone(660, 0.05, { type: 'square', gain: 0.05 }),
@@ -46,6 +46,20 @@ const SFX = {
     a.tone(988, 0.06, { type: 'square', gain: 0.04 });
     a.tone(1318, 0.08, { type: 'square', gain: 0.04, delay: 0.05 });
   },
+  collect: (a, o) => a.tone(660 * 2 ** (Math.min(o.step ?? 0, 24) / 12), 0.07, { type: 'triangle', gain: 0.05 }),
+  powerCast: (a) => {
+    a.noise(0.5, { gain: 0.08, filter: 300, sweepTo: 3000, type: 'bandpass' });
+    [523, 784, 1047].forEach((f, i) => a.tone(f, 0.25, { type: 'square', gain: 0.04, delay: 0.05 + i * 0.05 }));
+  },
+  fireHit: (a) => a.noise(0.18, { gain: 0.09, filter: 900, sweepTo: 200 }),
+  splash: (a) => a.noise(0.14, { gain: 0.06, filter: 1800, type: 'bandpass', sweepTo: 600 }),
+  zap: (a) => a.tone(1400, 0.06, { type: 'sawtooth', gain: 0.03, slideTo: 300 }),
+  frost: (a) => a.tone(2093 + Math.random() * 400, 0.09, { type: 'triangle', gain: 0.04 }),
+  rumble: (a) => {
+    a.noise(0.35, { gain: 0.18, filter: 400, sweepTo: 80 });
+    a.tone(90, 0.3, { type: 'triangle', gain: 0.12, slideTo: 45 });
+  },
+  mission: (a) => [784, 1047, 1319, 1568, 2093].forEach((f, i) => a.tone(f, 0.16, { type: 'triangle', gain: 0.06, delay: i * 0.07 })),
   shake: (a) => a.tone(240, 0.05, { type: 'triangle', gain: 0.07 }),
   capture: (a) => [523, 659, 784, 1047].forEach((f, i) => a.tone(f, 0.09, { type: 'square', gain: 0.05, delay: i * 0.07 })),
   shiny: (a) => [1047, 1319, 1568, 2093, 2637].forEach((f, i) => a.tone(f, 0.12, { type: 'triangle', gain: 0.07, delay: i * 0.05 })),

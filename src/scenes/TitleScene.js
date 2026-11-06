@@ -27,14 +27,15 @@ export default class TitleScene extends Phaser.Scene {
     });
 
     makePanel(this, 40, 312, W - 80, 64);
-    const { caught, shiny } = save.counts();
+    const { caught, total } = save.counts();
     text(this, W / 2, 330, `RECORD  ${save.data.bestScore}`, 8, COLORS.inkHex).setOrigin(0.5);
-    text(this, W / 2, 352, `COLECCION ${caught}/${CREATURES.length}  *${shiny}`, 8, COLORS.inkHex).setOrigin(0.5);
+    text(this, W / 2, 352, `COLECCION ${caught}/${CREATURES.length}  ATRAPADAS ${total}`, 8, COLORS.inkHex).setOrigin(0.5);
 
-    makeButton(this, W / 2, 410, 200, 40, 'JUGAR', () => this.scene.start('game'), { size: 16 });
-    makeButton(this, W / 2, 458, 200, 34, 'COLECCION', () => this.scene.start('collection'));
-    makeButton(this, W / 2, 500, 200, 34, 'GUIA', () => this.scene.start('guide'));
-    makeAudioToggles(this, 546, save);
+    makeButton(this, W / 2, 404, 200, 40, 'JUGAR', () => this.scene.start('game'), { size: 16 });
+    makeButton(this, W / 2, 452, 200, 34, 'COLECCION', () => this.scene.start('collection'));
+    makeButton(this, W / 2 - 52, 494, 96, 34, 'MISIONES', () => this.scene.start('missions'));
+    makeButton(this, W / 2 + 52, 494, 96, 34, 'GUIA', () => this.scene.start('guide'));
+    makeAudioToggles(this, 542, save);
 
     text(this, W / 2, H - 20, `v${VERSION}`, 8, '#56607c').setOrigin(0.5);
 

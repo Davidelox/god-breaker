@@ -51,7 +51,7 @@ describe('guardado', () => {
     expect(s.recordCapture(3, false)).toEqual({ isNew: true, isNewShiny: false });
     expect(s.recordCapture(3, true)).toEqual({ isNew: false, isNewShiny: true });
     expect(s.recordCapture(3, true)).toEqual({ isNew: false, isNewShiny: false });
-    expect(s.counts()).toEqual({ caught: 1, shiny: 1 });
+    expect(s.counts()).toEqual({ caught: 1, shiny: 1, total: 3 });
   });
 
   it('persiste y recarga el récord', () => {

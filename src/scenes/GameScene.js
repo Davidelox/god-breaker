@@ -15,10 +15,12 @@ import { pick, weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
 import { Weather } from '../gfx/weather.js';
 import { audio } from '../audio/audio.js';
+import { newlyCompleted, MISSIONS } from '../data/missions.js';
 
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
 const TRAIL_POINTS = 5;
+const pct = (r) => `${Math.round(r * 1000) / 10}%`;
 const DANGER_Y = BOARD_TOP + (ROWS - 1) * CELL;
 
 export default class GameScene extends Phaser.Scene {
@@ -40,6 +42,7 @@ export default class GameScene extends Phaser.Scene {
     this.selectedBall = 'normal';
     this.shotBall = 'normal';
     this.shotKills = 0;
+    this.collecting = false;
     this.shinyMeter = 0;
     this.shinyBoostTurns = 0;
     this.blocks = [];
@@ -189,7 +192,7 @@ export default class GameScene extends Phaser.Scene {
     this.bestText.setText(`RECORD ${best}`);
     this.turnText.setText(`TURNO ${this.turn}`);
     this.captText.setText(`CAPTURAS ${this.runCaptures.length}`);
-    this.boostText.setText(this.shinyBoostTurns > 0 ? `SHINY 10% x${this.shinyBoostTurns}` : '');
+    this.boostText.setText(this.shinyBoostTurns > 0 ? `SHINY ${pct(SHINY_BOOST_RATE)} x${this.shinyBoostTurns}` : '');
     const shooting = this.state === 'shooting';
     this.speedBtn.setLabel(`x${this.speedMul}`).setSelected(this.speedMul > 1);
     this.recallBtn.setVisible(shooting);
@@ -497,7 +500,9 @@ export default class GameScene extends Phaser.Scene {
     this.powers = this.powers.filter((_, i) => !this.selectedSlots.has(i));
     this.selectedSlots.clear();
     if (this.activeSpecials.length) {
-      this.showToast(`¡${this.activeSpecials.map((s) => s.name).join(' + ')}!`, TYPES[this.activeSpecials[0].type].dark);
+      this.powerIntro(this.activeSpecials);
+      this.save.bumpStat('powersUsed', this.activeSpecials.length);
+      this.checkMissions();
     }
     // Bola de captura del lanzamiento
     this.shotBall = this.selectedBall;
@@ -508,6 +513,7 @@ export default class GameScene extends Phaser.Scene {
     this.state = 'shooting';
     this.shotTime = 0;
     this.shotKills = 0;
+    this.collecting = false;
     this.nextLaunchX = null;
     // Posición y dirección fijas durante todo el turno.
     this.shotX = this.launchX;
@@ -588,25 +594,67 @@ export default class GameScene extends Phaser.Scene {
     const steps = Math.max(1, Math.ceil((total * BALL_SPEED) / 3));
     const s = total / steps;
     for (let i = 0; i < steps; i++) {
-      for (const b of this.balls) if (!b.done) this.stepBall(b, s);
+      for (const b of this.balls) if (!b.done && !b.collecting) this.stepBall(b, s);
       if (this.anyDead) {
         this.blocks = this.blocks.filter((b) => !b.dead);
         this.anyDead = false;
       }
     }
+    // Pantalla limpia en mitad del lanzamiento: se recogen solas las bolas que quedan.
+    if (!this.collecting && this.blocks.length === 0) this.collectAll();
     for (const b of this.balls) {
       if (b.done && b.img) {
         b.img.destroy();
         b.img = null;
       } else if (b.img) {
-        b.img.setPosition(b.x, b.y);
-        b.trail.push(b.x, b.y);
+        if (!b.collecting) b.img.setPosition(b.x, b.y);
+        b.trail.push(b.img.x, b.img.y);
         if (b.trail.length > TRAIL_POINTS * 2) b.trail.splice(0, 2);
       }
     }
     this.drawTrails();
     this.balls = this.balls.filter((b) => !b.done);
     if (this.toLaunch === 0 && this.balls.length === 0) this.endTurn();
+  }
+
+  // Recogida automática: las bolas en vuelo vuelan al lanzador en cascada, con destellos y notas ascendentes.
+  collectAll() {
+    this.collecting = true;
+    this.launchTimer?.remove();
+    this.launchTimer = null;
+    this.toLaunch = 0;
+    const tx = this.nextLaunchX ?? this.shotX;
+    this.nextLaunchX = tx;
+    this.nextMarker.setPosition(tx, LAUNCH_Y).setVisible(true);
+    const flying = this.balls.filter((b) => !b.done);
+    if (!flying.length) return;
+    this.showToast('Recogiendo bolas...', '#2a8a40');
+    flying.forEach((b, i) => {
+      b.collecting = true;
+      const delay = i * 35;
+      const midX = (b.img.x + tx) / 2 + (Math.random() - 0.5) * 80;
+      const midY = Math.min(b.img.y, LAUNCH_Y) - 40 - Math.random() * 60;
+      const curve = new Phaser.Curves.QuadraticBezier(
+        new Phaser.Math.Vector2(b.img.x, b.img.y), new Phaser.Math.Vector2(midX, midY), new Phaser.Math.Vector2(tx, LAUNCH_Y)
+      );
+      const p = new Phaser.Math.Vector2();
+      this.tweens.addCounter({
+        from: 0, to: 1, duration: 420, delay, ease: 'Cubic.easeIn',
+        onUpdate: (tw) => {
+          if (!b.img) return;
+          curve.getPoint(tw.getValue(), p);
+          b.img.setPosition(p.x, p.y);
+        },
+        onComplete: () => {
+          b.done = true;
+          audio.play('collect', { step: i });
+          const sp = this.add.image(tx, LAUNCH_Y, 'spark').setDepth(9).setScale(1.5);
+          this.tweens.add({ targets: sp, y: LAUNCH_Y - 14, scale: 0, angle: 90, duration: 260, onComplete: () => sp.destroy() });
+          this.launcher.setScale((BALL_R / BALL_TEXTURE_R) * 1.5);
+          this.tweens.add({ targets: this.launcher, scale: BALL_R / BALL_TEXTURE_R, duration: 120 });
+        }
+      });
+    });
   }
 
   // Estela leve: puntos que se encogen y se desvanecen detrás de cada bola.
@@ -742,6 +790,7 @@ export default class GameScene extends Phaser.Scene {
       : 1;
     const dmg = (this.hasSpecial('escarcha') ? 2 : 1) * eff;
     const { x, y } = blk.cont;
+    this.powerHitFx(blk, x, y);
     this.damage(blk, dmg, eff);
     if (this.hasSpecial('estallido')) {
       for (const n of this.neighbors(blk)) this.damage(n, 0.5 * effectiveness('fuego', n.creature?.type));
@@ -754,7 +803,8 @@ export default class GameScene extends Phaser.Scene {
         .sort((a, b2) => a.d - b2.d)
         .slice(0, 2);
       for (const { o } of near) {
-        this.bolts.push({ x1: x, y1: y, x2: o.cont.x, y2: o.cont.y, ttl: 0.12 });
+        this.bolts.push({ x1: x, y1: y, x2: o.cont.x, y2: o.cont.y, ttl: 0.16, max: 0.16 });
+        this.fxBurst(o.cont.x, o.cont.y, [0xfff07a, 0xffffff], 4, 18, 200);
         this.damage(o, effectiveness('electrico', o.creature?.type));
       }
     }
@@ -839,11 +889,93 @@ export default class GameScene extends Phaser.Scene {
     if (blk.kind === 'boss') {
       this.awardBall();
       this.addShiny(SHINY_GAIN.legendary);
+      this.save.bumpStat('bossKills');
+      this.checkMissions();
       this.time.delayedCall(600, () => this.changeWeather());
     }
     this.addEnergy(blk.kind === 'plain' ? 6 : blk.kind === 'creature' ? 12 : 50);
     if (blk.creature) this.tryCapture(blk, x, y);
     blk.cont.destroy();
+  }
+
+  // ---------- Efectos de poderes ----------
+
+  /** Fragmentos que salen despedidos. gravity: caída extra en px (negativa = suben). */
+  fxBurst(x, y, colors, count, dist, dur, gravity = 10) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = dist * (0.5 + Math.random() * 0.7);
+      const s = 2 + Math.floor(Math.random() * 3);
+      const p = this.add.rectangle(x, y, s, s, colors[i % colors.length]).setDepth(21);
+      this.tweens.add({
+        targets: p,
+        x: { value: x + Math.cos(a) * d, ease: 'Quad.easeOut' },
+        y: { value: y + Math.sin(a) * d + gravity, ease: 'Quad.easeIn' },
+        alpha: 0,
+        duration: dur * (0.7 + Math.random() * 0.5),
+        onComplete: () => p.destroy()
+      });
+    }
+  }
+
+  fxRing(x, y, color, radius, dur, width = 3) {
+    const ring = this.add.circle(x, y, radius * 0.3).setStrokeStyle(width, color).setDepth(21);
+    this.tweens.add({ targets: ring, scale: 3.3, alpha: 0, duration: dur, ease: 'Quad.easeOut', onComplete: () => ring.destroy() });
+  }
+
+  /** Presentación del poder: destello del tablero, cartel que cruza la pantalla y sonido. */
+  powerIntro(specials) {
+    const main = TYPES[specials[0].type];
+    const tint = this.add
+      .rectangle(BOARD_X, BOARD_TOP, COLS * CELL, LAUNCH_Y + 6 - BOARD_TOP, hexToNum(main.base), 0.28)
+      .setOrigin(0)
+      .setDepth(17);
+    this.tweens.add({ targets: tint, alpha: 0, duration: 650, onComplete: () => tint.destroy() });
+    const y = BOARD_TOP + CELL * 4.5;
+    const band = this.add.rectangle(W / 2, y, W, 40, hexToNum(main.dark), 0.85).setDepth(46).setScale(1, 0);
+    const name = specials.map((s) => s.name.toUpperCase()).join(' + ');
+    const label = text(this, W + 160, y, name, specials.length > 1 ? 8 : 16, '#ffffff').setOrigin(0.5).setDepth(47).setStroke('#101828', 4);
+    this.tweens.add({ targets: band, scaleY: 1, duration: 120, yoyo: true, hold: 520, onComplete: () => band.destroy() });
+    this.tweens.add({
+      targets: label, x: W / 2, duration: 220, ease: 'Back.easeOut',
+      onComplete: () =>
+        this.tweens.add({ targets: label, x: -200, delay: 380, duration: 200, ease: 'Quad.easeIn', onComplete: () => label.destroy() })
+    });
+    this.cameras.main.shake(120, 0.003);
+    audio.play('powerCast');
+    for (const sp of specials) {
+      const t = TYPES[sp.type];
+      this.fxBurst(this.launchX, LAUNCH_Y, [hexToNum(t.base), hexToNum(t.light), 0xffffff], 14, 34, 500, -10);
+    }
+  }
+
+  /** Efecto de cada golpe según los poderes activos (limitado por bloque para no saturar). */
+  powerHitFx(blk, x, y) {
+    if (!this.activeSpecials.length) return;
+    const now = this.time.now;
+    if (now - (blk.lastFx ?? 0) < 90) return;
+    blk.lastFx = now;
+    if (this.hasSpecial('estallido')) {
+      this.fxRing(x, y, 0xffa25c, 26, 300, 4);
+      this.fxBurst(x, y, [0xffd84a, 0xe8613c, 0xffa25c], 8, 34, 380, -14);
+      audio.play('fireHit');
+    }
+    if (this.hasSpecial('torrente')) {
+      this.fxRing(x, y, 0x78c0ff, 18, 280, 2);
+      this.fxBurst(x, y, [0x78c0ff, 0xd8f4ff], 5, 22, 320, 16);
+      audio.play('splash');
+    }
+    if (this.hasSpecial('enredadera')) {
+      this.fxBurst(x, y, [0x8ce070, 0x4cb04c, 0xf070a0], 5, 20, 420, 18);
+    }
+    if (this.hasSpecial('arco')) audio.play('zap');
+    if (this.hasSpecial('escarcha')) {
+      const size = blk.size * CELL - 4;
+      const ice = this.add.rectangle(x, y, size, size, 0xd4f4ff, 0.55).setDepth(5);
+      this.tweens.add({ targets: ice, alpha: 0, duration: 420, onComplete: () => ice.destroy() });
+      this.fxBurst(x, y, [0xffffff, 0xd4f4ff, 0x8cd8f0], 6, 26, 460, 8);
+      audio.play('frost');
+    }
   }
 
   rockslide() {
@@ -853,12 +985,16 @@ export default class GameScene extends Phaser.Scene {
     const targets = alive.filter((b) => b.row <= lowest && b.row + b.size - 1 >= lowest);
     const dmg = this.ballCount;
     targets.forEach((blk, i) => {
-      const rock = this.add.image(blk.cont.x, BOARD_TOP - 10, 'rock').setScale(3).setDepth(22);
+      const rock = this.add.image(blk.cont.x, BOARD_TOP - 10, 'rock').setScale(blk.kind === 'boss' ? 7 : 4).setDepth(22);
+      this.tweens.add({ targets: rock, angle: 220, duration: 320, delay: i * 60 });
       this.tweens.add({
         targets: rock, y: blk.cont.y, duration: 320, delay: i * 60, ease: 'Quad.easeIn',
         onComplete: () => {
           rock.destroy();
-          this.cameras.main.shake(80, 0.004);
+          this.cameras.main.shake(110, 0.006);
+          audio.play('rumble');
+          this.fxRing(blk.cont.x, blk.cont.y, 0xc8b08c, 30, 360);
+          this.fxBurst(blk.cont.x, blk.cont.y, [0xa08868, 0x685440, 0xc8b08c], 12, 40, 520, 30);
           // A un legendario no lo elimina: le quita la mitad de su salud actual.
           if (blk.kind === 'boss') this.damage(blk, blk.hp * 0.5);
           else this.damage(blk, dmg * effectiveness('roca', blk.creature?.type));
@@ -871,14 +1007,17 @@ export default class GameScene extends Phaser.Scene {
   drawBolts(dt) {
     this.fxG.clear();
     if (!this.bolts.length) return;
-    this.fxG.lineStyle(2, 0xfff07a);
     for (const bolt of this.bolts) {
       const pts = [];
-      for (let i = 0; i <= 4; i++) {
-        const t = i / 4;
-        const j = i === 0 || i === 4 ? 0 : (Math.random() - 0.5) * 10;
+      for (let i = 0; i <= 6; i++) {
+        const t = i / 6;
+        const j = i === 0 || i === 6 ? 0 : (Math.random() - 0.5) * 14;
         pts.push(new Phaser.Math.Vector2(Phaser.Math.Linear(bolt.x1, bolt.x2, t) + j, Phaser.Math.Linear(bolt.y1, bolt.y2, t) + j));
       }
+      const a = Math.max(0, bolt.ttl / (bolt.max ?? 0.12));
+      this.fxG.lineStyle(6, 0xfff07a, 0.25 * a); // halo
+      this.fxG.strokePoints(pts);
+      this.fxG.lineStyle(2, 0xffffff, a); // núcleo
       this.fxG.strokePoints(pts);
       bolt.ttl -= dt;
     }
@@ -908,13 +1047,30 @@ export default class GameScene extends Phaser.Scene {
     this.refreshSpecials();
   }
 
+  /** Comprueba misiones recién cumplidas (contando la partida en curso) y las anuncia. */
+  checkMissions() {
+    try {
+      const fresh = this.save.completeMissions(newlyCompleted(this.save.data, { score: this.score, turn: this.turn }).map((m) => m.id));
+      for (const id of fresh) {
+        this.showToast(`¡Misión cumplida! ${this.missionTitle(id)}`, '#2a8a40');
+        audio.play('mission');
+      }
+    } catch (err) {
+      logError('missions', err);
+    }
+  }
+
+  missionTitle(id) {
+    return MISSIONS.find((m) => m.id === id)?.title ?? id;
+  }
+
   addShiny(n) {
     this.shinyMeter += n;
     if (this.shinyMeter >= SHINY_METER_MAX) {
       this.shinyMeter = 0;
       this.shinyBoostTurns = SHINY_BOOST_TURNS;
       audio.play('shiny');
-      this.showToast('¡Shiny al 10% durante 3 turnos!', '#c0409c');
+      this.showToast(`¡Shiny al ${pct(SHINY_BOOST_RATE)} durante ${SHINY_BOOST_TURNS} turnos!`, '#c0409c');
     }
     this.refreshSpecials();
     this.refreshHud();
@@ -963,6 +1119,7 @@ export default class GameScene extends Phaser.Scene {
 
   captureSuccess(c, shiny, orb, x, y) {
     const res = this.save.recordCapture(c.id, shiny);
+    this.time.delayedCall(600, () => this.checkMissions());
     audio.play(shiny ? 'shiny' : 'capture');
     this.runCaptures.push({ id: c.id, shiny });
     this.addScore(shiny ? 1000 : 100);
@@ -1011,6 +1168,7 @@ export default class GameScene extends Phaser.Scene {
       this.addScore(500);
       this.awardBall();
       this.addShiny(SHINY_GAIN.clear);
+      this.save.bumpStat('clears');
     }
 
     // Siempre baja exactamente una fila.
@@ -1023,6 +1181,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     this.spawnRow();
+    this.checkMissions();
     if (this.shinyBoostTurns > 0) this.shinyBoostTurns--;
     this.updateBossWarning();
     if (BOSS_EVERY - (this.turn % BOSS_EVERY) === 2) {
@@ -1067,7 +1226,8 @@ export default class GameScene extends Phaser.Scene {
     }));
     layer.add(makeButton(this, W / 2, 335, 180, 34, 'SALIR AL MENU', () => {
       this.time.paused = false;
-      this.save.recordGame(Math.floor(this.score));
+      this.save.recordGame(Math.floor(this.score), this.turn);
+      this.checkMissions();
       this.scene.start('title');
     }));
   }
@@ -1082,7 +1242,8 @@ export default class GameScene extends Phaser.Scene {
     this.state = 'over';
     this.launchTimer?.remove();
     const score = Math.floor(this.score);
-    const isBest = this.save.recordGame(score);
+    const isBest = this.save.recordGame(score, this.turn);
+    this.checkMissions();
     audio.play('gameover');
     const shinies = this.runCaptures.filter((c) => c.shiny).length;
     const layer = this.add.container(0, 0).setDepth(60);

@@ -10,7 +10,8 @@ export function defaultSave() {
     version: SAVE_VERSION,
     bestScore: 0,
     collection: {}, // id -> { count, shinyCount, firstAt }
-    stats: { games: 0, captures: 0, shinies: 0 },
+    stats: { games: 0, captures: 0, shinies: 0, bossKills: 0, clears: 0, powersUsed: 0, bestTurn: 0 },
+    missions: {}, // id de misión -> fecha en que se completó (las recompensas llegarán más adelante)
     settings: { speed: 1, music: true, sfx: true, grid: false }
   };
 }
@@ -46,11 +47,10 @@ export function sanitize(s, validIds) {
   const out = defaultSave();
   out.bestScore = nonNegInt(s.bestScore);
   const stats = s.stats && typeof s.stats === 'object' ? s.stats : {};
-  out.stats = {
-    games: nonNegInt(stats.games),
-    captures: nonNegInt(stats.captures),
-    shinies: nonNegInt(stats.shinies)
-  };
+  out.stats = {};
+  for (const key of Object.keys(defaultSave().stats)) out.stats[key] = nonNegInt(stats[key]);
+  const missions = s.missions && typeof s.missions === 'object' ? s.missions : {};
+  for (const [id, at] of Object.entries(missions)) if (typeof at === 'string') out.missions[id] = at;
   const speed = s.settings?.speed;
   out.settings = {
     speed: SPEEDS.includes(speed) ? speed : 1,
@@ -160,16 +160,35 @@ export class SaveStore {
     return { isNew, isNewShiny };
   }
 
-  recordGame(score) {
+  recordGame(score, turn = 0) {
     const isBest = score > this.data.bestScore;
     if (isBest) this.data.bestScore = score;
     this.data.stats.games += 1;
+    this.data.stats.bestTurn = Math.max(this.data.stats.bestTurn, turn);
     this.write();
     return isBest;
   }
 
+  bumpStat(key, n = 1) {
+    this.data.stats[key] = (this.data.stats[key] ?? 0) + n;
+    this.write();
+  }
+
+  /** Marca misiones como completadas; devuelve solo las nuevas. */
+  completeMissions(ids) {
+    const fresh = ids.filter((id) => !this.data.missions[id]);
+    const now = new Date().toISOString();
+    for (const id of fresh) this.data.missions[id] = now;
+    if (fresh.length) this.write();
+    return fresh;
+  }
+
   counts() {
     const entries = Object.values(this.data.collection);
-    return { caught: entries.length, shiny: entries.filter((e) => e.shinyCount > 0).length };
+    return {
+      caught: entries.length,
+      shiny: entries.filter((e) => e.shinyCount > 0).length,
+      total: entries.reduce((sum, e) => sum + e.count, 0)
+    };
   }
 }

@@ -5,6 +5,27 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-06
+
+### Added
+- Recogida automática: si limpias la pantalla en mitad de un lanzamiento, las bolas que siguen en el aire vuelan en curva al lanzador, en cascada, con destellos y notas ascendentes.
+- Efectos de poderes:
+  - Al activar un poder: destello del tablero con el color del tipo, cartel con el nombre que cruza la pantalla, sacudida, sonido y partículas en el lanzador.
+  - Estallido: explosión con anillo y brasas. Torrente: ondas y gotas. Enredadera: hojas y pétalos.
+  - Arco voltaico: rayos con halo y chispas. Escarcha: el bloque se cubre de hielo y suelta cristales.
+  - Derrumbe: rocas más grandes que giran, con polvo, escombros y estruendo.
+- Colección: contador «Bestias atrapadas» (total, con repetidas) y número de capturas (xN) en cada bestia, también en la vista shiny.
+- Misiones (35), en dos pestañas:
+  - Captura: total, distintas, cada tipo, legendarios y shiny.
+  - Progreso: puntos, turno alcanzado, legendarios derrotados, pantallas limpias, poderes usados y partidas.
+  - Barra de avance en cada misión. Aviso «¡Misión cumplida!» con sonido durante la partida. Las recompensas quedan pendientes.
+- Botón MISIONES en el menú principal.
+- Nuevas estadísticas guardadas: `bossKills`, `clears`, `powersUsed` y `bestTurn`. Las misiones completadas se guardan en `missions`.
+
+### Changed
+- Más separación entre bolas al lanzar (`LAUNCH_DELAY` de 55 a 95 ms, unos 60 px), para que no parezcan una línea.
+- Los porcentajes de shiny que muestran el marcador, los avisos y la guía salen de `config.js`, así que reflejan tus valores (1 % base y 3 % con el medidor lleno).
+
 ## [0.6.0] - 2026-11-06
 
 ### Added

@@ -1,6 +1,8 @@
 // Guía visual: páginas cortas con dibujos y poco texto.
 import Phaser from 'phaser';
-import { W, H, BOSS_EVERY } from '../config.js';
+import { W, H, BOSS_EVERY, SHINY_RATE, SHINY_BOOST_RATE, SHINY_BOOST_TURNS } from '../config.js';
+
+const pct = (r) => `${Math.round(r * 1000) / 10}%`;
 import { CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, TYPE_ORDER, CHART, hexToNum } from '../data/types.js';
 import { SPECIALS } from '../data/specials.js';
@@ -213,13 +215,13 @@ export default class GuideScene extends Phaser.Scene {
       const sp = this.add2(this.add.image(W / 2 + x, 140 + y, 'spark').setScale(2));
       this.tweens.add({ targets: sp, alpha: 0.2, duration: 300, yoyo: true, repeat: -1, delay: Math.random() * 300 });
     }
-    this.label(W / 2, 212, 'Shiny: colores distintos.\nSale el 2% de las veces.');
+    this.label(W / 2, 212, `Shiny: colores distintos.\nSale el ${pct(SHINY_RATE)} de las veces.`);
     this.label(W / 2, 260, 'Llena el medidor SHINY:', INK);
     this.meter(80, 278, 200, 0.6, 0xff7cd0);
     ['Muchos bloques en un tiro', 'Vencer a un legendario', 'Limpiar la pantalla'].forEach((s, i) => {
       this.label(W / 2, 318 + i * 26, `+ ${s}`, SOFT);
     });
-    this.label(W / 2, 420, 'Lleno = 10% de shiny\ndurante 3 turnos.', '#c0409c');
+    this.label(W / 2, 420, `Lleno = ${pct(SHINY_BOOST_RATE)} de shiny\ndurante ${SHINY_BOOST_TURNS} turnos.`, '#c0409c');
     this.label(W / 2, 480, 'Las shiny se capturan\nsiempre.', '#b07800');
   }
 
