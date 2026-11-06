@@ -37,6 +37,13 @@ export const SHINY_METER_MAX = 100;
 // Lo que suma al medidor shiny
 export const SHINY_GAIN = { perKillOver3: 8, legendary: 35, clear: 40 };
 export const MAX_POWERS = 2; // poderes que se pueden guardar
+
+// Dificultad (ajustable)
+export const HP_PER_TURN = 1.3; // vida base de un bloque = turno x esto (±20 %)
+export const HEAVY_CHANCE = 0.25; // bloques «pesados» con vida doble
+export const PICKUP_CHANCE = 0.6; // probabilidad de que una fila traiga bola extra +1
+export const ROW_GROWTH_TURNS = 5; // cada cuántos turnos cabe un bloque más por fila
+export const BOSS_HP = (turn) => 20 + turn * 8;
 export const RARITY_NAMES = { 1: 'Común', 2: 'Poco común', 3: 'Rara', 4: 'Legendaria' };
 
 export const DEBUG = params.has('debug');

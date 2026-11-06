@@ -5,6 +5,27 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-06
+
+### Added
+- Celebración de pantalla limpia en el mismo instante en que cae el último bloque:
+  - Destello, sacudida y pulso de zoom de cámara.
+  - Tres ondas doradas y blancas, rayos de luz girando y lluvia de estrellas y confeti.
+  - Cartel grande «¡PANTALLA LIMPIA!» que rebota, con «+500 BOLA ESPECIAL».
+  - Fanfarria con destello sonoro.
+- Ajustes de dificultad en `config.js`: `HP_PER_TURN`, `HEAVY_CHANCE`, `PICKUP_CHANCE`, `ROW_GROWTH_TURNS` y `BOSS_HP`.
+
+### Changed
+- Más difícil:
+  - Vida de los bloques = turno x1,3 (±20 %), con un 25 % de bloques pesados de vida doble.
+  - La bola extra +1 sale en el 60 % de las filas, no en todas.
+  - Las filas se llenan antes: un bloque más cada 5 turnos (antes, 6).
+  - Legendarios con más vida (20 + turno x8).
+- Con un jugador automático sencillo, las partidas pasan de unos 16 a unos 12 turnos.
+
+### Fixed
+- «Reintentar» después de haber visto el aviso de legendario cerraba el juego con un error, porque reutilizaba el aviso de la partida anterior.
+
 ## [0.10.2] - 2026-11-06
 
 ### Added

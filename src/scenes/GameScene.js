@@ -3,7 +3,8 @@ import {
   W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE,
   CORNER_JITTER, BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
-  SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS
+  SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
+  HP_PER_TURN, HEAVY_CHANCE, PICKUP_CHANCE, ROW_GROWTH_TURNS, BOSS_HP
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, effectiveness, hexToNum } from '../data/types.js';
@@ -52,6 +53,10 @@ export default class GameScene extends Phaser.Scene {
     this.shotBall = 'normal';
     this.shotKills = 0;
     this.turbo = false;
+    this.clearCelebrated = false;
+    // Objetos creados bajo demanda: la escena se reutiliza al reintentar, así que se reinician aquí.
+    this.bossWarn = null;
+    this.powerTag = null;
     this.shinyMeter = 0;
     this.shinyBoostTurns = 0;
     this.blocks = [];
@@ -355,26 +360,32 @@ export default class GameScene extends Phaser.Scene {
     const row = SPAWN_ROW;
     if (this.isBossTurn(t)) {
       const col = randInt(0, COLS - 2);
-      this.addBlock({ col, row, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: 20 + t * 6 });
+      this.addBlock({ col, row, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: BOSS_HP(t) });
       taken.add(col).add(col + 1);
       this.showToast('¡Aparece un legendario!', '#b07800');
       audio.play('bossAppear');
     }
     const free = shuffle([...Array(COLS).keys()].filter((c) => !taken.has(c)));
-    const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / 6));
+    const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / ROW_GROWTH_TURNS));
     const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
     for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(row, free[i], t);
-    this.addPickup(row, free[free.length - 1]);
+    // La bola extra +1 ya no sale en todas las filas
+    if (Math.random() < PICKUP_CHANCE) this.addPickup(row, free[free.length - 1]);
   }
 
   addRandomBlock(row, col, t) {
     if (Math.random() < CREATURE_CHANCE) {
       const rarity = weightedPick([[1, 60], [2, 30], [3, 10]]);
       const creature = pick(NORMAL_CREATURES.filter((c) => c.rarity === rarity));
-      this.addBlock({ row, col, size: 1, kind: 'creature', creature, hp: Math.ceil(t * (1 + 0.4 * rarity)) });
+      this.addBlock({ row, col, size: 1, kind: 'creature', creature, hp: Math.ceil(this.baseHp(t) * (1 + 0.4 * rarity)) });
     } else {
-      this.addBlock({ row, col, size: 1, kind: 'plain', hp: Math.random() < 0.2 ? t * 2 : t });
+      this.addBlock({ row, col, size: 1, kind: 'plain', hp: Math.ceil(this.baseHp(t) * (Math.random() < HEAVY_CHANCE ? 2 : 1)) });
     }
+  }
+
+  /** Vida base de un bloque en el turno t (con algo de variación). */
+  baseHp(t) {
+    return Math.max(1, t * HP_PER_TURN * (0.8 + Math.random() * 0.4));
   }
 
   addBlock(d) {
@@ -524,6 +535,7 @@ export default class GameScene extends Phaser.Scene {
     this.shotTime = 0;
     this.shotKills = 0;
     this.turbo = false;
+    this.clearCelebrated = false;
     this.nextLaunchX = null;
     // Posición y dirección fijas durante todo el turno.
     this.shotX = this.launchX;
@@ -627,6 +639,7 @@ export default class GameScene extends Phaser.Scene {
       }
     }
     // Pantalla limpia en mitad del lanzamiento: se recogen solas las bolas que quedan.
+    if (this.blocks.length === 0 && !this.clearCelebrated) this.celebrateClear();
     this.updateTurbo();
     for (const b of this.balls) {
       if (b.done && b.img) {
@@ -1128,6 +1141,60 @@ export default class GameScene extends Phaser.Scene {
     this.refreshSpecials();
   }
 
+  /** Pantalla limpia: destello, ondas doradas, lluvia de estrellas, cartel grande y fanfarria. */
+  celebrateClear() {
+    this.clearCelebrated = true;
+    const cx = W / 2;
+    const cy = BOARD_TOP + (LAUNCH_Y - BOARD_TOP) / 2;
+    const cam = this.cameras.main;
+    cam.flash(260, 255, 250, 220);
+    cam.shake(380, 0.008);
+    this.tweens.add({ targets: cam, zoom: 1.06, duration: 140, yoyo: true, ease: 'Quad.easeOut' });
+    // Ondas doradas y blancas desde el centro
+    [0, 140, 280].forEach((delay, i) => {
+      const ring = this.add.circle(cx, cy, 20).setStrokeStyle(i === 1 ? 3 : 5, i === 1 ? 0xffffff : COLORS.gold).setDepth(48).setAlpha(0);
+      this.tweens.add({ targets: ring, alpha: { from: 1, to: 0 }, scale: 12, duration: 900, delay, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+    });
+    // Rayos de luz girando detrás del cartel
+    const rays = this.add.graphics().setDepth(47).setPosition(cx, cy);
+    rays.fillStyle(COLORS.gold, 0.18);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      rays.fillTriangle(0, 0, Math.cos(a - 0.12) * 260, Math.sin(a - 0.12) * 260, Math.cos(a + 0.12) * 260, Math.sin(a + 0.12) * 260);
+    }
+    rays.setScale(0);
+    this.tweens.add({ targets: rays, scale: 1, angle: 60, duration: 1400, ease: 'Cubic.easeOut' });
+    this.tweens.add({ targets: rays, alpha: 0, delay: 900, duration: 600, onComplete: () => rays.destroy() });
+    // Lluvia de estrellas y confeti
+    const colors = [COLORS.gold, 0xffffff, 0x4ce0e8, 0xff7cd0, 0x8ce070];
+    for (let i = 0; i < 46; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = 80 + Math.random() * 170;
+      const star = i % 3 === 0
+        ? this.add.image(cx, cy, 'spark').setScale(1.5 + Math.random() * 1.5)
+        : this.add.rectangle(cx, cy, 4, 4, colors[i % colors.length]);
+      star.setDepth(49);
+      this.tweens.add({
+        targets: star,
+        x: { value: cx + Math.cos(a) * d, ease: 'Cubic.easeOut' },
+        y: { value: cy + Math.sin(a) * d + 60, ease: 'Quad.easeIn' },
+        angle: (Math.random() - 0.5) * 720,
+        alpha: { from: 1, to: 0 },
+        duration: 900 + Math.random() * 700,
+        onComplete: () => star.destroy()
+      });
+    }
+    // Cartel
+    const title = text(this, cx, cy - 14, '¡PANTALLA\nLIMPIA!', 24, COLORS.goldHex).setOrigin(0.5).setDepth(50).setStroke('#101828', 6).setScale(0);
+    const bonus = text(this, cx, cy + 40, '+500  BOLA ESPECIAL', 8, '#ffffff').setOrigin(0.5).setDepth(50).setStroke('#101828', 4).setAlpha(0);
+    this.tweens.add({ targets: title, scale: 1, duration: 420, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: title, angle: { from: -4, to: 4 }, duration: 260, yoyo: true, repeat: 2, delay: 420 });
+    this.tweens.add({ targets: bonus, alpha: 1, y: cy + 34, delay: 300, duration: 250 });
+    this.tweens.add({ targets: [title, bonus], alpha: 0, scale: 1.3, delay: 1600, duration: 350, onComplete: () => { title.destroy(); bonus.destroy(); } });
+    audio.play('clear');
+    this.time.delayedCall(250, () => audio.play('shiny'));
+  }
+
   /** Comprueba misiones recién cumplidas (contando la partida en curso) y las anuncia. */
   checkMissions() {
     try {
@@ -1269,8 +1336,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.shotKills > 3) this.addShiny((this.shotKills - 3) * SHINY_GAIN.perKillOver3);
     // Pantalla limpia: bola especial, medidor shiny y bonus.
     if (this.blocks.length === 0) {
-      this.showToast('¡Pantalla limpia!', '#2a8a40');
-      audio.play('clear');
+      if (!this.clearCelebrated) this.celebrateClear();
       this.addScore(500);
       this.awardBall();
       this.addShiny(SHINY_GAIN.clear);
