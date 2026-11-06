@@ -81,6 +81,12 @@ export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.pa
     t.setText(s);
     return c;
   };
+  c.setFill = (newFill, newTextColor) => {
+    fill = newFill;
+    if (newTextColor) t.setColor(newTextColor);
+    draw(false);
+    return c;
+  };
   draw(false);
   return c;
 }

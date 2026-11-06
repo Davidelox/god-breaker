@@ -29,3 +29,29 @@ describe('datos', () => {
     for (const s of SPECIALS) expect(TYPES[s.type]).toBeDefined();
   });
 });
+
+import { captureChance, rollRewardBall, rollPower } from '../src/data/balls.js';
+import { specialById } from '../src/data/specials.js';
+
+describe('bolas y poderes', () => {
+  const normal = { legendary: false };
+  const legend = { legendary: true };
+  it('aplica los ratios de captura de cada bola', () => {
+    expect(captureChance('normal', normal, false)).toBe(0.4);
+    expect(captureChance('normal', legend, false)).toBe(0.1);
+    expect(captureChance('super', normal, false)).toBe(0.7);
+    expect(captureChance('super', legend, false)).toBe(0.3);
+    expect(captureChance('ultra', normal, false)).toBe(0.9);
+    expect(captureChance('ultra', legend, false)).toBe(0.5);
+  });
+  it('las shiny se capturan siempre', () => {
+    expect(captureChance('normal', legend, true)).toBe(1);
+  });
+  it('la recompensa es super el 80 % y ultra el 20 %', () => {
+    expect(rollRewardBall(() => 0.79)).toBe('super');
+    expect(rollRewardBall(() => 0.8)).toBe('ultra');
+  });
+  it('el poder aleatorio siempre es válido', () => {
+    for (const r of [0, 0.5, 0.999]) expect(specialById(rollPower(() => r))).not.toBeNull();
+  });
+});

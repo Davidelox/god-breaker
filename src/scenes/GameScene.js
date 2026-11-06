@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
 import {
   W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y,
-  BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE, CAPTURE_CHANCE,
-  CORNER_JITTER, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW, AIM_GUIDE_LENGTH
+  BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE,
+  CORNER_JITTER, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
+  SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, effectiveness, hexToNum } from '../data/types.js';
-import { SPECIALS, SPECIAL_COST, specialById } from '../data/specials.js';
+import { SPECIAL_COST, specialById } from '../data/specials.js';
+import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from '../data/balls.js';
 import { creatureKey } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, floatText, COLORS } from '../gfx/ui.js';
 import { pick, weightedPick, randInt, shuffle } from '../core/rng.js';
@@ -28,8 +30,15 @@ export default class GameScene extends Phaser.Scene {
     this.ballCount = START_BALLS;
     this.pendingBalls = 0;
     this.energy = 0;
-    this.selectedSpecial = null;
-    this.activeSpecial = null;
+    this.powers = []; // ids de poderes guardados (máx. MAX_POWERS)
+    this.selectedSlots = new Set(); // huecos de poder marcados para el próximo lanzamiento
+    this.activeSpecials = []; // poderes activos en el lanzamiento en curso
+    this.ballInv = { normal: Infinity, super: 0, ultra: 0 };
+    this.selectedBall = 'normal';
+    this.shotBall = 'normal';
+    this.shotKills = 0;
+    this.shinyMeter = 0;
+    this.shinyBoostTurns = 0;
     this.blocks = [];
     this.pickups = [];
     this.balls = [];
@@ -95,7 +104,8 @@ export default class GameScene extends Phaser.Scene {
     this.scoreText = text(this, 14, 14, '', 8, COLORS.inkHex).setOrigin(0, 0);
     this.bestText = text(this, 14, 28, '', 8, '#56607c').setOrigin(0, 0);
     this.turnText = text(this, 14, 42, '', 8, '#56607c').setOrigin(0, 0);
-    this.captText = text(this, 160, 42, '', 8, '#56607c').setOrigin(0, 0);
+    this.captText = text(this, 130, 42, '', 8, '#56607c').setOrigin(0, 0);
+    this.boostText = text(this, W - 14, 42, '', 8, '#c0409c').setOrigin(1, 0);
     this.menuBtn = makeButton(this, W - 26, 22, 30, 24, 'II', () => this.openPause());
     // Velocidad x1/x2/x3: se mantiene entre turnos y entre partidas.
     this.speedBtn = makeButton(this, W - 112, 22, 44, 24, `x${this.speedMul}`, () => {
@@ -107,20 +117,32 @@ export default class GameScene extends Phaser.Scene {
     this.recallBtn = makeButton(this, W - 68, 22, 40, 24, '▼', () => this.recallBalls());
   }
 
+  // Barra inferior: medidores de poder y shiny, 2 huecos de poder y selector de bola.
   createSpecialBar() {
+    const barY = LAUNCH_Y + 14;
+    text(this, BOARD_X, barY, 'PODER', 8, '#4ce0e8').setOrigin(0, 0);
+    text(this, W / 2 + 4, barY, 'SHINY', 8, '#ff7cd0').setOrigin(0, 0);
     this.energyG = this.add.graphics();
-    this.specialButtons = {};
-    const bw = 56;
-    const gap = (W - 8 - SPECIALS.length * bw) / (SPECIALS.length - 1);
-    SPECIALS.forEach((sp, i) => {
-      const t = TYPES[sp.type];
-      const btn = makeButton(this, 4 + bw / 2 + i * (bw + gap), H - 26, bw, 36, t.short, () => this.toggleSpecial(sp.id), {
-        fill: hexToNum(t.base),
-        textColor: '#ffffff'
+    this.slotButtons = [];
+    for (let i = 0; i < MAX_POWERS; i++) {
+      const btn = makeButton(this, 4 + 37 + i * 78, H - 26, 74, 40, '-', () => this.toggleSlot(i));
+      this.slotButtons.push(btn);
+    }
+    this.ballButtons = {};
+    BALL_ORDER.forEach((id, i) => {
+      const btn = makeButton(this, 162 + 31 + i * 65, H - 26, 62, 40, '', () => this.selectBall(id), {
+        fill: BALL_TYPES[id].fill
       });
-      this.specialButtons[sp.id] = btn;
+      this.ballButtons[id] = btn;
     });
     this.refreshSpecials();
+  }
+
+  drawMeter(x, y, w, ratio, color) {
+    this.energyG.fillStyle(0x080a14);
+    this.energyG.fillRect(x, y, w, 8);
+    this.energyG.fillStyle(color);
+    this.energyG.fillRect(x + 1, y + 1, (w - 2) * Math.min(1, ratio), 6);
   }
 
   refreshHud() {
@@ -129,6 +151,7 @@ export default class GameScene extends Phaser.Scene {
     this.bestText.setText(`RECORD ${best}`);
     this.turnText.setText(`TURNO ${this.turn}`);
     this.captText.setText(`CAPTURAS ${this.runCaptures.length}`);
+    this.boostText.setText(this.shinyBoostTurns > 0 ? `SHINY 10% x${this.shinyBoostTurns}` : '');
     const shooting = this.state === 'shooting';
     this.speedBtn.setLabel(`x${this.speedMul}`).setSelected(this.speedMul > 1);
     this.recallBtn.setVisible(shooting);
@@ -138,18 +161,25 @@ export default class GameScene extends Phaser.Scene {
   }
 
   refreshSpecials() {
-    const y = H - 52;
-    const w = COLS * CELL;
+    const barY = LAUNCH_Y + 14;
     this.energyG.clear();
-    this.energyG.fillStyle(0x080a14);
-    this.energyG.fillRect(BOARD_X, y, w, 8);
-    const full = this.energy >= SPECIAL_COST;
-    this.energyG.fillStyle(full ? COLORS.gold : 0x4ce0e8);
-    this.energyG.fillRect(BOARD_X + 1, y + 1, (w - 2) * Math.min(1, this.energy / SPECIAL_COST), 6);
-    for (const sp of SPECIALS) {
-      const btn = this.specialButtons[sp.id];
-      btn.setEnabled(full && this.state === 'aim');
-      btn.setSelected(this.selectedSpecial === sp.id);
+    const locked = this.powers.length >= MAX_POWERS;
+    this.drawMeter(BOARD_X + 44, barY, W / 2 - BOARD_X - 52, this.energy / SPECIAL_COST, locked ? 0x56607c : 0x4ce0e8);
+    this.drawMeter(W / 2 + 48, barY, W / 2 - BOARD_X - 48, this.shinyMeter / SHINY_METER_MAX, 0xff7cd0);
+    const aim = this.state === 'aim';
+    this.slotButtons.forEach((btn, i) => {
+      const sp = specialById(this.powers[i]);
+      btn.setLabel(sp ? TYPES[sp.type].short : '-');
+      btn.setFill(sp ? hexToNum(TYPES[sp.type].base) : 0x3a4668, '#ffffff');
+      btn.setEnabled(!!sp && aim);
+      btn.setSelected(this.selectedSlots.has(i));
+    });
+    for (const id of BALL_ORDER) {
+      const n = this.ballInv[id];
+      const btn = this.ballButtons[id];
+      btn.setLabel(id === 'normal' ? 'NORMAL' : `${BALL_TYPES[id].name.toUpperCase()}\n${n}`);
+      btn.setEnabled(n > 0 && aim);
+      btn.setSelected(this.selectedBall === id);
     }
   }
 
@@ -166,9 +196,13 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     this.toastBusy = true;
-    const layer = this.add.container(0, -40).setDepth(45);
-    layer.add(makePanel(this, 20, BOARD_TOP + 6, W - 40, 30));
-    layer.add(text(this, W / 2, BOARD_TOP + 21, item.msg, 8, item.color).setOrigin(0.5));
+    const layer = this.add.container(0, -60).setDepth(45);
+    // El texto largo pasa a varias líneas y el panel crece con él.
+    const label = text(this, W / 2, 0, item.msg, 8, item.color, { wordWrap: { width: W - 64 } }).setOrigin(0.5, 0);
+    const h = label.height + 16;
+    label.setY(BOARD_TOP + 6 + 8);
+    layer.add(makePanel(this, 20, BOARD_TOP + 6, W - 40, h));
+    layer.add(label);
     this.tweens.add({
       targets: layer, y: 0, duration: 160, ease: 'Back.easeOut',
       onComplete: () => {
@@ -225,16 +259,16 @@ export default class GameScene extends Phaser.Scene {
     g.clear();
     let x = this.launchX;
     let y = LAUNCH_Y;
-    let vx = Math.cos(this.aimAngle);
-    let vy = Math.sin(this.aimAngle);
-    for (let d = 0; d < AIM_GUIDE_LENGTH; d += 4) {
+    const vx = Math.cos(this.aimAngle);
+    const vy = Math.sin(this.aimAngle);
+    // Línea recta hasta el primer obstáculo (borde, techo o bloque), sin mostrar el rebote.
+    for (let d = 0; d < 1000; d += 4) {
       x += vx * 4;
       y += vy * 4;
-      if (x < BOARD_X + BALL_R || x > BOARD_RIGHT - BALL_R) vx = -vx;
-      if (y < BOARD_TOP + BALL_R) break;
+      if (x < BOARD_X + BALL_R || x > BOARD_RIGHT - BALL_R || y < BOARD_TOP + BALL_R) break;
       if (this.blocks.some((b) => !b.dead && this.circleHitsRect(x, y, b))) break;
       if (d % 12 === 0) {
-        g.fillStyle(0xffffff, 1 - (d / AIM_GUIDE_LENGTH) * 0.7);
+        g.fillStyle(0xffffff, 0.85);
         g.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3);
       }
     }
@@ -298,7 +332,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   addBlock(d) {
-    const blk = { ...d, maxHp: d.hp, dead: false, shiny: !!d.creature && Math.random() < SHINY_RATE };
+    const shinyRate = this.shinyBoostTurns > 0 ? Math.max(SHINY_BOOST_RATE, SHINY_RATE) : SHINY_RATE;
+    const blk = { ...d, maxHp: d.hp, dead: false, shiny: !!d.creature && Math.random() < shinyRate };
     const size = d.size * CELL;
     const px = BOARD_X + d.col * CELL + size / 2;
     const py = BOARD_TOP + d.row * CELL + size / 2;
@@ -358,36 +393,53 @@ export default class GameScene extends Phaser.Scene {
 
   // ---------- Disparo y física ----------
 
-  toggleSpecial(id) {
-    if (this.state !== 'aim' || this.paused) return;
-    if (this.energy < SPECIAL_COST) {
-      this.showToast('Falta energía');
-      return;
+  hasSpecial(id) {
+    return this.activeSpecials.some((s) => s.id === id);
+  }
+
+  toggleSlot(i) {
+    if (this.state !== 'aim' || this.paused || !this.powers[i]) return;
+    if (this.selectedSlots.has(i)) this.selectedSlots.delete(i);
+    else {
+      this.selectedSlots.add(i);
+      const sp = specialById(this.powers[i]);
+      this.showToast(`${sp.name}: ${sp.desc}`);
     }
-    this.selectedSpecial = this.selectedSpecial === id ? null : id;
-    const sp = specialById(this.selectedSpecial);
-    if (sp) this.showToast(sp.desc);
+    this.refreshSpecials();
+  }
+
+  selectBall(id) {
+    if (this.state !== 'aim' || this.paused || !(this.ballInv[id] > 0)) return;
+    this.selectedBall = this.selectedBall === id ? 'normal' : id;
     this.refreshSpecials();
   }
 
   fire() {
     if (this.state !== 'aim') return;
     this.aimG.clear();
-    const sp = specialById(this.selectedSpecial);
-    this.selectedSpecial = null;
-    this.activeSpecial = sp;
-    if (sp) {
-      this.energy -= SPECIAL_COST;
-      this.showToast(`¡${sp.name}!`, TYPES[sp.type].dark);
+    // Poderes marcados (pueden ser los dos a la vez): se gastan al lanzar.
+    const slots = [...this.selectedSlots].sort((a, b) => a - b);
+    this.activeSpecials = slots.map((i) => specialById(this.powers[i])).filter(Boolean);
+    this.powers = this.powers.filter((_, i) => !this.selectedSlots.has(i));
+    this.selectedSlots.clear();
+    if (this.activeSpecials.length) {
+      this.showToast(`¡${this.activeSpecials.map((s) => s.name).join(' + ')}!`, TYPES[this.activeSpecials[0].type].dark);
+    }
+    // Bola de captura del lanzamiento
+    this.shotBall = this.selectedBall;
+    if (this.shotBall !== 'normal') {
+      this.ballInv[this.shotBall]--;
+      if (this.ballInv[this.shotBall] <= 0) this.selectedBall = 'normal';
     }
     this.state = 'shooting';
     this.shotTime = 0;
+    this.shotKills = 0;
     this.nextLaunchX = null;
     // Posición y dirección fijas durante todo el turno.
     this.shotX = this.launchX;
     this.shotAngle = this.aimAngle;
-    this.toLaunch = this.ballCount * (sp?.id === 'enredadera' ? 2 : 1);
-    if (sp?.id === 'derrumbe') this.rockslide();
+    this.toLaunch = this.ballCount * (this.hasSpecial('enredadera') ? 2 : 1);
+    if (this.hasSpecial('derrumbe')) this.rockslide();
     this.launchOne();
     this.launchTimer = this.time.addEvent({ delay: LAUNCH_DELAY, loop: true, callback: () => this.launchOne() });
     this.refreshHud();
@@ -401,9 +453,10 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     this.toLaunch--;
-    const big = this.activeSpecial?.id === 'torrente';
+    const big = this.hasSpecial('torrente');
     const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale(big ? WATER_BALL_R / BALL_R : 1);
-    if (this.activeSpecial) img.setTint(hexToNum(TYPES[this.activeSpecial.type].light));
+    if (this.activeSpecials.length) img.setTint(hexToNum(TYPES[this.activeSpecials[0].type].light));
+    else if (BALL_TYPES[this.shotBall].tint) img.setTint(BALL_TYPES[this.shotBall].tint);
     this.balls.push({
       x: this.shotX,
       y: LAUNCH_Y - 1,
@@ -422,6 +475,10 @@ export default class GameScene extends Phaser.Scene {
     this.toLaunch = 0;
     this.launchTimer?.remove();
     this.launchTimer = null;
+    // La última bola en desaparecer marca el próximo punto de lanzamiento.
+    const inFlight = this.balls.filter((b) => !b.done);
+    const last = inFlight[inFlight.length - 1];
+    if (last) this.nextLaunchX = Phaser.Math.Clamp(last.x, BOARD_X + 8, BOARD_RIGHT - 8);
     for (const b of this.balls) b.done = true;
     if (this.nextLaunchX === null) this.nextLaunchX = this.launchX;
   }
@@ -483,16 +540,14 @@ export default class GameScene extends Phaser.Scene {
     }
     if (b.y >= LAUNCH_Y) {
       b.done = true;
-      // La primera bola en volver marca dónde se lanzará el próximo turno
+      // La última bola en volver marca dónde se lanzará el próximo turno
       // (el lanzador actual no se mueve hasta que acaba el turno).
-      if (this.nextLaunchX === null) {
-        this.nextLaunchX = Phaser.Math.Clamp(b.x, BOARD_X + 8, BOARD_RIGHT - 8);
-        this.nextMarker.setPosition(this.nextLaunchX, LAUNCH_Y).setVisible(true);
-      }
+      this.nextLaunchX = Phaser.Math.Clamp(b.x, BOARD_X + 8, BOARD_RIGHT - 8);
+      this.nextMarker.setPosition(this.nextLaunchX, LAUNCH_Y).setVisible(true);
       return;
     }
 
-    const piercing = this.activeSpecial?.id === 'torrente';
+    const piercing = this.hasSpecial('torrente');
     for (const blk of this.blocks) {
       if (blk.dead) continue;
       const r = this.blockRect(blk);
@@ -579,14 +634,17 @@ export default class GameScene extends Phaser.Scene {
   // ---------- Daño, especiales y captura ----------
 
   hitBlock(blk) {
-    const sp = this.activeSpecial;
-    const eff = effectiveness(sp?.type, blk.creature?.type);
-    const dmg = (1 + (sp?.id === 'escarcha' ? 1 : 0)) * eff;
+    // Con dos poderes activos se usa la mejor eficacia de sus tipos.
+    const eff = this.activeSpecials.length
+      ? Math.max(...this.activeSpecials.map((s) => effectiveness(s.type, blk.creature?.type)))
+      : 1;
+    const dmg = (this.hasSpecial('escarcha') ? 2 : 1) * eff;
     const { x, y } = blk.cont;
     this.damage(blk, dmg, eff);
-    if (sp?.id === 'estallido') {
+    if (this.hasSpecial('estallido')) {
       for (const n of this.neighbors(blk)) this.damage(n, 0.5 * effectiveness('fuego', n.creature?.type));
-    } else if (sp?.id === 'arco') {
+    }
+    if (this.hasSpecial('arco')) {
       const near = this.blocks
         .filter((o) => !o.dead && o !== blk)
         .map((o) => ({ o, d: Phaser.Math.Distance.Between(x, y, o.cont.x, o.cont.y) }))
@@ -636,6 +694,11 @@ export default class GameScene extends Phaser.Scene {
     }
     const bonus = blk.kind === 'plain' ? 5 : blk.kind === 'creature' ? 20 * blk.creature.rarity : 300;
     this.addScore(bonus);
+    this.shotKills++;
+    if (blk.kind === 'boss') {
+      this.awardBall();
+      this.addShiny(SHINY_GAIN.legendary);
+    }
     this.addEnergy(blk.kind === 'plain' ? 6 : blk.kind === 'creature' ? 12 : 50);
     if (blk.creature) this.tryCapture(blk, x, y);
     blk.cont.destroy();
@@ -684,20 +747,49 @@ export default class GameScene extends Phaser.Scene {
   }
 
   addEnergy(n) {
-    const wasFull = this.energy >= SPECIAL_COST;
-    this.energy = Math.min(SPECIAL_COST, this.energy + n);
-    if (!wasFull && this.energy >= SPECIAL_COST) this.showToast('¡Especial listo!', '#b07800');
+    // Un lanzamiento con poder no carga la barra, y con los 2 huecos llenos tampoco.
+    if (this.activeSpecials.length) return;
+    if (this.powers.length >= MAX_POWERS) {
+      this.energy = 0;
+      return;
+    }
+    this.energy += n;
+    if (this.energy >= SPECIAL_COST) {
+      this.energy = 0;
+      const sp = specialById(rollPower());
+      this.powers.push(sp.id);
+      this.showToast(`¡Nuevo poder: ${sp.name}!`, TYPES[sp.type].dark);
+    }
+    this.refreshSpecials();
+  }
+
+  addShiny(n) {
+    this.shinyMeter += n;
+    if (this.shinyMeter >= SHINY_METER_MAX) {
+      this.shinyMeter = 0;
+      this.shinyBoostTurns = SHINY_BOOST_TURNS;
+      this.showToast('¡Shiny al 10% durante 3 turnos!', '#c0409c');
+    }
+    this.refreshSpecials();
+    this.refreshHud();
+  }
+
+  awardBall() {
+    const id = rollRewardBall();
+    this.ballInv[id]++;
+    this.showToast(`¡Bola ${BALL_TYPES[id].name.toLowerCase()} conseguida!`, '#2a6aa8');
     this.refreshSpecials();
   }
 
   tryCapture(blk, x, y) {
     const c = blk.creature;
     const shiny = blk.shiny;
-    const success = Math.random() < CAPTURE_CHANCE[c.rarity];
+    const success = Math.random() < captureChance(this.shotBall, c, shiny);
     this.pendingCaptures++;
     const scale = blk.kind === 'boss' ? 3 : 2;
     const spr = this.add.image(x, y, creatureKey(c.id, shiny)).setScale(scale).setDepth(30);
     const orb = this.add.image(x, y, 'orb').setScale(2).setDepth(31).setAlpha(0);
+    if (BALL_TYPES[this.shotBall].tint) orb.setTint(BALL_TYPES[this.shotBall].tint);
     this.tweens.add({
       targets: spr, scale: 0, duration: 220, ease: 'Quad.easeIn',
       onComplete: () => {
@@ -756,8 +848,18 @@ export default class GameScene extends Phaser.Scene {
     this.nextMarker.setVisible(false);
     this.ballCount += this.pendingBalls;
     this.pendingBalls = 0;
-    this.activeSpecial = null;
+    this.activeSpecials = [];
     this.turn++;
+
+    // Lanzamiento muy efectivo: llena el medidor shiny.
+    if (this.shotKills > 3) this.addShiny((this.shotKills - 3) * SHINY_GAIN.perKillOver3);
+    // Pantalla limpia: bola especial, medidor shiny y bonus.
+    if (this.blocks.length === 0) {
+      this.showToast('¡Pantalla limpia!', '#2a8a40');
+      this.addScore(500);
+      this.awardBall();
+      this.addShiny(SHINY_GAIN.clear);
+    }
 
     // Siempre baja exactamente una fila.
     this.shiftAll(1, true);
@@ -769,6 +871,7 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     this.spawnRow();
+    if (this.shinyBoostTurns > 0) this.shinyBoostTurns--;
     this.time.delayedCall(220, () => {
       if (this.state !== 'resolving') return;
       this.state = 'aim';

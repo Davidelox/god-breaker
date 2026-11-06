@@ -18,7 +18,6 @@ export const LAUNCH_Y = BOARD_BOTTOM + 12;
 // Bolas
 export const BALL_R = 4;
 export const WATER_BALL_R = 6; // bolas algo más grandes con el especial de agua
-export const AIM_GUIDE_LENGTH = 70; // longitud de la guía de apuntado (px)
 export const SPAWN_ROW = 1; // la fila 0 (arriba del todo) siempre queda vacía
 export const BALL_SPEED = 620;
 export const START_BALLS = 3;
@@ -30,8 +29,13 @@ export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sal
 // Contenido
 export const CREATURE_CHANCE = 0.15;
 export const BOSS_EVERY = 10; // un legendario cada 10 turnos
-export const SHINY_RATE = params.has('shiny') ? 0.25 : 1 / 256;
-export const CAPTURE_CHANCE = { 1: 0.6, 2: 0.4, 3: 0.25, 4: 0.15 };
+export const SHINY_RATE = params.has('shiny') ? 0.25 : 0.02; // probabilidad base de shiny
+export const SHINY_BOOST_RATE = 0.1; // con el medidor shiny lleno
+export const SHINY_BOOST_TURNS = 3;
+export const SHINY_METER_MAX = 100;
+// Lo que suma al medidor shiny
+export const SHINY_GAIN = { perKillOver3: 8, legendary: 35, clear: 40 };
+export const MAX_POWERS = 2; // poderes que se pueden guardar
 export const RARITY_NAMES = { 1: 'Común', 2: 'Poco común', 3: 'Rara', 4: 'Legendaria' };
 
 export const DEBUG = params.has('debug');

@@ -5,6 +5,26 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-06
+
+### Added
+- Bolas de captura: normal, super y ultra. Se elige una para cada lanzamiento y se gasta al lanzar.
+  - Normal: 40 % de captura (10 % en legendarios). Super: 70 % (30 %). Ultra: 90 % (50 %).
+  - Se consigue una bola super (80 %) o ultra (20 %) al limpiar la pantalla o derrotar a un legendario.
+- Medidor shiny. Se llena con lanzamientos muy efectivos (más de 3 bloques destruidos), legendarios derrotados y pantallas limpias. Al llenarse, la probabilidad de shiny sube al 10 % durante 3 turnos.
+- Pantalla limpia: +500 puntos, bola especial y carga del medidor shiny.
+- Hasta 2 poderes guardados. Se pueden usar los dos a la vez en el mismo lanzamiento.
+
+### Changed
+- El poder que se consigue al llenar la barra es aleatorio.
+- Un lanzamiento con poder activo no carga la barra. Con los 2 huecos llenos, la barra no se rellena.
+- La probabilidad de captura ya no depende de la rareza, sino de la bola. Las shiny se capturan siempre.
+- Probabilidad base de shiny: del 1/256 al 2 %.
+- La guía de apuntado llega en línea recta hasta el borde (o el primer bloque) sin mostrar el rebote. Se elimina `AIM_GUIDE_LENGTH`.
+- El siguiente lanzamiento sale desde donde desaparece la última bola, no la primera.
+- Los avisos largos pasan a varias líneas.
+- Barra inferior rediseñada: medidores de poder y shiny, 2 huecos de poder y selector de bola.
+
 ## [0.3.0] - 2026-11-06
 
 ### Changed
