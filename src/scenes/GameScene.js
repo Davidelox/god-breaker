@@ -60,6 +60,7 @@ export default class GameScene extends Phaser.Scene {
     this.shotKills = 0;
     this.turbo = false;
     this.clearCelebrated = false;
+    this.hitStop = 0;
     // Objetos creados bajo demanda: la escena se reutiliza al reintentar, así que se reinician aquí.
     this.bossWarn = null;
     this.powerTag = null;
@@ -99,8 +100,8 @@ export default class GameScene extends Phaser.Scene {
     this.trailG = this.add.graphics().setDepth(7);
     audio.setMood(0);
     this.fxG = this.add.graphics().setDepth(25);
-    this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball').setDepth(6).setScale(BALL_R / BALL_TEXTURE_R);
-    this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball').setDepth(6).setAlpha(0.4).setVisible(false).setScale(BALL_R / BALL_TEXTURE_R);
+    this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball_normal').setDepth(6).setScale(BALL_R / BALL_TEXTURE_R);
+    this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball_normal').setDepth(6).setAlpha(0.4).setVisible(false).setScale(BALL_R / BALL_TEXTURE_R);
     this.launchText = text(this, this.launchX, LAUNCH_Y - 14, '', 8).setOrigin(0.5).setDepth(6).setStroke('#101828', 3);
     this.createHud();
     this.createSpecialBar();
@@ -224,6 +225,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   refreshSpecials() {
+    this.launcher?.setTexture(`ball_${this.selectedBall}`);
     const barY = BOARD_FLOOR_Y + 10;
     this.energyG.clear();
     const locked = this.powers.length >= MAX_POWERS;
@@ -610,13 +612,15 @@ export default class GameScene extends Phaser.Scene {
     this.launchedCount++;
     const water = this.powerLevel('torrente');
     const r = water === 2 ? WATER_BALL_R + 3 : water ? WATER_BALL_R : BALL_R;
-    const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale(r / BALL_TEXTURE_R);
-    let trailColor = 0xffffff;
+    // Bola de su tipo (normal roja/blanca, super azul/roja, ultra amarilla/negra);
+    // con poder activo o si es una bola añadida de Enredadera, se pinta del color del poder.
     const others = this.activeSpecials.filter((sp) => sp.id !== 'enredadera');
+    const powered = extra || others.length > 0;
+    const img = this.add.image(this.shotX, LAUNCH_Y, powered ? 'ball' : `ball_${this.shotBall}`).setDepth(8).setScale(r / BALL_TEXTURE_R);
+    let trailColor = BALL_TYPES[this.shotBall].trail;
     if (extra) trailColor = PLANT_COLOR;
     else if (others.length) trailColor = hexToNum(TYPES[others[0].type].light);
-    else if (BALL_TYPES[this.shotBall].tint) trailColor = BALL_TYPES[this.shotBall].tint;
-    if (trailColor !== 0xffffff) img.setTint(trailColor);
+    if (powered) img.setTint(trailColor);
     if (extra) {
       // Bola añadida por Enredadera: destello verde al salir y brillo que late
       this.fxRing(this.shotX, LAUNCH_Y, PLANT_COLOR, 14, 260, 2);
@@ -655,7 +659,12 @@ export default class GameScene extends Phaser.Scene {
 
   update(_time, delta) {
     if (this.paused || this.state === 'over') return;
-    const dt = Math.min(delta, 50) / 1000;
+    let dt = Math.min(delta, 50) / 1000;
+    // Pausa de impacto (al derrotar a un legendario): las bolas van a cámara lenta un instante
+    if (this.hitStop > 0) {
+      this.hitStop -= dt;
+      dt *= 0.15;
+    }
     this.weather.update(dt);
     this.drawBolts(dt);
 
@@ -939,6 +948,14 @@ export default class GameScene extends Phaser.Scene {
     this.addScore(Math.min(dmg, blk.hp));
     blk.hp -= dmg;
     blk.bg.setFillStyle(0xffffff);
+    if (blk.sprite) {
+      // La criatura parpadea en rojo al recibir el golpe
+      blk.sprite.setTint(0xff3030);
+      blk.redUntil = this.time.now + 90;
+      this.time.delayedCall(90, () => {
+        if (!blk.dead && this.time.now >= blk.redUntil - 1) blk.sprite.clearTint();
+      });
+    }
     this.time.delayedCall(50, () => !blk.dead && blk.bg.setFillStyle(blk.color));
     this.punch(blk);
     audio.play('hit', { boss: blk.kind === 'boss' });
@@ -999,9 +1016,7 @@ export default class GameScene extends Phaser.Scene {
       });
     }
     if (boss) {
-      this.cameras.main.shake(260, 0.008);
-      this.cameras.main.flash(180, 255, 240, 200);
-      audio.play('bossBreak');
+      this.celebrateBoss(blk, x, y);
     } else {
       if (blk.creature) this.cameras.main.shake(70, 0.0025);
       audio.play(blk.creature ? 'breakCreature' : 'break');
@@ -1189,6 +1204,63 @@ export default class GameScene extends Phaser.Scene {
       this.showToast(`¡Nuevo poder: ${sp.name}!`, TYPES[sp.type].dark);
     }
     this.refreshSpecials();
+  }
+
+  /** Legendario derrotado: cámara lenta, cadena de explosiones, ondas, fuente de estrellas y cartel. */
+  celebrateBoss(blk, x, y) {
+    const cam = this.cameras.main;
+    const t = TYPES[blk.creature.type];
+    const color = hexToNum(t.base);
+    this.hitStop = 0.45;
+    cam.flash(220, 255, 255, 255);
+    cam.shake(600, 0.012);
+    this.tweens.add({ targets: cam, zoom: 1.08, duration: 160, yoyo: true, hold: 120, ease: 'Quad.easeOut' });
+    audio.play('bossBreak');
+    // Cadena de explosiones alrededor del legendario
+    for (let i = 0; i < 6; i++) {
+      this.time.delayedCall(i * 110, () => {
+        const ex = x + (Math.random() - 0.5) * CELL * 1.6;
+        const ey = y + (Math.random() - 0.5) * CELL * 1.6;
+        this.fxRing(ex, ey, i % 2 ? 0xffffff : color, 22, 380, 4);
+        this.fxBurst(ex, ey, [color, hexToNum(t.light), COLORS.gold, 0xffffff], 12, 46, 520, 20);
+        audio.play('fireHit');
+      });
+    }
+    // Gran onda expansiva doble
+    [0, 180].forEach((delay, i) => {
+      const ring = this.add.circle(x, y, 30).setStrokeStyle(i ? 4 : 8, i ? 0xffffff : COLORS.gold).setDepth(48).setAlpha(0);
+      this.tweens.add({ targets: ring, alpha: { from: 1, to: 0 }, scale: 9, duration: 900, delay, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
+    });
+    // Fuente de estrellas y monedas doradas
+    for (let i = 0; i < 30; i++) {
+      const sp = i % 2 ? this.add.image(x, y, 'spark').setScale(1.4 + Math.random()) : this.add.rectangle(x, y, 4, 4, COLORS.gold);
+      sp.setDepth(49);
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2;
+      const d = 90 + Math.random() * 120;
+      this.tweens.add({
+        targets: sp,
+        x: { value: x + Math.cos(a) * d, ease: 'Quad.easeOut' },
+        y: { value: y + Math.sin(a) * d + 140, ease: 'Back.easeIn' },
+        angle: (Math.random() - 0.5) * 540,
+        alpha: { from: 1, to: 0 },
+        duration: 1100 + Math.random() * 500,
+        onComplete: () => sp.destroy()
+      });
+    }
+    // Cartel
+    const cy = BOARD_TOP + CELL * 2.4;
+    const band = this.add.rectangle(W / 2, cy, W, 58, hexToNum(t.dark), 0.92).setDepth(50).setStrokeStyle(3, COLORS.gold).setScale(1, 0);
+    const title = text(this, W / 2, cy - 10, '¡LEGENDARIO DERROTADO!', 8, COLORS.goldHex).setOrigin(0.5).setDepth(51).setStroke('#101828', 3).setAlpha(0);
+    const name = text(this, W / 2, cy + 10, upper(blk.creature.name), 16, '#ffffff').setOrigin(0.5).setDepth(51).setStroke('#101828', 4).setScale(0);
+    this.tweens.add({ targets: band, scaleY: 1, duration: 180, ease: 'Back.easeOut', delay: 150 });
+    this.tweens.add({ targets: title, alpha: 1, duration: 200, delay: 250 });
+    this.tweens.add({ targets: name, scale: 1, duration: 360, delay: 300, ease: 'Back.easeOut' });
+    this.tweens.add({
+      targets: [band, title, name], alpha: 0, delay: 1900, duration: 350,
+      onComplete: () => { band.destroy(); title.destroy(); name.destroy(); }
+    });
+    floatText(this, x, y - 30, '+300', COLORS.goldHex, 16);
+    this.time.delayedCall(350, () => audio.play('clear'));
   }
 
   /** Pantalla limpia: destello, ondas doradas, lluvia de estrellas, cartel grande y fanfarria. */

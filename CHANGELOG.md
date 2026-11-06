@@ -5,6 +5,21 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-06
+
+### Added
+- Bolas de lanzamiento con sprite propio por tipo, con estela y lanzador a juego:
+  - Normal: anillo rojo y centro blanco.
+  - Super: anillo azul y centro rojo.
+  - Ultra: rayas diagonales amarillas y negras.
+- Con un poder activo, o en las bolas añadidas por Enredadera, la bola se pinta del color del poder.
+- Las criaturas parpadean en rojo al recibir un golpe.
+- Derrota de legendario más espectacular:
+  - Cámara lenta breve, destello blanco, sacudida fuerte y zoom.
+  - Cadena de 6 explosiones alrededor y onda expansiva doble dorada y blanca.
+  - Fuente de estrellas y monedas, y cartel «¡LEGENDARIO DERROTADO!» con su nombre.
+  - «+300» grande y fanfarria.
+
 ## [0.17.0] - 2026-11-06
 
 ### Added

@@ -182,6 +182,14 @@ function drawPixels(rows, palette) {
   return canvas;
 }
 
+// Bolas de lanzamiento bicolor: A = anillo, B = núcleo, h = brillo
+const BALL_2 = ['..AAAA..', '.ABBBBA.', 'ABhBBBBA', 'ABBBBBBA', 'ABBBBBBA', 'ABBBBBBA', '.ABBBBA.', '..AAAA..'];
+const BALL_COLORS = {
+  normal: { A: '#d83838', B: '#f8f8f8', h: '#ffffff' },
+  super: { A: '#3060d8', B: '#e04848', h: '#ffb0b0' },
+  ultra: { A: '#202028', B: '#f8d030', h: '#fff4b0' }
+};
+const BALL_ULTRA = ['..KKYY..', '.KKYYKK.', 'KKYYKKYY', 'KYYKKYYK', 'YYKKYYKK', 'YKKYYKKY', '.KYYKKY.', '..YKKY..'];
 const BALL = ['..kkkk..', '.kWWWWk.', 'kWWWWWgk', 'kWWWWWgk', 'kWWWWWgk', 'kWWWWggk', '.kggggk.', '..kkkk..'];
 const ORB = [
   '....kk....', '...kCCk...', '..kCWCCk..', '.kCWCCCCk.', 'kCWCCCCCCk', 'kCCCCCCCDk',
@@ -199,6 +207,11 @@ export function generateTextures(scene) {
   }
   const pal = { k: OUTLINE, W: '#ffffff', g: '#b8c0d8', C: '#4ce0e8', D: '#2a8a9c', Y: '#ffd84a', G: '#7cf07c', R: '#a08868', r: '#685440' };
   scene.textures.addCanvas('ball', drawPixels(BALL, pal));
+  for (const [id, colors] of Object.entries(BALL_COLORS)) {
+    if (id !== 'ultra') scene.textures.addCanvas(`ball_${id}`, drawPixels(BALL_2, colors));
+  }
+  // Ultra: rayas diagonales amarillas y negras (se distingue bien sobre el fondo oscuro)
+  scene.textures.addCanvas('ball_ultra', drawPixels(BALL_ULTRA, { Y: '#f8d030', K: '#202028' }));
   scene.textures.addCanvas('orb', drawPixels(ORB, pal));
   scene.textures.addCanvas('spark', drawPixels(SPARK, pal));
   scene.textures.addCanvas('pickup', drawPixels(PICKUP, pal));

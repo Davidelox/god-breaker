@@ -2,9 +2,10 @@
 import { SPECIALS } from './specials.js';
 
 export const BALL_TYPES = {
-  normal: { id: 'normal', name: 'Normal', fill: 0xf8f8f8, tint: null, rates: { normal: 0.4, legendary: 0.1 } },
-  super: { id: 'super', name: 'Super', fill: 0x8cd0ff, tint: 0x8cd0ff, rates: { normal: 0.7, legendary: 0.3 } },
-  ultra: { id: 'ultra', name: 'Ultra', fill: 0xff9cf0, tint: 0xff9cf0, rates: { normal: 0.9, legendary: 0.5 } }
+  // trail: color de la estela; tint: color del cristal de captura
+  normal: { id: 'normal', name: 'Normal', fill: 0xf8f8f8, trail: 0xff7070, tint: null, rates: { normal: 0.4, legendary: 0.1 } },
+  super: { id: 'super', name: 'Super', fill: 0x8cb0ff, trail: 0x6090ff, tint: 0x8cb0ff, rates: { normal: 0.7, legendary: 0.3 } },
+  ultra: { id: 'ultra', name: 'Ultra', fill: 0xffd84a, trail: 0xffd84a, tint: 0xffe070, rates: { normal: 0.9, legendary: 0.5 } }
 };
 
 export const BALL_ORDER = ['normal', 'super', 'ultra'];
