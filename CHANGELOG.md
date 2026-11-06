@@ -6,6 +6,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 ## [Unreleased]
 
 ### Performance
+- Tablero con muchos bloques y dioses mucho más ligero de dibujar (de 134 a 38 llamadas de dibujo por fotograma con 40 bloques y 2 dioses): el fondo de cada bloque es una imagen en lugar de una forma, el número de vida usa una fuente de mapa de bits generada al arrancar (sin rasterizar texto) y la marca «!» y las barras de vida de los dioses son imágenes. Antes cada bloque cortaba el lote de dibujo varias veces.
 - Menos tirones en móvil durante los lanzamientos:
   - El marcador y el número de vida de los bloques ya no se redibujan en cada golpe (cada cambio de texto se rasteriza y se sube a la GPU): el marcador se actualiza como mucho cada 60 ms y cada bloque cada 80 ms, con el valor final siempre al acabar el turno.
   - Los destellos de golpe se apagan en un repaso por fotograma en lugar de crear dos temporizadores por golpe.

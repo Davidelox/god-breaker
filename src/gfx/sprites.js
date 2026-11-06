@@ -1,5 +1,6 @@
 // Sprites pixel art generados por código. Las bestias se dibujan con src/gfx/beastArt.js.
 // Cada criatura usa su id como semilla, así que su forma es siempre la misma.
+import Phaser from 'phaser';
 import { creatureById } from '../data/creatures.js';
 import { drawBeast, goldCanvas } from './beastArt.js';
 import { CUSTOM_CREATURE_IMAGES, CUSTOM_BALL_IMAGES } from '../data/pack.js';
@@ -106,8 +107,87 @@ const SPARK = ['..W..', '..W..', 'WWYWW', '..W..', '..W..'];
 const PICKUP = ['..GGGG..', '.G....G.', 'G..WW..G', 'G.WWWW.G', 'G.WWWW.G', 'G..WW..G', '.G....G.', '..GGGG..'];
 const ROCK = ['.kkkk.', 'kRRRrk', 'kRRrrk', 'kRrrrk', '.kkkk.'];
 
+// ---------- Bloques del tablero (rendimiento) ----------
+// Antes cada bloque era un rectángulo (forma) + un texto con su propia textura. En WebGL cada cambio
+// entre formas e imágenes corta el lote de dibujo, y cada texto nuevo se rasteriza y sube a la GPU:
+// con muchos bloques y dioses eso daba tirones en móvil. Ahora el fondo es una imagen y el número
+// de vida usa una fuente de mapa de bits, así todo se dibuja en muy pocos lotes.
+
+export const HP_FONT = 'hpfont';
+const HP_GLYPH = 20; // celda de cada cifra (16 px de letra + 2 px de contorno por lado)
+
+function makeHpFont(scene) {
+  const chars = '0123456789';
+  const canvas = document.createElement('canvas');
+  canvas.width = HP_GLYPH * chars.length;
+  canvas.height = HP_GLYPH;
+  const ctx = canvas.getContext('2d');
+  ctx.font = '16px "Press Start 2P", monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#101828';
+  ctx.fillStyle = '#f8f8f8';
+  [...chars].forEach((ch, i) => {
+    const x = i * HP_GLYPH + HP_GLYPH / 2, y = HP_GLYPH / 2 + 1;
+    ctx.strokeText(ch, x, y);
+    ctx.fillText(ch, x, y);
+  });
+  scene.textures.addCanvas(HP_FONT, canvas);
+  const data = Phaser.GameObjects.RetroFont.Parse(scene, {
+    image: HP_FONT, width: HP_GLYPH, height: HP_GLYPH, chars, charsPerRow: chars.length,
+    spacing: { x: 0, y: 0 }, offset: { x: 0, y: 0 }, lineSpacing: 0
+  });
+  scene.cache.bitmapFont.add(HP_FONT, data);
+}
+
+/** Textura del fondo de un bloque (relleno + borde de 2 px), creada una vez por combinación. */
+export function blockBgKey(scene, fill, border, size) {
+  const key = `blkbg_${fill.toString(16)}_${border.toString(16)}_${size}`;
+  if (scene.textures.exists(key)) return key;
+  const s = size - 2;
+  const canvas = document.createElement('canvas');
+  canvas.width = s;
+  canvas.height = s;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = `#${border.toString(16).padStart(6, '0')}`;
+  ctx.fillRect(0, 0, s, s);
+  ctx.fillStyle = `#${fill.toString(16).padStart(6, '0')}`;
+  ctx.fillRect(2, 2, s - 4, s - 4);
+  scene.textures.addCanvas(key, canvas);
+  return key;
+}
+
+/** Píxel blanco (barras teñidas) y marca roja «!» de bestia sin capturar, como imágenes. */
+function makeUiBits(scene) {
+  const px = document.createElement('canvas');
+  px.width = px.height = 1;
+  const pctx = px.getContext('2d');
+  pctx.fillStyle = '#ffffff';
+  pctx.fillRect(0, 0, 1, 1);
+  scene.textures.addCanvas('px', px);
+  const m = document.createElement('canvas');
+  m.width = m.height = 14;
+  const ctx = m.getContext('2d');
+  ctx.fillStyle = '#101828';
+  ctx.beginPath();
+  ctx.arc(7, 7, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#e05858';
+  ctx.beginPath();
+  ctx.arc(7, 7, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(6, 3, 2, 5);
+  ctx.fillRect(6, 9, 2, 2);
+  scene.textures.addCanvas('newmark', m);
+}
+
 export function generateTextures(scene) {
   textures = scene.textures;
+  makeHpFont(scene);
+  makeUiBits(scene);
   const pal = { k: OUTLINE, W: '#ffffff', g: '#b8c0d8', C: '#4ce0e8', D: '#2a8a9c', Y: '#ffd84a', G: '#7cf07c', R: '#a08868', r: '#685440' };
   scene.textures.addCanvas('ball', drawPixels(BALL, pal));
   for (const [id, colors] of Object.entries(BALL_COLORS)) {

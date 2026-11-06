@@ -10,7 +10,7 @@ import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, hexToNum } from '../data/types.js';
 import { SPECIAL_COST, specialById, ELEMENTS } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from '../data/balls.js';
-import { creatureKey, addCreatureImage, texScale } from '../gfx/sprites.js';
+import { creatureKey, addCreatureImage, texScale, blockBgKey, HP_FONT } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, COLORS } from '../gfx/ui.js';
 import { pick, weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
@@ -427,7 +427,7 @@ export default class GameScene extends Phaser.Scene {
     const py = BOARD_TOP + d.row * CELL + size / 2;
     const cont = this.add.container(px, py).setDepth(d.kind === 'boss' ? 4 : 3);
     const color = d.creature ? hexToNum(TYPES[d.creature.type].light) : this.plainColor(d.hp);
-    const bg = this.add.rectangle(0, 0, size - 4, size - 4, color).setStrokeStyle(2, d.kind === 'boss' ? COLORS.gold : 0x101828);
+    const bg = this.add.image(0, 0, blockBgKey(this, color, d.kind === 'boss' ? COLORS.gold : 0x101828, size));
     cont.add(bg);
     blk.bg = bg;
     blk.color = color;
@@ -440,16 +440,18 @@ export default class GameScene extends Phaser.Scene {
       if (!this.save.entry(d.creature.id)) this.addNewMark(blk, cont, size);
     }
     // Vida en grande; en bloques con criatura va abajo para no tapar el sprite
-    blk.hpText = text(this, 0, d.creature ? size / 2 - 12 : 0, '', 16).setOrigin(0.5).setStroke('#101828', 4);
+    blk.hpText = this.add.bitmapText(0, d.creature ? size / 2 - 12 : 0, HP_FONT, '', 20).setOrigin(0.5).setLetterSpacing(-4);
     blk.hpMaxW = size - 8;
     if (d.kind === 'boss') {
       // Barra de vida del legendario: fondo, rastro blanco que se queda atrás y relleno de color
       const w = size - 20;
       const y = size / 2 - 28;
       blk.barW = w;
-      const bg = this.add.rectangle(-w / 2 - 1, y, w + 2, 8, 0x101828).setOrigin(0, 0.5);
-      blk.barLag = this.add.rectangle(-w / 2, y, w, 6, 0xffffff).setOrigin(0, 0.5);
-      blk.barFill = this.add.rectangle(-w / 2, y, w, 6, 0x58c878).setOrigin(0, 0.5);
+      const bg = this.add.image(-w / 2 - 1, y, 'px').setOrigin(0, 0.5).setDisplaySize(w + 2, 8).setTint(0x101828);
+      // Barras como imágenes de un píxel teñidas y estiradas (no cortan el lote de dibujo)
+      const bar = (x, h, color, ww) => this.add.image(x, y, 'px').setOrigin(0, 0.5).setDisplaySize(ww, h).setTint(color);
+      blk.barLag = bar(-w / 2, 6, 0xffffff, w);
+      blk.barFill = bar(-w / 2, 6, 0x58c878, w);
       cont.add([bg, blk.barLag, blk.barFill]);
     }
     cont.add(blk.hpText);
@@ -466,7 +468,7 @@ export default class GameScene extends Phaser.Scene {
     const glow = this.add.rectangle(0, 0, size + 6, size + 6, COLORS.gold, 0.5);
     cont.addAt(glow, 0);
     this.tweens.add({ targets: glow, alpha: 0.12, scale: 1.06, duration: 520, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    blk.bg.setStrokeStyle(2, COLORS.gold);
+    blk.bg.setTexture(blockBgKey(this, blk.color, COLORS.gold, size));
     const h = size / 2 - 7;
     [[-h, -h], [h, -h], [h, h], [-h, h]].forEach(([x, y], i) => {
       const sp = this.add.image(x, y, 'spark').setAlpha(0);
@@ -517,11 +519,11 @@ export default class GameScene extends Phaser.Scene {
   updateBossBar(blk) {
     const ratio = Phaser.Math.Clamp(blk.hp / blk.maxHp, 0, 1);
     const w = Math.max(0, blk.barW * ratio);
-    blk.barFill.width = w;
-    blk.barFill.setFillStyle(ratio > 0.5 ? 0x58c878 : ratio > 0.25 ? 0xe8c040 : 0xe05858);
+    blk.barFill.displayWidth = w;
+    blk.barFill.setTint(ratio > 0.5 ? 0x58c878 : ratio > 0.25 ? 0xe8c040 : 0xe05858);
     // El rastro blanco alcanza a la vida actual tras un instante
     this.tweens.killTweensOf(blk.barLag);
-    this.tweens.add({ targets: blk.barLag, width: w, delay: 220, duration: 260, ease: 'Quad.easeOut' });
+    this.tweens.add({ targets: blk.barLag, displayWidth: w, delay: 220, duration: 260, ease: 'Quad.easeOut' });
   }
 
   shiftAll(n, animate) {
@@ -991,7 +993,7 @@ export default class GameScene extends Phaser.Scene {
     // Destello blanco del bloque y rojo de la criatura. Se apagan en flushHits() (una vez por
     // fotograma) en lugar de con un temporizador por golpe: en móvil eso pesa mucho.
     const now = this.time.now;
-    if (!(blk.flashUntil > now)) blk.bg.setFillStyle(0xffffff);
+    if (!(blk.flashUntil > now)) blk.bg.setTintFill(0xffffff);
     blk.flashUntil = now + 50;
     if (blk.sprite) {
       if (!(blk.redUntil > now)) blk.sprite.setTint(0xff3030);
@@ -1018,7 +1020,7 @@ export default class GameScene extends Phaser.Scene {
         continue;
       }
       if (blk.flashUntil && now >= blk.flashUntil) {
-        blk.bg.setFillStyle(blk.color);
+        blk.bg.clearTint();
         blk.flashUntil = 0;
       }
       if (blk.redUntil && now >= blk.redUntil) {
@@ -1458,13 +1460,9 @@ export default class GameScene extends Phaser.Scene {
   addNewMark(blk, cont, size) {
     const x = -size / 2 + 8;
     const y = -size / 2 + 8;
-    const dot = this.add.circle(x, y, 6, 0xe05858).setStrokeStyle(1, 0x101828);
-    // «!» dibujado en píxeles para que se lea bien a este tamaño
-    const mark = this.add.graphics();
-    mark.fillStyle(0xffffff);
-    mark.fillRect(x - 1, y - 4, 2, 5);
-    mark.fillRect(x - 1, y + 2, 2, 2);
-    const badge = this.add.container(0, 0, [dot, mark]);
+    // Círculo rojo con «!» (imagen precalculada: no corta el lote de dibujo como las formas)
+    const mark = this.add.image(x, y, 'newmark');
+    const badge = this.add.container(0, 0, [mark]);
     cont.add(badge);
     blk.newMark = badge;
     this.tweens.add({ targets: badge, y: -2, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
