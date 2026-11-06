@@ -35,11 +35,11 @@ export const CREATURE_CHANCE = 0.11; // probabilidad de que un bloque nuevo sea 
 export const CREATURE_FROM_TURN = 5; // en los 4 primeros turnos no salen bestias (los dioses van aparte)
 export const BOSS_EVERY = 8; // un legendario cada 10 turnos
 export const SHINY_RATE = params.has('shiny') || params.has('gold') ? 0.25 : 0.01; // probabilidad base de la versión dorada (gold)
-export const SHINY_BOOST_RATE = 0.03; // con el medidor shiny lleno
+export const SHINY_BOOST_RATE = 0.05; // probabilidad de gold con el medidor gold lleno
 export const SHINY_BOOST_TURNS = 3;
 export const SHINY_METER_MAX = 100;
 // Lo que suma al medidor shiny
-export const SHINY_GAIN = { perKillOver3: 8, legendary: 35, clear: 40 };
+export const SHINY_GAIN = { perKillOver3: 8, legendary: 35, clear: 40, capture: 10, captureGod: 25 };
 export const MAX_POWERS = 2; // poderes que se pueden guardar
 
 // Dificultad (ajustable)

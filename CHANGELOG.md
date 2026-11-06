@@ -5,6 +5,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Balance
+- En el turno en que baja un dios no sale ningún otro bloque ni bestia (solo puede salir el orbe extra +1).
+- Si la llegada de un dios (que hace bajar el tablero 2 filas) te haría perder, se pospone: ese turno el tablero baja solo 1 fila y aparece el aviso «A GOD WAITS FOR ROOM». El dios llega en el primer turno en que haya sitio.
+- Con la barra gold llena, la probabilidad de gold sube al 5 % (antes 3 %) durante 3 turnos.
+- Capturar bestias también llena la barra gold: +10 por bestia y +25 por dios. La guía lo menciona.
+
 ### Física
 - La estela de luz de los orbes se sustituye por una sombra: una copia del orbe muy transparente (18 %) que le sigue a 14 px por su recorrido, incluidos los rebotes. Se mantiene el resplandor suave alrededor del orbe. Ajustable con GHOST_DIST y GHOST_ALPHA en GameScene.js.
 - Esquinas de los bloques redondeadas en la física (CORNER_R = 4 px): el ángulo de salida depende del punto exacto del golpe y desaparece el desvío aleatorio en las esquinas. La línea de apuntado usa el mismo choque.

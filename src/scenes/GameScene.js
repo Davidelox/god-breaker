@@ -78,6 +78,8 @@ export default class GameScene extends Phaser.Scene {
     this.balls = [];
     this.bolts = [];
     this.hitBlocks = new Set(); // bloques con destello o texto pendientes (ver flushHits)
+    this.bossNow = false; // en el turno actual baja un dios
+    this.bossPending = false; // dios pospuesto porque su llegada te haría perder
     this.hudDirty = false;
     this.state = 'aim'; // aim | shooting | resolving | over
     this.launchX = W / 2;
@@ -379,7 +381,8 @@ export default class GameScene extends Phaser.Scene {
     // El legendario ocupa 2x2 y aparece por encima de todo: en su turno el tablero baja 2 filas
     // (ver endTurn), así que siempre queda hueco libre arriba. La fila superior sigue vacía.
     const row = SPAWN_ROW;
-    if (this.isBossTurn(t)) {
+    // Turno del dios (decidido en endTurn, que puede posponerlo): baja él solo, sin más bloques.
+    if (this.bossNow) {
       const col = randInt(0, COLS - 2);
       this.addBlock({ col, row, size: 2, kind: 'boss', creature: this.nextLegendary(), hp: BOSS_HP(t) });
       taken.add(col).add(col + 1);
@@ -387,12 +390,14 @@ export default class GameScene extends Phaser.Scene {
       audio.play('bossAppear');
     }
     const free = shuffle([...Array(COLS).keys()].filter((c) => !taken.has(c)));
-    const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / ROW_GROWTH_TURNS));
-    const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
-    // Como mucho una bestia por turno (y ninguna si en este turno ya baja un dios).
-    let beastAllowed = !this.isBossTurn(t);
-    for (let i = 0; i < Math.min(count, free.length - 1); i++) {
-      if (this.addRandomBlock(row, free[i], t, beastAllowed)) beastAllowed = false;
+    if (!this.bossNow) {
+      const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / ROW_GROWTH_TURNS));
+      const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
+      // Como mucho una bestia por turno.
+      let beastAllowed = true;
+      for (let i = 0; i < Math.min(count, free.length - 1); i++) {
+        if (this.addRandomBlock(row, free[i], t, beastAllowed)) beastAllowed = false;
+      }
     }
     // La bola extra +1 ya no sale en todas las filas
     // Bola extra +1: solo una en pantalla, y no vuelve a salir hasta que pasen PICKUP_COOLDOWN tiradas tras recogerla
@@ -492,7 +497,7 @@ export default class GameScene extends Phaser.Scene {
   // Aviso en la fila superior (siempre vacía) cuando falta poco para el legendario.
   updateBossWarning() {
     const left = BOSS_EVERY - (this.turn % BOSS_EVERY);
-    const show = left >= 1 && left <= 2 && this.state !== 'over';
+    const show = ((left >= 1 && left <= 2) || this.bossPending) && this.state !== 'over';
     if (!show) {
       this.bossWarn?.setVisible(false);
       return;
@@ -505,7 +510,7 @@ export default class GameScene extends Phaser.Scene {
       this.bossWarn.label = label;
       this.tweens.add({ targets: bar, alpha: 0.08, duration: 600, yoyo: true, repeat: -1 });
     }
-    this.bossWarn.label.setText(left === 1 ? 'A GOD COMES NEXT TURN!' : 'A GOD IN 2 TURNS');
+    this.bossWarn.label.setText(this.bossPending ? 'A GOD WAITS FOR ROOM' : left === 1 ? 'A GOD COMES NEXT TURN!' : 'A GOD IN 2 TURNS');
     this.bossWarn.setVisible(true);
   }
 
@@ -1517,6 +1522,7 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(600, () => this.checkMissions());
     audio.play(shiny ? 'shiny' : 'capture');
     this.runCaptures.push({ id: c.id, shiny });
+    this.addShiny(c.legendary ? SHINY_GAIN.captureGod : SHINY_GAIN.capture);
     this.addScore(shiny ? 1000 : 100);
     floatText(this, x, y - 12, shiny ? '+1000' : '+100', COLORS.goldHex);
     for (let i = 0; i < 6; i++) {
@@ -1701,8 +1707,18 @@ export default class GameScene extends Phaser.Scene {
     }
 
     if (this.pickupCooldown > 0) this.pickupCooldown--;
-    // Baja una fila; si llega un legendario, dos (aparece encima de los bloques actuales).
-    this.shiftAll(this.isBossTurn(this.turn) ? 2 : 1, true);
+    // Baja una fila; si llega un dios, dos (aparece encima de los bloques actuales).
+    // Si bajar dos filas te haría perder, el dios se pospone hasta que haya sitio.
+    const bossDue = this.isBossTurn(this.turn) || this.bossPending;
+    const roomForBoss = !this.blocks.some((b) => b.row + b.size - 1 + 2 >= ROWS - 1);
+    this.bossNow = bossDue && roomForBoss;
+    if (bossDue && !roomForBoss) {
+      if (!this.bossPending) this.showToast('A god waits for room on the board...', '#a03030');
+      this.bossPending = true;
+    } else if (this.bossNow) {
+      this.bossPending = false;
+    }
+    this.shiftAll(this.bossNow ? 2 : 1, true);
     // Las bolas extra que llegan abajo se recogen solas.
     for (const p of [...this.pickups]) if (p.row >= ROWS - 1) this.takePickup(p);
     if (this.blocks.some((b) => b.row + b.size - 1 >= ROWS - 1)) {

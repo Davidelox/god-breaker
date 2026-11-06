@@ -196,8 +196,8 @@ export default class GuideScene extends Phaser.Scene {
     this.label(W / 2, 212, `Gold: a golden version.\nAppears ${pct(SHINY_RATE)} of the time.`);
     this.label(W / 2, 260, 'Fill the GOLD meter:', INK);
     this.meter(80, 278, 200, 0.6, 0xffd84a);
-    ['Many blocks in one shot', 'Defeating a god', 'Clearing the board'].forEach((s, i) => {
-      this.label(W / 2, 318 + i * 26, `+ ${s}`, SOFT);
+    ['Many blocks in one shot', 'Capturing beasts', 'Defeating a god', 'Clearing the board'].forEach((s, i) => {
+      this.label(W / 2, 314 + i * 24, `+ ${s}`, SOFT);
     });
     this.label(W / 2, 420, `Full = ${pct(SHINY_BOOST_RATE)} gold chance\nfor ${SHINY_BOOST_TURNS} turns.`, '#b07800');
     this.label(W / 2, 480, 'Gold beasts are always\ncaptured.', '#b07800');
