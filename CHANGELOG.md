@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Performance
+- Menos tirones en móvil durante los lanzamientos:
+  - El marcador y el número de vida de los bloques ya no se redibujan en cada golpe (cada cambio de texto se rasteriza y se sube a la GPU): el marcador se actualiza como mucho cada 60 ms y cada bloque cada 80 ms, con el valor final siempre al acabar el turno.
+  - Los destellos de golpe se apagan en un repaso por fotograma en lugar de crear dos temporizadores por golpe.
+  - Física: la caja de cada bloque y el nivel de Maremoto se calculan una vez por fotograma (antes, en cada paso de cada orbe) y se descartan los bloques lejanos sin cálculos ni objetos nuevos.
+  - Música de combate: se programa pulso a pulso en lugar del compás entero de golpe, y el ostinato, el bajo y los charles comparten filtros (unos 60 nodos de audio menos por compás). Suena igual.
+
 ### Added
 - Publicación automática en GitHub Pages (`.github/workflows/deploy.yml`): en cada push a master se pasan los tests, se compila y se publica.
 - Instalable en la pantalla de inicio del móvil: manifiesto web, icono propio (`scripts/make-icons.mjs`), pantalla completa en iPhone y márgenes para la muesca.

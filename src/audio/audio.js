@@ -170,12 +170,13 @@ class AudioEngine {
     }
   }
 
-  tone(freq, dur, { type = 'square', gain = 0.1, attack = 0.005, slideTo = null, delay = 0, dest = this.sfxGain } = {}) {
+  tone(freq, dur, { type = 'square', gain = 0.1, attack = 0.005, slideTo = null, delay = 0, dest = this.sfxGain, detune = 0 } = {}) {
     const ctx = this.ctx;
     const t = ctx.currentTime + delay;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
     osc.type = type;
+    if (detune) osc.detune.value = detune;
     osc.frequency.setValueAtTime(freq, t);
     if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
     g.gain.setValueAtTime(0.0001, t);
@@ -240,14 +241,28 @@ class AudioEngine {
   startMusic() {
     if (!this.ctx || this.musicTimer) return;
     this.bar = 0;
+    this.beat = 0;
     this.nextBar = this.ctx.currentTime + 0.2;
     this.musicTimer = setInterval(() => {
       try {
-        while (this.nextBar < this.ctx.currentTime + 0.8) {
-          const len = this.barLen();
-          if (this.track === 'battle') this.playBattleBar(this.nextBar);
-          else this.playBar(this.nextBar);
-          this.nextBar += len;
+        const now = this.ctx.currentTime;
+        if (this.track === 'battle') {
+          // La pista de combate se programa pulso a pulso (no el compás entero de golpe),
+          // para repartir la creación de nodos de audio y no dar tirones en móvil.
+          while (this.nextBar + (this.beat * BATTLE_BAR) / 4 < now + 0.5) {
+            this.playBattleBar(this.nextBar, this.beat);
+            if (++this.beat === 4) {
+              this.beat = 0;
+              this.nextBar += BATTLE_BAR;
+              this.bar++;
+            }
+          }
+          return;
+        }
+        this.beat = 0;
+        while (this.nextBar < now + 0.8) {
+          this.playBar(this.nextBar);
+          this.nextBar += BAR;
           this.bar++;
         }
       } catch (err) {
@@ -317,42 +332,75 @@ class AudioEngine {
     osc.stop(t + 0.42);
   }
 
-  playBattleBar(t) {
+  /** Filtros compartidos de la pista de combate (uno por grupo en vez de uno por nota). */
+  battleBuses() {
+    if (this.buses) return this.buses;
+    const ctx = this.ctx;
+    const bus = (type, freq) => {
+      const f = ctx.createBiquadFilter();
+      f.type = type;
+      f.frequency.value = freq;
+      f.connect(this.musicFilter);
+      return f;
+    };
+    this.buses = { ost: bus('lowpass', 2400), bass: bus('lowpass', 520), hat: bus('highpass', 7000) };
+    return this.buses;
+  }
+
+  /** Charles: ráfaga corta de ruido hacia el filtro compartido. */
+  hat(t, gain) {
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(gain, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    src.connect(g).connect(this.battleBuses().hat);
+    src.start(t, Math.random() * 0.5);
+    src.stop(t + 0.06);
+  }
+
+  /** Programa un pulso (beat 0-3) del compás que empieza en t. */
+  playBattleBar(t, beat = 0) {
     const now = this.ctx.currentTime;
     const bar = this.bar;
     const [root, q] = MOODS[this.mood][bar % 4];
     const third = root + (q === 'm' ? 3 : 4);
     const section = Math.floor(bar / 4) % 4; // 0 entrada, 1 y 2 melodía, 3 puente más intenso
     const lastBeat = bar % 4 === 3;
+    const lo = beat * 4, hi = lo + 4; // semicorcheas de este pulso
+    const inBeat = (s) => s >= lo && s < hi;
+    const buses = this.battleBuses();
 
     // Tambores
-    KICK.forEach((s) => this.kick(t + s * S16, s === 0 ? 0.34 : 0.22));
-    if (section > 0) SNARE.forEach((s) => this.noise(0.16, { gain: 0.11, filter: 1900, type: 'bandpass', delay: t + s * S16 - now, dest: this.musicFilter }));
-    for (let s = 0; s < 16; s += section === 3 ? 1 : 2) {
-      this.noise(0.04, { gain: s % 4 === 0 ? 0.035 : 0.02, filter: 7000, type: 'highpass', delay: t + s * S16 - now, dest: this.musicFilter });
-    }
+    for (const s of KICK) if (inBeat(s)) this.kick(t + s * S16, s === 0 ? 0.34 : 0.22);
+    if (section > 0) for (const s of SNARE) if (inBeat(s)) this.noise(0.16, { gain: 0.11, filter: 1900, type: 'bandpass', delay: t + s * S16 - now, dest: this.musicFilter });
+    for (let s = lo; s < hi; s += section === 3 ? 1 : 2) this.hat(t + s * S16, s % 4 === 0 ? 0.035 : 0.02);
     // Redoble al final de cada frase de 4 compases
-    if (lastBeat) for (let s = 12; s < 16; s++) this.kick(t + s * S16, 0.16 + (s - 12) * 0.04);
+    if (lastBeat && beat === 3) for (let s = 12; s < 16; s++) this.kick(t + s * S16, 0.16 + (s - 12) * 0.04);
 
     // Bajo en corcheas (octava baja de la raíz)
-    for (let s = 0; s < 16; s += 2) this.brass(root - 12, t + s * S16, S16 * 1.6, 0.05, { cutoff: 520, attack: 0.01 });
+    for (let s = lo; s < hi; s += 2) this.tone(midi(root - 12), S16 * 1.6, { type: 'sawtooth', gain: 0.05, attack: 0.01, delay: t + s * S16 - now, dest: buses.bass });
 
     // Ostinato de cuerdas en semicorcheas: raíz, quinta, octava, quinta
     const ost = [root, root + 7, root + 12, root + 7];
-    for (let s = 0; s < 16; s++) {
-      this.brass(ost[s % 4] + 12, t + s * S16, S16 * 0.7, s % 4 === 0 ? 0.03 : 0.022, { cutoff: 2400, attack: 0.008 });
+    for (let s = lo; s < hi; s++) {
+      this.tone(midi(ost[s % 4] + 12), S16 * 0.7, { type: 'sawtooth', gain: s % 4 === 0 ? 0.026 : 0.019, attack: 0.008, delay: t + s * S16 - now, dest: buses.ost });
     }
 
-    // Acorde largo de metales (quinta vacía + octava) y coro suave
-    for (const n of [root, root + 7, root + 12]) this.brass(n, t, BATTLE_BAR * 0.96, 0.022, { cutoff: 1100, attack: 0.18 });
-    for (const [n, det] of [[third + 12, -6], [third + 12, 6], [root + 19, 0]]) {
-      this.brass(n, t, BATTLE_BAR, 0.012, { cutoff: 1800, attack: 0.4, type: 'triangle', detune: det });
+    // Acorde largo de metales (quinta vacía + octava) y coro suave, al empezar el compás
+    if (beat === 0) {
+      for (const n of [root, root + 7, root + 12]) this.brass(n, t, BATTLE_BAR * 0.96, 0.022, { cutoff: 1100, attack: 0.18 });
+      for (const [n, det] of [[third + 12, -6], [third + 12, 6], [root + 19, 0]]) {
+        this.tone(midi(n), BATTLE_BAR, { type: 'triangle', gain: 0.012, attack: 0.4, delay: t - now, dest: buses.ost, detune: det });
+      }
     }
 
     // Melodía heroica (en la entrada solo suena el ritmo)
     if (section > 0) {
       const motif = MOTIFS[(bar % 4 + (section === 3 ? 2 : 0)) % MOTIFS.length];
       for (const [s, d, len] of motif) {
+        if (!inBeat(s)) continue;
         const n = root + 12 + degree(d, q);
         const dur = len * S16 * 0.95;
         this.brass(n, t + s * S16, dur, 0.06, { cutoff: section === 3 ? 3200 : 2400, attack: 0.025 });

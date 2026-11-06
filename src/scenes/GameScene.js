@@ -71,6 +71,8 @@ export default class GameScene extends Phaser.Scene {
     this.pickups = [];
     this.balls = [];
     this.bolts = [];
+    this.hitBlocks = new Set(); // bloques con destello o texto pendientes (ver flushHits)
+    this.hudDirty = false;
     this.state = 'aim'; // aim | shooting | resolving | over
     this.launchX = W / 2;
     this.nextLaunchX = null;
@@ -676,6 +678,13 @@ export default class GameScene extends Phaser.Scene {
     }
     this.weather.update(dt);
     this.drawBolts(dt);
+    // Destellos, números de vida y marcador de los golpes del fotograma anterior
+    this.flushHits();
+    if (this.hudDirty && this.time.now - (this.hudAt ?? 0) >= 60) {
+      this.hudDirty = false;
+      this.hudAt = this.time.now;
+      this.refreshHud();
+    }
 
     if (this.state === 'aim' && this.keys) {
       const dir = (this.keys.RIGHT.isDown ? 1 : 0) - (this.keys.LEFT.isDown ? 1 : 0);
@@ -697,6 +706,9 @@ export default class GameScene extends Phaser.Scene {
     const total = dt * speed;
     const steps = Math.max(1, Math.ceil((total * BALL_SPEED) / 3));
     const s = total / steps;
+    // Datos que no cambian durante el fotograma: se calculan una vez (antes, en cada paso de cada orbe)
+    this.waterLevel = this.powerLevel('torrente');
+    for (const blk of this.blocks) blk.rect = this.blockRect(blk);
     for (let i = 0; i < steps; i++) {
       for (const b of this.balls) if (!b.done) this.stepBall(b, s);
       if (this.anyDead) {
@@ -803,17 +815,23 @@ export default class GameScene extends Phaser.Scene {
     }
 
     // Torrente: cada bola atraviesa hasta WATER_PIERCE bloques (MAX: sin límite) y luego rebota normal.
-    const water = this.powerLevel('torrente');
+    const water = this.waterLevel;
+    const br = b.r;
     for (const blk of this.blocks) {
       if (blk.dead) continue;
-      const r = this.blockRect(blk);
-      const cx = Phaser.Math.Clamp(b.x, r.x0, r.x1);
-      const cy = Phaser.Math.Clamp(b.y, r.y0, r.y1);
+      const r = blk.rect ?? this.blockRect(blk);
+      // Descarte rápido: el orbe ni siquiera toca la caja del bloque
+      if (b.x + br <= r.x0 || b.x - br >= r.x1 || b.y + br <= r.y0 || b.y - br >= r.y1) {
+        if (b.inside.size) b.inside.delete(blk);
+        continue;
+      }
+      const cx = b.x < r.x0 ? r.x0 : b.x > r.x1 ? r.x1 : b.x;
+      const cy = b.y < r.y0 ? r.y0 : b.y > r.y1 ? r.y1 : b.y;
       const dx = b.x - cx;
       const dy = b.y - cy;
       const d2 = dx * dx + dy * dy;
-      if (d2 >= b.r * b.r) {
-        b.inside.delete(blk);
+      if (d2 >= br * br) {
+        if (b.inside.size) b.inside.delete(blk);
         continue;
       }
       if (b.inside.has(blk)) continue; // sigue dentro de un bloque que ya atravesó
@@ -970,20 +988,50 @@ export default class GameScene extends Phaser.Scene {
     if (blk.dead || dmg <= 0) return;
     this.addScore(Math.min(dmg, blk.hp));
     blk.hp -= dmg;
-    blk.bg.setFillStyle(0xffffff);
+    // Destello blanco del bloque y rojo de la criatura. Se apagan en flushHits() (una vez por
+    // fotograma) en lugar de con un temporizador por golpe: en móvil eso pesa mucho.
+    const now = this.time.now;
+    if (!(blk.flashUntil > now)) blk.bg.setFillStyle(0xffffff);
+    blk.flashUntil = now + 50;
     if (blk.sprite) {
-      // La criatura parpadea en rojo al recibir el golpe
-      blk.sprite.setTint(0xff3030);
-      blk.redUntil = this.time.now + 90;
-      this.time.delayedCall(90, () => {
-        if (!blk.dead && this.time.now >= blk.redUntil - 1) blk.sprite.clearTint();
-      });
+      if (!(blk.redUntil > now)) blk.sprite.setTint(0xff3030);
+      blk.redUntil = now + 90;
     }
-    this.time.delayedCall(50, () => !blk.dead && blk.bg.setFillStyle(blk.color));
+    this.hitBlocks.add(blk);
     this.punch(blk);
     audio.play('hit', { boss: blk.kind === 'boss' });
     if (blk.hp <= 0.001) this.destroyBlock(blk);
-    else this.updateBlockText(blk);
+    else blk.textDirty = true;
+  }
+
+  /**
+   * Una vez por fotograma: apaga los destellos que han caducado y actualiza el número de vida
+   * de los bloques golpeados (como mucho cada 80 ms por bloque: cada cambio de texto se vuelve
+   * a dibujar y a subir a la GPU, y con muchos orbes eran cientos por segundo).
+   */
+  flushHits(force = false) {
+    if (!this.hitBlocks.size) return;
+    const now = this.time.now;
+    for (const blk of this.hitBlocks) {
+      if (blk.dead) {
+        this.hitBlocks.delete(blk);
+        continue;
+      }
+      if (blk.flashUntil && now >= blk.flashUntil) {
+        blk.bg.setFillStyle(blk.color);
+        blk.flashUntil = 0;
+      }
+      if (blk.redUntil && now >= blk.redUntil) {
+        blk.sprite?.clearTint();
+        blk.redUntil = 0;
+      }
+      if (blk.textDirty && (force || now - (blk.textAt ?? 0) >= 80)) {
+        blk.textDirty = false;
+        blk.textAt = now;
+        this.updateBlockText(blk);
+      }
+      if (!blk.flashUntil && !blk.redUntil && !blk.textDirty) this.hitBlocks.delete(blk);
+    }
   }
 
   // Reacción leve al impacto: el bloque se encoge un instante y vuelve (los legendarios, menos).
@@ -1204,7 +1252,7 @@ export default class GameScene extends Phaser.Scene {
 
   addScore(n) {
     this.score += n;
-    this.refreshHud();
+    this.hudDirty = true; // el marcador se redibuja como mucho una vez por fotograma (ver update)
   }
 
   addEnergy(n) {
@@ -1588,6 +1636,11 @@ export default class GameScene extends Phaser.Scene {
     this.state = 'resolving';
     this.launchTimer?.remove();
     this.launchTimer = null;
+    this.flushHits(true);
+    if (this.hudDirty) {
+      this.hudDirty = false;
+      this.refreshHud();
+    }
     this.blocks = this.blocks.filter((b) => !b.dead);
     if (this.nextLaunchX !== null) this.launchX = this.nextLaunchX;
     this.nextMarker.setVisible(false);
