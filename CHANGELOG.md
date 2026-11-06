@@ -5,6 +5,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-06
+
+### Changed
+- El escaparate de captura solo aparece la primera vez que se captura cada criatura. Las capturas repetidas se quedan con sus destellos y «+100».
+- Las capturas nuevas que llegan casi a la vez (mismo lanzamiento) se muestran todas juntas en una sola tarjeta: «¡N NUEVAS CAPTURAS!», en cuadrícula de hasta 3 columnas y 6 criaturas por tarjeta. Si hay más, salen varias tarjetas seguidas.
+
 ## [0.15.0] - 2026-11-06
 
 ### Added

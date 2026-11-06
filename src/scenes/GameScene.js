@@ -88,6 +88,8 @@ export default class GameScene extends Phaser.Scene {
     this.toastBusy = false;
     this.showcaseQueue = [];
     this.showcaseBusy = false;
+    this.showcaseBatch = [];
+    this.showcaseTimer = null;
   }
 
   create() {
@@ -1348,63 +1350,93 @@ export default class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: s, x: x + Math.cos(a) * 22, y: y + Math.sin(a) * 22, alpha: 0, duration: 400, onComplete: () => s.destroy() });
     }
     this.tweens.add({ targets: orb, y: y - 30, alpha: 0, duration: 500, delay: 150, onComplete: () => orb.destroy() });
-    this.queueShowcase({ c, shiny, isNew: res.isNew || res.isNewShiny });
+    // Solo se muestra en grande la primera vez que se captura esa criatura
+    if (res.isNew) this.queueShowcase({ c, shiny });
   }
 
   // ---------- Escaparate de captura ----------
 
+  /**
+   * Las capturas nuevas se agrupan: las que llegan casi a la vez (mismo lanzamiento)
+   * se muestran juntas en una misma tarjeta, hasta 6 por tarjeta.
+   */
   queueShowcase(item) {
-    this.showcaseQueue.push(item);
-    if (!this.showcaseBusy) this.nextShowcase();
+    this.showcaseBatch.push(item);
+    this.showcaseTimer?.remove();
+    this.showcaseTimer = this.time.delayedCall(450, () => {
+      const batch = this.showcaseBatch.splice(0);
+      for (let i = 0; i < batch.length; i += 6) this.showcaseQueue.push(batch.slice(i, i + 6));
+      if (!this.showcaseBusy) this.nextShowcase();
+    });
   }
 
-  /** Muestra la criatura capturada en grande en el centro del tablero (sin pausar el juego). */
   nextShowcase() {
-    const item = this.showcaseQueue.shift();
-    if (!item) {
+    const group = this.showcaseQueue.shift();
+    if (!group) {
       this.showcaseBusy = false;
       return;
     }
     this.showcaseBusy = true;
-    const { c, shiny, isNew } = item;
-    const t = TYPES[c.type];
+    const n = group.length;
+    const single = n === 1;
+    const cols = single ? 1 : Math.min(3, n);
+    const rows = Math.ceil(n / cols);
+    const cellW = single ? 140 : 88;
+    const cellH = single ? 104 : 84;
+    const cardW = cols * cellW + 16;
+    const cardH = rows * cellH + 40;
+    const anyShiny = group.some((g) => g.shiny);
     const cx = W / 2;
-    const cy = BOARD_TOP + CELL * 3.2;
-    const hold = this.showcaseQueue.length > 2 ? 450 : 900; // con muchas capturas seguidas va más rápido
+    const cy = BOARD_TOP + CELL * 3.6;
+    const hold = 1100 + (n - 1) * 250;
+    const parts = [];
+
     const rays = this.add.graphics();
-    rays.fillStyle(shiny ? COLORS.gold : hexToNum(t.light), 0.22);
-    for (let i = 0; i < 10; i++) {
-      const a = (i / 10) * Math.PI * 2;
-      rays.fillTriangle(0, 0, Math.cos(a - 0.15) * 110, Math.sin(a - 0.15) * 110, Math.cos(a + 0.15) * 110, Math.sin(a + 0.15) * 110);
+    rays.fillStyle(anyShiny ? COLORS.gold : 0xffffff, 0.16);
+    const rr = Math.max(cardW, cardH);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      rays.fillTriangle(0, 0, Math.cos(a - 0.13) * rr, Math.sin(a - 0.13) * rr, Math.cos(a + 0.13) * rr, Math.sin(a + 0.13) * rr);
     }
+    parts.push(rays);
     const card = this.add.graphics();
-    drawPanel(card, -78, -64, 156, 132, { fill: shiny ? 0xfff4c8 : COLORS.paper, border: shiny ? 0xb07800 : COLORS.ink });
-    const glow = this.add.circle(0, -18, 36, hexToNum(t.light), 0.6);
-    const spr = this.add.image(0, -20, creatureKey(c.id, shiny)).setScale(c.legendary ? 3.5 : 4.5);
-    const title = text(this, 0, -54, shiny ? '¡SHINY CAPTURADO!' : '¡CAPTURADO!', 8, shiny ? '#b07800' : '#2a8a40').setOrigin(0.5);
-    const name = text(this, 0, 30, c.name, 8, COLORS.inkHex).setOrigin(0.5);
-    const chip = this.add.rectangle(0, 48, 64, 14, hexToNum(t.base));
-    const chipText = text(this, 0, 48, upper(t.name), 8, '#ffffff').setOrigin(0.5);
-    const parts = [rays, card, glow, spr, title, name, chip, chipText];
-    if (isNew) {
-      const badge = this.add.rectangle(52, -70, 48, 16, 0xe05858).setStrokeStyle(2, 0x101828);
-      const badgeText = text(this, 52, -70, 'NUEVO', 8, '#ffffff').setOrigin(0.5);
-      parts.push(badge, badgeText);
-      this.tweens.add({ targets: [badge, badgeText], scale: 1.15, duration: 220, yoyo: true, repeat: 3 });
-    }
-    const layer = this.add.container(cx, cy, parts).setDepth(44).setScale(0).setAlpha(1);
-    this.tweens.add({ targets: rays, angle: 90, duration: hold + 600 });
-    this.tweens.add({ targets: spr, y: -26, duration: 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    this.tweens.add({ targets: glow, scale: 1.25, alpha: 0.25, duration: 400, yoyo: true, repeat: -1 });
-    if (shiny) {
-      for (let i = 0; i < 8; i++) {
-        const sp = this.add.image(Math.cos(i) * 60, -18 + Math.sin(i * 1.7) * 40, 'spark').setScale(1.6).setAlpha(0);
-        layer.add(sp);
-        this.tweens.add({ targets: sp, alpha: 1, duration: 200, yoyo: true, repeat: -1, delay: i * 90 });
+    drawPanel(card, -cardW / 2, -cardH / 2, cardW, cardH, { fill: anyShiny ? 0xfff4c8 : COLORS.paper, border: anyShiny ? 0xb07800 : COLORS.ink });
+    parts.push(card);
+    const titleStr = single ? (group[0].shiny ? '¡NUEVA SHINY!' : '¡NUEVA CAPTURA!') : `¡${n} NUEVAS CAPTURAS!`;
+    parts.push(text(this, 0, -cardH / 2 + 14, titleStr, 8, anyShiny ? '#b07800' : '#2a8a40').setOrigin(0.5));
+
+    const floaters = [];
+    group.forEach(({ c, shiny }, i) => {
+      const t = TYPES[c.type];
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      // Centra la última fila si no está completa
+      const inRow = Math.min(cols, n - row * cols);
+      const x = (col - (inRow - 1) / 2) * cellW;
+      const y = -cardH / 2 + 28 + row * cellH + cellH / 2 - 8;
+      const glow = this.add.circle(x, y - 10, single ? 36 : 24, hexToNum(t.light), 0.6);
+      const spr = this.add.image(x, y - 12, creatureKey(c.id, shiny)).setScale(single ? (c.legendary ? 3.5 : 4.5) : c.legendary ? 2.2 : 3);
+      const name = text(this, x, y + (single ? 30 : 22), c.name, 8, COLORS.inkHex).setOrigin(0.5);
+      parts.push(glow, spr, name);
+      if (single) {
+        parts.push(this.add.rectangle(x, y + 46, 64, 14, hexToNum(t.base)));
+        parts.push(text(this, x, y + 46, upper(t.name), 8, '#ffffff').setOrigin(0.5));
       }
-    }
+      if (shiny) {
+        const sp = this.add.image(x + (single ? 30 : 20), y - (single ? 40 : 30), 'spark').setScale(1.6);
+        parts.push(sp);
+        floaters.push({ target: sp, alpha: 0.2, duration: 220, yoyo: true, repeat: -1 });
+      }
+      floaters.push({ target: spr, y: spr.y - 5, duration: 320 + i * 40, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      floaters.push({ target: glow, scale: 1.2, alpha: 0.25, duration: 420, yoyo: true, repeat: -1 });
+    });
+
+    const layer = this.add.container(cx, cy, parts).setDepth(44).setScale(0);
+    for (const { target, ...cfg } of floaters) this.tweens.add({ targets: target, ...cfg });
+    this.tweens.add({ targets: rays, angle: 90, duration: hold + 600 });
+    audio.play(anyShiny ? 'shiny' : 'reward');
     this.tweens.add({
-      targets: layer, scale: 1, duration: 260, ease: 'Back.easeOut',
+      targets: layer, scale: 1, duration: 280, ease: 'Back.easeOut',
       onComplete: () => this.tweens.add({
         targets: layer, scale: 0.4, alpha: 0, y: cy - 40, delay: hold, duration: 220, ease: 'Quad.easeIn',
         onComplete: () => {
