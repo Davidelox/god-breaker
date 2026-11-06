@@ -17,6 +17,9 @@ export const LAUNCH_Y = BOARD_BOTTOM + 12;
 
 // Bolas
 export const BALL_R = 4;
+export const WATER_BALL_R = 6; // bolas algo más grandes con el especial de agua
+export const AIM_GUIDE_LENGTH = 70; // longitud de la guía de apuntado (px)
+export const SPAWN_ROW = 1; // la fila 0 (arriba del todo) siempre queda vacía
 export const BALL_SPEED = 620;
 export const START_BALLS = 3;
 export const LAUNCH_DELAY = 55;

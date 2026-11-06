@@ -5,6 +5,15 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-06
+
+### Changed
+- La posición y la dirección de lanzamiento quedan fijas durante todo el turno. Antes, la primera bola en volver movía el lanzador y el resto salía desde ahí.
+- Un marcador semitransparente indica dónde se lanzará el siguiente turno.
+- La fila de arriba del todo siempre queda vacía: los bloques nuevos aparecen en la segunda fila (`SPAWN_ROW`).
+- La guía de apuntado es mucho más corta (70 px, `AIM_GUIDE_LENGTH`).
+- Torrente (agua): además de atravesar, las bolas son algo más grandes (radio 6 en lugar de 4, `WATER_BALL_R`).
+
 ## [0.2.0] - 2026-11-06
 
 ### Added

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {
   W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE, CAPTURE_CHANCE,
-  CORNER_JITTER, VERTICAL_LOCK_CHANCE, SPEEDS
+  CORNER_JITTER, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW, AIM_GUIDE_LENGTH
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, effectiveness, hexToNum } from '../data/types.js';
@@ -60,6 +60,7 @@ export default class GameScene extends Phaser.Scene {
     this.aimG = this.add.graphics().setDepth(5);
     this.fxG = this.add.graphics().setDepth(25);
     this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball').setDepth(6);
+    this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball').setDepth(6).setAlpha(0.4).setVisible(false);
     this.launchText = text(this, this.launchX, LAUNCH_Y - 14, '', 8).setOrigin(0.5).setDepth(6).setStroke('#101828', 3);
     this.createHud();
     this.createSpecialBar();
@@ -226,14 +227,14 @@ export default class GameScene extends Phaser.Scene {
     let y = LAUNCH_Y;
     let vx = Math.cos(this.aimAngle);
     let vy = Math.sin(this.aimAngle);
-    for (let d = 0; d < 520; d += 4) {
+    for (let d = 0; d < AIM_GUIDE_LENGTH; d += 4) {
       x += vx * 4;
       y += vy * 4;
       if (x < BOARD_X + BALL_R || x > BOARD_RIGHT - BALL_R) vx = -vx;
       if (y < BOARD_TOP + BALL_R) break;
       if (this.blocks.some((b) => !b.dead && this.circleHitsRect(x, y, b))) break;
       if (d % 12 === 0) {
-        g.fillStyle(0xffffff, 1 - d / 600);
+        g.fillStyle(0xffffff, 1 - (d / AIM_GUIDE_LENGTH) * 0.7);
         g.fillRect(Math.round(x) - 1, Math.round(y) - 1, 3, 3);
       }
     }
@@ -266,11 +267,13 @@ export default class GameScene extends Phaser.Scene {
     const t = this.turn;
     const taken = new Set();
     // El legendario ocupa 2x2. Para que el tablero baje siempre una sola fila,
-    // el turno anterior deja libres sus dos columnas, que tras bajar quedan vacías en la fila 1.
+    // el turno anterior deja libres sus dos columnas, que tras bajar quedan vacías justo debajo.
+    // Los bloques nuevos aparecen en SPAWN_ROW: la fila de arriba del todo siempre queda vacía.
+    const row = SPAWN_ROW;
     if (this.isBossTurn(t) && this.reservedBossCol !== null) {
       const col = this.reservedBossCol;
       this.reservedBossCol = null;
-      this.addBlock({ col, row: 0, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: 20 + t * 6 });
+      this.addBlock({ col, row, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: 20 + t * 6 });
       taken.add(col).add(col + 1);
       this.showToast('¡Aparece un legendario!', '#b07800');
     } else if (this.isBossTurn(t + 1)) {
@@ -280,8 +283,8 @@ export default class GameScene extends Phaser.Scene {
     const free = shuffle([...Array(COLS).keys()].filter((c) => !taken.has(c)));
     const maxBlocks = Math.min(free.length - 1, 3 + Math.floor(t / 6));
     const count = Math.max(1, randInt(2, Math.max(2, maxBlocks)));
-    for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(0, free[i], t);
-    this.addPickup(0, free[free.length - 1]);
+    for (let i = 0; i < Math.min(count, free.length - 1); i++) this.addRandomBlock(row, free[i], t);
+    this.addPickup(row, free[free.length - 1]);
   }
 
   addRandomBlock(row, col, t) {
@@ -380,6 +383,9 @@ export default class GameScene extends Phaser.Scene {
     this.state = 'shooting';
     this.shotTime = 0;
     this.nextLaunchX = null;
+    // Posición y dirección fijas durante todo el turno.
+    this.shotX = this.launchX;
+    this.shotAngle = this.aimAngle;
     this.toLaunch = this.ballCount * (sp?.id === 'enredadera' ? 2 : 1);
     if (sp?.id === 'derrumbe') this.rockslide();
     this.launchOne();
@@ -395,13 +401,15 @@ export default class GameScene extends Phaser.Scene {
       return;
     }
     this.toLaunch--;
-    const img = this.add.image(this.launchX, LAUNCH_Y, 'ball').setDepth(8);
+    const big = this.activeSpecial?.id === 'torrente';
+    const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale(big ? WATER_BALL_R / BALL_R : 1);
     if (this.activeSpecial) img.setTint(hexToNum(TYPES[this.activeSpecial.type].light));
     this.balls.push({
-      x: this.launchX,
+      x: this.shotX,
       y: LAUNCH_Y - 1,
-      vx: Math.cos(this.aimAngle) * BALL_SPEED,
-      vy: Math.sin(this.aimAngle) * BALL_SPEED,
+      r: big ? WATER_BALL_R : BALL_R,
+      vx: Math.cos(this.shotAngle) * BALL_SPEED,
+      vy: Math.sin(this.shotAngle) * BALL_SPEED,
       img,
       inside: new Set(),
       done: false
@@ -462,23 +470,24 @@ export default class GameScene extends Phaser.Scene {
   stepBall(b, s) {
     b.x += b.vx * s;
     b.y += b.vy * s;
-    if (b.x < BOARD_X + BALL_R) {
-      b.x = BOARD_X + BALL_R;
+    if (b.x < BOARD_X + b.r) {
+      b.x = BOARD_X + b.r;
       b.vx = Math.abs(b.vx);
-    } else if (b.x > BOARD_RIGHT - BALL_R) {
-      b.x = BOARD_RIGHT - BALL_R;
+    } else if (b.x > BOARD_RIGHT - b.r) {
+      b.x = BOARD_RIGHT - b.r;
       b.vx = -Math.abs(b.vx);
     }
-    if (b.y < BOARD_TOP + BALL_R) {
-      b.y = BOARD_TOP + BALL_R;
+    if (b.y < BOARD_TOP + b.r) {
+      b.y = BOARD_TOP + b.r;
       b.vy = Math.abs(b.vy);
     }
     if (b.y >= LAUNCH_Y) {
       b.done = true;
+      // La primera bola en volver marca dónde se lanzará el próximo turno
+      // (el lanzador actual no se mueve hasta que acaba el turno).
       if (this.nextLaunchX === null) {
         this.nextLaunchX = Phaser.Math.Clamp(b.x, BOARD_X + 8, BOARD_RIGHT - 8);
-        this.launchX = this.nextLaunchX;
-        this.refreshHud();
+        this.nextMarker.setPosition(this.nextLaunchX, LAUNCH_Y).setVisible(true);
       }
       return;
     }
@@ -492,7 +501,7 @@ export default class GameScene extends Phaser.Scene {
       const dx = b.x - cx;
       const dy = b.y - cy;
       const d2 = dx * dx + dy * dy;
-      if (d2 >= BALL_R * BALL_R) {
+      if (d2 >= b.r * b.r) {
         if (piercing) b.inside.delete(blk);
         continue;
       }
@@ -524,8 +533,8 @@ export default class GameScene extends Phaser.Scene {
         const corner = (b.x < r.x0 || b.x > r.x1) && (b.y < r.y0 || b.y > r.y1);
         if (corner) this.cornerBounce(b);
       }
-      b.x += nx * (BALL_R - d);
-      b.y += ny * (BALL_R - d);
+      b.x += nx * (b.r - d);
+      b.y += ny * (b.r - d);
       this.hitBlock(blk);
       break;
     }
@@ -542,7 +551,7 @@ export default class GameScene extends Phaser.Scene {
       if (p.taken) continue;
       const px = BOARD_X + p.col * CELL + CELL / 2;
       const py = BOARD_TOP + p.row * CELL + CELL / 2;
-      if ((b.x - px) ** 2 + (b.y - py) ** 2 < (BALL_R + 8) ** 2) this.takePickup(p);
+      if ((b.x - px) ** 2 + (b.y - py) ** 2 < (b.r + 8) ** 2) this.takePickup(p);
     }
   }
 
@@ -744,6 +753,7 @@ export default class GameScene extends Phaser.Scene {
     this.launchTimer = null;
     this.blocks = this.blocks.filter((b) => !b.dead);
     if (this.nextLaunchX !== null) this.launchX = this.nextLaunchX;
+    this.nextMarker.setVisible(false);
     this.ballCount += this.pendingBalls;
     this.pendingBalls = 0;
     this.activeSpecial = null;
