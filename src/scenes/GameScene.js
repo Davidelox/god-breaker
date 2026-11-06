@@ -1450,32 +1450,33 @@ export default class GameScene extends Phaser.Scene {
   // ---------- Hueco del legendario ----------
 
   /**
-   * Al caer un legendario, todos los bloques (y bolas extra) desde su fila hacia abajo, en cualquier
-   * columna, suben hasta quedar justo debajo de otro bloque (o de la fila de aparición).
+   * Al caer un legendario, todo lo que está desde su fila hacia abajo (bloques y bolas extra)
+   * sube en bloque, manteniendo sus posiciones relativas, hasta quedar justo debajo de la
+   * primera fila con bloques que haya por encima (o hasta la fila de aparición).
    */
   riseUnder(boss) {
     const items = [
-      ...this.blocks.filter((b) => !b.dead).map((b) => ({ kind: 'block', o: b, col: b.col, size: b.size })),
-      ...this.pickups.map((p) => ({ kind: 'pickup', o: p, col: p.col, size: 1 }))
+      ...this.blocks.filter((b) => !b.dead).map((b) => ({ kind: 'block', o: b, size: b.size })),
+      ...this.pickups.map((p) => ({ kind: 'pickup', o: p, size: 1 }))
     ];
-    const occupied = (row, col, size, self) =>
-      items.some((it) => it !== self && it.o.row <= row && it.o.row + it.size - 1 >= row && it.col <= col + size - 1 && it.col + it.size - 1 >= col);
-    const movers = items
-      .filter((it) => it.o.row >= boss.row)
-      .sort((a, b) => a.o.row - b.o.row);
-    let moved = false;
-    for (const it of movers) {
-      let row = it.o.row;
-      // Sube mientras la fila de encima esté libre en todas sus columnas
-      while (row - 1 >= SPAWN_ROW && !occupied(row - 1, it.col, it.size, it)) row--;
-      if (row === it.o.row) continue;
-      it.o.row = row;
-      moved = true;
-      const target = it.kind === 'block' ? it.o.cont : it.o.img;
-      const y = BOARD_TOP + row * CELL + (it.size * CELL) / 2;
-      target.riseTween = this.tweens.add({ targets: target, y, duration: 260, ease: 'Back.easeOut' });
+    const group = items.filter((it) => it.o.row >= boss.row);
+    if (!group.length) return;
+    // Última fila ocupada por encima del legendario
+    let stopRow = SPAWN_ROW - 1;
+    for (const it of items) {
+      if (it.o.row >= boss.row) continue;
+      stopRow = Math.max(stopRow, it.o.row + it.size - 1);
     }
-    if (moved) audio.play('rumble');
+    const groupTop = Math.min(...group.map((it) => it.o.row));
+    const shift = groupTop - (stopRow + 1);
+    if (shift <= 0) return;
+    for (const it of group) {
+      it.o.row -= shift;
+      const target = it.kind === 'block' ? it.o.cont : it.o.img;
+      const y = BOARD_TOP + it.o.row * CELL + (it.size * CELL) / 2;
+      target.riseTween = this.tweens.add({ targets: target, y, duration: 300, ease: 'Back.easeOut' });
+    }
+    audio.play('rumble');
   }
 
   captureFail(c, spr, orb, scale) {

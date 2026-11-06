@@ -5,6 +5,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.15.3] - 2026-11-06
+
+### Changed
+- Al derrotar a un legendario, todo lo que hay desde su fila hacia abajo sube en bloque y conserva su formación: cada bloque mantiene su columna y su distancia con los demás. Sube hasta quedar justo debajo de la primera fila con bloques que haya por encima, o hasta la fila de aparición.
+
 ## [0.15.2] - 2026-11-06
 
 ### Changed
