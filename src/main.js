@@ -2,12 +2,18 @@ import '@fontsource/press-start-2p';
 import Phaser from 'phaser';
 import { installErrorHandlers, logError, showFatal } from './core/errors.js';
 import { W, H, DEBUG } from './config.js';
+import { audio } from './audio/audio.js';
 import BootScene from './scenes/BootScene.js';
 import TitleScene from './scenes/TitleScene.js';
 import GameScene from './scenes/GameScene.js';
 import CollectionScene from './scenes/CollectionScene.js';
 
 installErrorHandlers();
+
+// Los navegadores solo permiten audio después de una interacción del usuario.
+const unlockAudio = () => audio.unlock();
+window.addEventListener('pointerdown', unlockAudio, { passive: true });
+window.addEventListener('keydown', unlockAudio);
 
 function start() {
   const game = new Phaser.Game({

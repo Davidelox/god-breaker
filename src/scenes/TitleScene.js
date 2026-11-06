@@ -3,7 +3,7 @@ import { W, H } from '../config.js';
 import { VERSION } from '../version.js';
 import { CREATURES } from '../data/creatures.js';
 import { creatureKey } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, makeAudioToggles, COLORS } from '../gfx/ui.js';
 import { pick } from '../core/rng.js';
 
 export default class TitleScene extends Phaser.Scene {
@@ -33,13 +33,14 @@ export default class TitleScene extends Phaser.Scene {
 
     makeButton(this, W / 2, 420, 200, 40, 'JUGAR', () => this.scene.start('game'), { size: 16 });
     makeButton(this, W / 2, 476, 200, 36, 'COLECCION', () => this.scene.start('collection'));
+    makeAudioToggles(this, 530, save);
 
     text(this, W / 2, H - 20, `v${VERSION}`, 8, '#56607c').setOrigin(0.5);
 
     if (save.recovered) {
       save.recovered = false;
-      makePanel(this, 16, 530, W - 32, 52, { fill: 0xffe0e0 });
-      text(this, W / 2, 556, 'El guardado estaba dañado\ny se ha reiniciado.', 8, '#a03030').setOrigin(0.5);
+      makePanel(this, 16, 556, W - 32, 44, { fill: 0xffe0e0 });
+      text(this, W / 2, 578, 'El guardado estaba dañado\ny se ha reiniciado.', 8, '#a03030').setOrigin(0.5);
     }
   }
 

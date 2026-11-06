@@ -10,12 +10,15 @@ import { TYPES, effectiveness, hexToNum } from '../data/types.js';
 import { SPECIAL_COST, specialById } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from '../data/balls.js';
 import { creatureKey } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, floatText, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, floatText, makeAudioToggles, COLORS } from '../gfx/ui.js';
 import { pick, weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
+import { Weather } from '../gfx/weather.js';
+import { audio } from '../audio/audio.js';
 
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
+const TRAIL_POINTS = 5;
 const DANGER_Y = BOARD_TOP + (ROWS - 1) * CELL;
 
 export default class GameScene extends Phaser.Scene {
@@ -67,6 +70,8 @@ export default class GameScene extends Phaser.Scene {
   create() {
     this.drawBoard();
     this.aimG = this.add.graphics().setDepth(5);
+    this.trailG = this.add.graphics().setDepth(7);
+    audio.setMood(0);
     this.fxG = this.add.graphics().setDepth(25);
     this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball').setDepth(6);
     this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball').setDepth(6).setAlpha(0.4).setVisible(false);
@@ -85,18 +90,47 @@ export default class GameScene extends Phaser.Scene {
   // ---------- Dibujo e interfaz ----------
 
   drawBoard() {
-    const g = this.add.graphics();
-    g.fillStyle(COLORS.night);
-    g.fillRect(0, 0, W, H);
-    g.fillStyle(COLORS.board);
-    g.fillRect(BOARD_X, BOARD_TOP, COLS * CELL, LAUNCH_Y + 6 - BOARD_TOP);
-    g.lineStyle(1, 0x222c4a);
+    // Capas: fondo (color del clima) < partículas del clima < cuadrícula y marco
+    this.bgG = this.add.graphics().setDepth(-3);
+    this.weather = new Weather(this, -2, (color) => this.drawBoardFill(color));
+    const g = this.add.graphics().setDepth(-1);
+    g.lineStyle(1, 0xffffff, 0.06);
     for (let c = 1; c < COLS; c++) g.lineBetween(BOARD_X + c * CELL, BOARD_TOP, BOARD_X + c * CELL, BOARD_BOTTOM);
     for (let r = 1; r < ROWS; r++) g.lineBetween(BOARD_X, BOARD_TOP + r * CELL, BOARD_RIGHT, BOARD_TOP + r * CELL);
     g.fillStyle(0xe05858, 0.5);
     for (let x = BOARD_X; x < BOARD_RIGHT; x += 8) g.fillRect(x, DANGER_Y, 4, 2);
     g.lineStyle(2, 0x3a4668);
     g.strokeRect(BOARD_X - 1, BOARD_TOP - 1, COLS * CELL + 2, LAUNCH_Y + 8 - BOARD_TOP);
+  }
+
+  drawBoardFill(color) {
+    const from = this.boardColor ?? color;
+    this.boardColor = color;
+    const paint = (c) => {
+      this.bgG.clear();
+      this.bgG.fillStyle(COLORS.night);
+      this.bgG.fillRect(0, 0, W, H);
+      this.bgG.fillStyle(c);
+      this.bgG.fillRect(BOARD_X, BOARD_TOP, COLS * CELL, LAUNCH_Y + 6 - BOARD_TOP);
+    };
+    if (from === color) return paint(color);
+    // Transición suave del color de fondo
+    const a = Phaser.Display.Color.IntegerToColor(from);
+    const b = Phaser.Display.Color.IntegerToColor(color);
+    this.tweens.addCounter({
+      from: 0, to: 100, duration: 1200,
+      onUpdate: (tw) => {
+        const c = Phaser.Display.Color.Interpolate.ColorWithColor(a, b, 100, tw.getValue());
+        paint(Phaser.Display.Color.GetColor(c.r, c.g, c.b));
+      }
+    });
+  }
+
+  changeWeather() {
+    const w = this.weather.next();
+    audio.setMood(this.weather.index);
+    audio.play('weather');
+    this.showToast(`El clima cambia: ${w.name}`, '#3a5a8a');
   }
 
   createHud() {
@@ -310,6 +344,7 @@ export default class GameScene extends Phaser.Scene {
       this.addBlock({ col, row, size: 2, kind: 'boss', creature: pick(LEGENDARIES), hp: 20 + t * 6 });
       taken.add(col).add(col + 1);
       this.showToast('¡Aparece un legendario!', '#b07800');
+      audio.play('bossAppear');
     } else if (this.isBossTurn(t + 1)) {
       this.reservedBossCol = randInt(0, COLS - 2);
       taken.add(this.reservedBossCol).add(this.reservedBossCol + 1);
@@ -455,8 +490,11 @@ export default class GameScene extends Phaser.Scene {
     this.toLaunch--;
     const big = this.hasSpecial('torrente');
     const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale(big ? WATER_BALL_R / BALL_R : 1);
-    if (this.activeSpecials.length) img.setTint(hexToNum(TYPES[this.activeSpecials[0].type].light));
-    else if (BALL_TYPES[this.shotBall].tint) img.setTint(BALL_TYPES[this.shotBall].tint);
+    let trailColor = 0xffffff;
+    if (this.activeSpecials.length) trailColor = hexToNum(TYPES[this.activeSpecials[0].type].light);
+    else if (BALL_TYPES[this.shotBall].tint) trailColor = BALL_TYPES[this.shotBall].tint;
+    if (trailColor !== 0xffffff) img.setTint(trailColor);
+    audio.play('launch');
     this.balls.push({
       x: this.shotX,
       y: LAUNCH_Y - 1,
@@ -464,6 +502,8 @@ export default class GameScene extends Phaser.Scene {
       vx: Math.cos(this.shotAngle) * BALL_SPEED,
       vy: Math.sin(this.shotAngle) * BALL_SPEED,
       img,
+      trail: [],
+      trailColor,
       inside: new Set(),
       done: false
     });
@@ -486,6 +526,7 @@ export default class GameScene extends Phaser.Scene {
   update(_time, delta) {
     if (this.paused || this.state === 'over') return;
     const dt = Math.min(delta, 50) / 1000;
+    this.weather.update(dt);
     this.drawBolts(dt);
 
     if (this.state === 'aim' && this.keys) {
@@ -518,10 +559,31 @@ export default class GameScene extends Phaser.Scene {
       if (b.done && b.img) {
         b.img.destroy();
         b.img = null;
-      } else if (b.img) b.img.setPosition(b.x, b.y);
+      } else if (b.img) {
+        b.img.setPosition(b.x, b.y);
+        b.trail.push(b.x, b.y);
+        if (b.trail.length > TRAIL_POINTS * 2) b.trail.splice(0, 2);
+      }
     }
+    this.drawTrails();
     this.balls = this.balls.filter((b) => !b.done);
     if (this.toLaunch === 0 && this.balls.length === 0) this.endTurn();
+  }
+
+  // Estela leve: puntos que se encogen y se desvanecen detrás de cada bola.
+  drawTrails() {
+    const g = this.trailG;
+    g.clear();
+    for (const b of this.balls) {
+      if (!b.img) continue;
+      const n = b.trail.length / 2;
+      for (let i = 0; i < n - 1; i++) {
+        const k = (i + 1) / n;
+        const size = Math.max(1, Math.round(b.r * 1.4 * k));
+        g.fillStyle(b.trailColor, 0.28 * k);
+        g.fillRect(Math.round(b.trail[i * 2] - size / 2), Math.round(b.trail[i * 2 + 1] - size / 2), size, size);
+      }
+    }
   }
 
   stepBall(b, s) {
@@ -625,6 +687,7 @@ export default class GameScene extends Phaser.Scene {
   takePickup(p) {
     p.taken = true;
     this.pendingBalls++;
+    audio.play('pickup');
     floatText(this, p.img.x, p.img.y, '+1', '#7cf07c');
     this.tweens.killTweensOf(p.img);
     this.tweens.add({ targets: p.img, scale: 0, duration: 150, onComplete: () => p.img.destroy() });
@@ -672,6 +735,8 @@ export default class GameScene extends Phaser.Scene {
     blk.hp -= dmg;
     blk.bg.setFillStyle(0xffffff);
     this.time.delayedCall(50, () => !blk.dead && blk.bg.setFillStyle(blk.color));
+    this.punch(blk);
+    audio.play('hit', { boss: blk.kind === 'boss' });
     if (eff !== 1 && this.time.now - this.lastEffTextAt > 400) {
       this.lastEffTextAt = this.time.now;
       floatText(this, blk.cont.x, blk.cont.y - 16, eff > 1 ? '¡MUY EFICAZ!' : 'poco eficaz', eff > 1 ? COLORS.goldHex : '#a8b4cc');
@@ -680,17 +745,54 @@ export default class GameScene extends Phaser.Scene {
     else this.updateBlockText(blk);
   }
 
+  // Reacción leve al impacto: el bloque se encoge un instante y vuelve (los legendarios, menos).
+  punch(blk) {
+    const now = this.time.now;
+    if (now - (blk.lastPunch ?? 0) < 70) return;
+    blk.lastPunch = now;
+    const amount = blk.kind === 'boss' ? 0.04 : 0.09;
+    const c = blk.cont;
+    this.tweens.add({ targets: c, scaleX: 1 - amount, scaleY: 1 - amount, duration: 45, yoyo: true, ease: 'Quad.easeOut', onComplete: () => !blk.dead && c.setScale(1) });
+    if (blk.sprite) {
+      this.tweens.add({ targets: blk.sprite, angle: { from: (Math.random() < 0.5 ? -1 : 1) * (blk.kind === 'boss' ? 4 : 8), to: 0 }, duration: 160, ease: 'Back.easeOut' });
+    }
+  }
+
+  // Destrucción: destello, onda, fragmentos con gravedad y sacudida según el tamaño.
   destroyBlock(blk) {
     blk.dead = true;
     this.anyDead = true;
     const { x, y } = blk.cont;
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      const p = this.add.rectangle(x, y, 4, 4, blk.color).setDepth(20);
+    const size = blk.size * CELL - 4;
+    const boss = blk.kind === 'boss';
+    const flash = this.add.rectangle(x, y, size, size, 0xffffff).setDepth(19);
+    this.tweens.add({ targets: flash, scale: 1.35, alpha: 0, duration: boss ? 380 : 200, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
+    const ring = this.add.circle(x, y, size * 0.35).setStrokeStyle(2, blk.color).setDepth(19);
+    this.tweens.add({ targets: ring, scale: boss ? 2.6 : 1.8, alpha: 0, duration: boss ? 500 : 280, onComplete: () => ring.destroy() });
+    const pieces = boss ? 28 : blk.creature ? 16 : 12;
+    for (let i = 0; i < pieces; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const dist = (boss ? 60 : 26) + Math.random() * (boss ? 60 : 26);
+      const s = 2 + Math.floor(Math.random() * (boss ? 5 : 4));
+      const color = Math.random() < 0.25 ? 0xffffff : blk.color;
+      const p = this.add.rectangle(x + (Math.random() - 0.5) * size * 0.6, y + (Math.random() - 0.5) * size * 0.6, s, s, color).setDepth(20);
       this.tweens.add({
-        targets: p, x: x + Math.cos(a) * 26, y: y + Math.sin(a) * 26, alpha: 0, duration: 300,
+        targets: p,
+        x: { value: p.x + Math.cos(a) * dist, ease: 'Quad.easeOut' },
+        y: { value: p.y + Math.sin(a) * dist + 24, ease: 'Quad.easeIn' },
+        angle: (Math.random() - 0.5) * 360,
+        alpha: 0,
+        duration: 420 + Math.random() * 260,
         onComplete: () => p.destroy()
       });
+    }
+    if (boss) {
+      this.cameras.main.shake(260, 0.008);
+      this.cameras.main.flash(180, 255, 240, 200);
+      audio.play('bossBreak');
+    } else {
+      if (blk.creature) this.cameras.main.shake(70, 0.0025);
+      audio.play(blk.creature ? 'breakCreature' : 'break');
     }
     const bonus = blk.kind === 'plain' ? 5 : blk.kind === 'creature' ? 20 * blk.creature.rarity : 300;
     this.addScore(bonus);
@@ -698,6 +800,7 @@ export default class GameScene extends Phaser.Scene {
     if (blk.kind === 'boss') {
       this.awardBall();
       this.addShiny(SHINY_GAIN.legendary);
+      this.time.delayedCall(600, () => this.changeWeather());
     }
     this.addEnergy(blk.kind === 'plain' ? 6 : blk.kind === 'creature' ? 12 : 50);
     if (blk.creature) this.tryCapture(blk, x, y);
@@ -758,6 +861,7 @@ export default class GameScene extends Phaser.Scene {
       this.energy = 0;
       const sp = specialById(rollPower());
       this.powers.push(sp.id);
+      audio.play('power');
       this.showToast(`¡Nuevo poder: ${sp.name}!`, TYPES[sp.type].dark);
     }
     this.refreshSpecials();
@@ -768,6 +872,7 @@ export default class GameScene extends Phaser.Scene {
     if (this.shinyMeter >= SHINY_METER_MAX) {
       this.shinyMeter = 0;
       this.shinyBoostTurns = SHINY_BOOST_TURNS;
+      audio.play('shiny');
       this.showToast('¡Shiny al 10% durante 3 turnos!', '#c0409c');
     }
     this.refreshSpecials();
@@ -777,6 +882,7 @@ export default class GameScene extends Phaser.Scene {
   awardBall() {
     const id = rollRewardBall();
     this.ballInv[id]++;
+    audio.play('reward');
     this.showToast(`¡Bola ${BALL_TYPES[id].name.toLowerCase()} conseguida!`, '#2a6aa8');
     this.refreshSpecials();
   }
@@ -796,6 +902,7 @@ export default class GameScene extends Phaser.Scene {
         orb.setAlpha(1);
         this.tweens.add({
           targets: orb, angle: { from: -20, to: 20 }, duration: 140, yoyo: true, repeat: 2,
+          onYoyo: () => audio.play('shake'),
           onComplete: () => {
             orb.setAngle(0);
             try {
@@ -815,6 +922,7 @@ export default class GameScene extends Phaser.Scene {
 
   captureSuccess(c, shiny, orb, x, y) {
     const res = this.save.recordCapture(c.id, shiny);
+    audio.play(shiny ? 'shiny' : 'capture');
     this.runCaptures.push({ id: c.id, shiny });
     this.addScore(shiny ? 1000 : 100);
     floatText(this, x, y - 12, shiny ? '+1000' : '+100', COLORS.goldHex);
@@ -832,6 +940,7 @@ export default class GameScene extends Phaser.Scene {
 
   captureFail(c, spr, orb, scale) {
     orb.destroy();
+    audio.play('escape');
     spr.setScale(scale);
     floatText(this, spr.x, spr.y - 12, '¡Escapó!', '#a8b4cc');
     this.tweens.add({ targets: spr, y: spr.y - 20, alpha: 0, duration: 450, onComplete: () => spr.destroy() });
@@ -846,6 +955,7 @@ export default class GameScene extends Phaser.Scene {
     this.blocks = this.blocks.filter((b) => !b.dead);
     if (this.nextLaunchX !== null) this.launchX = this.nextLaunchX;
     this.nextMarker.setVisible(false);
+    this.trailG.clear();
     this.ballCount += this.pendingBalls;
     this.pendingBalls = 0;
     this.activeSpecials = [];
@@ -856,6 +966,7 @@ export default class GameScene extends Phaser.Scene {
     // Pantalla limpia: bola especial, medidor shiny y bonus.
     if (this.blocks.length === 0) {
       this.showToast('¡Pantalla limpia!', '#2a8a40');
+      audio.play('clear');
       this.addScore(500);
       this.awardBall();
       this.addShiny(SHINY_GAIN.clear);
@@ -890,7 +1001,8 @@ export default class GameScene extends Phaser.Scene {
     this.time.paused = true;
     const layer = this.add.container(0, 0).setDepth(60);
     layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.6).setOrigin(0).setInteractive());
-    layer.add(makePanel(this, 60, 220, W - 120, 180));
+    layer.add(makePanel(this, 24, 220, W - 48, 230));
+    layer.add(makeAudioToggles(this, 410, this.save));
     layer.add(text(this, W / 2, 248, 'PAUSA', 16, COLORS.inkHex).setOrigin(0.5));
     layer.add(makeButton(this, W / 2, 300, 180, 34, 'CONTINUAR', () => {
       layer.destroy();
@@ -916,6 +1028,7 @@ export default class GameScene extends Phaser.Scene {
     this.launchTimer?.remove();
     const score = Math.floor(this.score);
     const isBest = this.save.recordGame(score);
+    audio.play('gameover');
     const shinies = this.runCaptures.filter((c) => c.shiny).length;
     const layer = this.add.container(0, 0).setDepth(60);
     layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.65).setOrigin(0).setInteractive());

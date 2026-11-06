@@ -74,3 +74,10 @@ describe('ajustes', () => {
     expect(parseSave(JSON.stringify({ version: 1 })).settings.speed).toBe(1);
   });
 });
+
+describe('ajustes de audio', () => {
+  it('música y sonido activados por defecto y se respetan si se desactivan', () => {
+    expect(parseSave(JSON.stringify({ version: 1 })).settings).toMatchObject({ music: true, sfx: true });
+    expect(parseSave(JSON.stringify({ version: 1, settings: { music: false } })).settings).toMatchObject({ music: false, sfx: true });
+  });
+});

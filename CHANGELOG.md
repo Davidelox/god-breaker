@@ -5,6 +5,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-06
+
+### Added
+- Fondos de clima animados y suaves: noche despejada, lluvia, nieve, tormenta de arena, niebla y sol radiante. El clima cambia (con fundido) cada vez que derrotas a un legendario. Es solo visual.
+- Estela leve en los proyectiles, del color de la bola o del poder.
+- Reacción al impacto: el bloque se encoge un instante y la criatura se tambalea (los legendarios, menos).
+- Destrucción más vistosa: destello, onda, fragmentos con gravedad y sacudida de cámara (fuerte con legendarios).
+- Efectos de sonido generados con Web Audio para lanzar, golpear, romper, capturar, shiny, recompensas, poderes, pantalla limpia, legendarios, botones y fin de partida.
+- Música ambiente generativa y suave. Su tono cambia con cada clima.
+- Botones MUSICA y SONIDO en la pantalla de título y en la pausa. Se guardan en `settings.music` y `settings.sfx`.
+
 ## [0.4.0] - 2026-11-06
 
 ### Added

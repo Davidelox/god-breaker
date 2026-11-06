@@ -10,7 +10,7 @@ export function defaultSave() {
     bestScore: 0,
     collection: {}, // id -> { count, shinyCount, firstAt }
     stats: { games: 0, captures: 0, shinies: 0 },
-    settings: { speed: 1 }
+    settings: { speed: 1, music: true, sfx: true }
   };
 }
 
@@ -51,7 +51,11 @@ export function sanitize(s, validIds) {
     shinies: nonNegInt(stats.shinies)
   };
   const speed = s.settings?.speed;
-  out.settings = { speed: [1, 2, 3].includes(speed) ? speed : 1 };
+  out.settings = {
+    speed: [1, 2, 3].includes(speed) ? speed : 1,
+    music: s.settings?.music !== false,
+    sfx: s.settings?.sfx !== false
+  };
   const col = s.collection && typeof s.collection === 'object' ? s.collection : {};
   for (const [id, e] of Object.entries(col)) {
     if (validIds && !validIds.has(Number(id))) continue;

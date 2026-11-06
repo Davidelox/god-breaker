@@ -1,5 +1,25 @@
 // Componentes de interfaz retro: texto, paneles y botones.
 import { FONT } from '../config.js';
+import { audio } from '../audio/audio.js';
+
+/** Botones MUSICA / SONIDO que activan o desactivan el audio y lo guardan. */
+export function makeAudioToggles(scene, y, save) {
+  const s = save.data.settings;
+  const label = (name, on) => `${name} ${on ? 'SI' : 'NO'}`;
+  const music = makeButton(scene, scene.scale.width / 2 - 72, y, 136, 30, label('MUSICA', s.music), () => {
+    s.music = !s.music;
+    audio.setMusic(s.music);
+    save.write();
+    music.setLabel(label('MUSICA', s.music));
+  });
+  const sfx = makeButton(scene, scene.scale.width / 2 + 72, y, 136, 30, label('SONIDO', s.sfx), () => {
+    s.sfx = !s.sfx;
+    audio.setSfx(s.sfx);
+    save.write();
+    sfx.setLabel(label('SONIDO', s.sfx));
+  });
+  return [music, sfx];
+}
 
 export const COLORS = {
   ink: 0x283048,
@@ -63,7 +83,10 @@ export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.pa
   hit.on('pointerup', (_p, _x, _y, ev) => {
     ev?.stopPropagation?.();
     draw(false);
-    if (enabled) onClick();
+    if (enabled) {
+      audio.play('click');
+      onClick();
+    }
   });
   hit.on('pointerout', () => draw(false));
   c.add([g, t, hit]);
