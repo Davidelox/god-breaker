@@ -169,6 +169,14 @@ export class SaveStore {
     return isBest;
   }
 
+  /** Borra capturas, misiones, récord y estadísticas. Mantiene los ajustes. */
+  resetProgress() {
+    const settings = this.data.settings;
+    this.data = defaultSave();
+    this.data.settings = settings;
+    return this.write();
+  }
+
   bumpStat(key, n = 1) {
     this.data.stats[key] = (this.data.stats[key] ?? 0) + n;
     this.write();

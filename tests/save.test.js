@@ -89,3 +89,24 @@ describe('ajustes v0.6', () => {
     expect(parseSave(JSON.stringify({ version: 1 })).settings.grid).toBe(false);
   });
 });
+
+describe('borrar progreso', () => {
+  it('borra capturas, misiones, récord y estadísticas, pero mantiene los ajustes', () => {
+    const storage = memoryStorage();
+    const s = new SaveStore(storage, CREATURE_IDS);
+    s.load();
+    s.recordCapture(1, true);
+    s.recordGame(5000, 20);
+    s.completeMissions(['cap_10']);
+    s.data.settings.speed = 3;
+    s.data.settings.music = false;
+    s.resetProgress();
+    const again = new SaveStore(storage, CREATURE_IDS);
+    again.load();
+    expect(again.data.collection).toEqual({});
+    expect(again.data.missions).toEqual({});
+    expect(again.data.bestScore).toBe(0);
+    expect(again.data.stats.captures).toBe(0);
+    expect(again.data.settings).toMatchObject({ speed: 3, music: false });
+  });
+});

@@ -37,13 +37,30 @@ export default class TitleScene extends Phaser.Scene {
     makeButton(this, W / 2 + 52, 494, 96, 34, 'GUIA', () => this.scene.start('guide'));
     makeAudioToggles(this, 542, save);
 
-    text(this, W / 2, H - 20, `v${VERSION}`, 8, '#56607c').setOrigin(0.5);
+    text(this, 34, H - 20, `v${VERSION}`, 8, '#56607c').setOrigin(0.5);
+    makeButton(this, W - 86, H - 22, 156, 26, 'BORRAR PROGRESO', () => this.confirmReset(save), {
+      fill: 0xffd0d0,
+      textColor: '#a03030'
+    });
 
     if (save.recovered) {
       save.recovered = false;
       makePanel(this, 16, 566, W - 32, 40, { fill: 0xffe0e0 });
       text(this, W / 2, 586, 'El guardado estaba dañado\ny se ha reiniciado.', 8, '#a03030').setOrigin(0.5);
     }
+  }
+
+  confirmReset(save) {
+    const layer = this.add.container(0, 0).setDepth(50);
+    layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.7).setOrigin(0).setInteractive());
+    layer.add(makePanel(this, 24, 210, W - 48, 210, { fill: 0xfff0f0 }));
+    layer.add(text(this, W / 2, 244, '¿BORRAR PROGRESO?', 16, '#a03030').setOrigin(0.5));
+    layer.add(text(this, W / 2, 296, 'Se borran capturas, misiones,\nrécord y estadísticas.\nNo se puede deshacer.', 8, COLORS.inkHex).setOrigin(0.5));
+    layer.add(makeButton(this, W / 2 - 72, 380, 128, 34, 'CANCELAR', () => layer.destroy()));
+    layer.add(makeButton(this, W / 2 + 72, 380, 128, 34, 'SI, BORRAR', () => {
+      save.resetProgress();
+      this.scene.restart();
+    }, { fill: 0xe05858, textColor: '#ffffff' }));
   }
 
   drawBackdrop() {

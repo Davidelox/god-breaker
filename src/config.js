@@ -15,6 +15,8 @@ export const BOARD_BOTTOM = BOARD_TOP + ROWS * CELL;
 export const BOARD_RIGHT = BOARD_X + COLS * CELL;
 // El disparo sale desde la línea de derrota (arriba de la última fila). Las bolas vuelven a esa línea.
 export const LAUNCH_Y = BOARD_TOP + (ROWS - 1) * CELL;
+// Borde inferior visible del tablero: incluye la fila vacía bajo la línea de derrota.
+export const BOARD_FLOOR_Y = BOARD_BOTTOM + 6;
 
 // Bolas
 export const BALL_R = 6;

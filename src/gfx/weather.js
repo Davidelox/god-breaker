@@ -1,5 +1,5 @@
 // Fondos de clima: partículas suaves y de baja opacidad dentro del tablero (solo visual).
-import { BOARD_X, BOARD_TOP, BOARD_RIGHT, LAUNCH_Y } from '../config.js';
+import { BOARD_X, BOARD_TOP, BOARD_RIGHT, BOARD_FLOOR_Y } from '../config.js';
 
 export const WEATHERS = [
   { id: 'despejado', name: 'Noche despejada', bg: 0x182038 },
@@ -13,7 +13,7 @@ export const WEATHERS = [
 const X0 = BOARD_X;
 const X1 = BOARD_RIGHT;
 const Y0 = BOARD_TOP;
-const Y1 = LAUNCH_Y + 6;
+const Y1 = BOARD_FLOOR_Y;
 const W = X1 - X0;
 const H = Y1 - Y0;
 const COUNT = { despejado: 40, lluvia: 45, nieve: 40, arena: 34, niebla: 6, sol: 22 };

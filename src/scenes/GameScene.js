@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import {
-  W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y,
+  W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y, BOARD_FLOOR_Y,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE,
   CORNER_JITTER, BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
@@ -32,7 +32,7 @@ const ROCK_BOSS_PCT = 0.3;
 const TURBO_SPEED = 5; // velocidad automática cuando ninguna bola puede golpear nada más
 const pct = (r) => `${Math.round(r * 1000) / 10}%`;
 const DANGER_Y = BOARD_TOP + (ROWS - 1) * CELL;
-const BOTTOM_BAR_Y = LAUNCH_Y + 52; // botones de poderes y bolas, justo bajo los medidores
+const BOTTOM_BAR_Y = BOARD_FLOOR_Y + 50; // botones de poderes y bolas, justo bajo los medidores
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -121,14 +121,14 @@ export default class GameScene extends Phaser.Scene {
     // Cuadrícula opcional (ajuste CUADRICULA en la pausa; oculta por defecto)
     this.gridG = this.add.graphics().setDepth(-1);
     this.gridG.lineStyle(1, 0xffffff, 0.06);
-    for (let c = 1; c < COLS; c++) this.gridG.lineBetween(BOARD_X + c * CELL, BOARD_TOP, BOARD_X + c * CELL, LAUNCH_Y);
-    for (let r = 1; r < ROWS - 1; r++) this.gridG.lineBetween(BOARD_X, BOARD_TOP + r * CELL, BOARD_RIGHT, BOARD_TOP + r * CELL);
+    for (let c = 1; c < COLS; c++) this.gridG.lineBetween(BOARD_X + c * CELL, BOARD_TOP, BOARD_X + c * CELL, BOARD_BOTTOM);
+    for (let r = 1; r < ROWS; r++) this.gridG.lineBetween(BOARD_X, BOARD_TOP + r * CELL, BOARD_RIGHT, BOARD_TOP + r * CELL);
     this.gridG.setVisible(this.save.data.settings.grid);
     const g = this.add.graphics().setDepth(-1);
     g.fillStyle(0xe05858, 0.5);
     for (let x = BOARD_X; x < BOARD_RIGHT; x += 8) g.fillRect(x, DANGER_Y, 4, 2);
     g.lineStyle(2, 0x3a4668);
-    g.strokeRect(BOARD_X - 1, BOARD_TOP - 1, COLS * CELL + 2, LAUNCH_Y + 8 - BOARD_TOP);
+    g.strokeRect(BOARD_X - 1, BOARD_TOP - 1, COLS * CELL + 2, BOARD_FLOOR_Y + 2 - BOARD_TOP);
   }
 
   drawBoardFill(color) {
@@ -139,7 +139,7 @@ export default class GameScene extends Phaser.Scene {
       this.bgG.fillStyle(COLORS.night);
       this.bgG.fillRect(0, 0, W, H);
       this.bgG.fillStyle(c);
-      this.bgG.fillRect(BOARD_X, BOARD_TOP, COLS * CELL, LAUNCH_Y + 6 - BOARD_TOP);
+      this.bgG.fillRect(BOARD_X, BOARD_TOP, COLS * CELL, BOARD_FLOOR_Y - BOARD_TOP);
     };
     if (from === color) return paint(color);
     // Transición suave del color de fondo
@@ -181,7 +181,7 @@ export default class GameScene extends Phaser.Scene {
 
   // Barra inferior: medidores de poder y shiny, 2 huecos de poder y selector de bola.
   createSpecialBar() {
-    const barY = LAUNCH_Y + 14;
+    const barY = BOARD_FLOOR_Y + 10;
     text(this, BOARD_X, barY, 'PODER', 8, '#4ce0e8').setOrigin(0, 0);
     text(this, W / 2 + 4, barY, 'SHINY', 8, '#ff7cd0').setOrigin(0, 0);
     this.energyG = this.add.graphics();
@@ -224,7 +224,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   refreshSpecials() {
-    const barY = LAUNCH_Y + 14;
+    const barY = BOARD_FLOOR_Y + 10;
     this.energyG.clear();
     const locked = this.powers.length >= MAX_POWERS;
     this.drawMeter(BOARD_X + 44, barY, W / 2 - BOARD_X - 52, this.energy / SPECIAL_COST, locked ? 0x56607c : 0x4ce0e8);
@@ -1053,7 +1053,7 @@ export default class GameScene extends Phaser.Scene {
     const combo = specials.length === 2 && !max;
     const main = TYPES[specials[0].type];
     const tint = this.add
-      .rectangle(BOARD_X, BOARD_TOP, COLS * CELL, LAUNCH_Y + 6 - BOARD_TOP, hexToNum(main.base), max ? 0.4 : 0.28)
+      .rectangle(BOARD_X, BOARD_TOP, COLS * CELL, BOARD_FLOOR_Y - BOARD_TOP, hexToNum(main.base), max ? 0.4 : 0.28)
       .setOrigin(0)
       .setDepth(17);
     this.tweens.add({ targets: tint, alpha: 0, duration: 650, onComplete: () => tint.destroy() });
@@ -1451,9 +1451,9 @@ export default class GameScene extends Phaser.Scene {
   // ---------- Hueco del legendario ----------
 
   /**
-   * Al caer un legendario, todo lo que está desde su fila hacia abajo (bloques y bolas extra)
-   * sube en bloque, manteniendo sus posiciones relativas, hasta quedar justo debajo de la
-   * primera fila con bloques que haya por encima (o hasta la fila de aparición).
+   * Al caer un legendario, desde su fila hacia abajo (incluidos los bloques que estaban a su lado)
+   * todo sube manteniendo columnas y orden: cada fila ocupada se coloca justo debajo de la
+   * anterior fila con bloques, así desaparecen las filas que quedan vacías.
    */
   riseUnder(boss) {
     const items = [
@@ -1463,21 +1463,24 @@ export default class GameScene extends Phaser.Scene {
     const group = items.filter((it) => it.o.row >= boss.row);
     if (!group.length) return;
     // Última fila ocupada por encima del legendario
-    let stopRow = SPAWN_ROW - 1;
-    for (const it of items) {
-      if (it.o.row >= boss.row) continue;
-      stopRow = Math.max(stopRow, it.o.row + it.size - 1);
-    }
-    const groupTop = Math.min(...group.map((it) => it.o.row));
-    const shift = groupTop - (stopRow + 1);
-    if (shift <= 0) return;
+    let target = SPAWN_ROW;
+    for (const it of items) if (it.o.row < boss.row) target = Math.max(target, it.o.row + it.size);
+    // Filas ocupadas por el grupo, de arriba abajo; las vacías se eliminan
+    const occupied = new Set();
+    for (const it of group) for (let r = 0; r < it.size; r++) occupied.add(it.o.row + r);
+    const map = new Map();
+    for (const r of [...occupied].sort((a, b) => a - b)) map.set(r, target++);
+    let moved = false;
     for (const it of group) {
-      it.o.row -= shift;
-      const target = it.kind === 'block' ? it.o.cont : it.o.img;
-      const y = BOARD_TOP + it.o.row * CELL + (it.size * CELL) / 2;
-      target.riseTween = this.tweens.add({ targets: target, y, duration: 300, ease: 'Back.easeOut' });
+      const row = map.get(it.o.row);
+      if (row === it.o.row) continue;
+      it.o.row = row;
+      moved = true;
+      const t = it.kind === 'block' ? it.o.cont : it.o.img;
+      const y = BOARD_TOP + row * CELL + (it.size * CELL) / 2;
+      t.riseTween = this.tweens.add({ targets: t, y, duration: 300, ease: 'Back.easeOut' });
     }
-    audio.play('rumble');
+    if (moved) audio.play('rumble');
   }
 
   captureFail(c, spr, orb, scale) {

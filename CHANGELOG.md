@@ -5,6 +5,15 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-06
+
+### Added
+- Botón BORRAR PROGRESO en el menú principal, con confirmación. Borra capturas, misiones, récord y estadísticas y mantiene los ajustes (velocidad, música, sonido y cuadrícula).
+
+### Changed
+- Vuelve la fila vacía bajo la línea de derrota: el tablero llega otra vez hasta abajo, pero el disparo sigue saliendo desde la línea (`BOARD_FLOOR_Y`).
+- Al derrotar a un legendario, también se tienen en cuenta los bloques que estaban en sus filas. Desde su fila hacia abajo, cada fila ocupada se coloca justo debajo de la anterior fila con bloques. Desaparecen las filas que quedan vacías (como la que ocupaba el legendario) y cada bloque conserva su columna.
+
 ## [0.16.0] - 2026-11-06
 
 ### Changed
