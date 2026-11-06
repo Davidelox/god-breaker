@@ -29,7 +29,7 @@ export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sal
 
 // Contenido
 export const CREATURE_CHANCE = 0.15;
-export const BOSS_EVERY = 10; // un legendario cada 10 turnos
+export const BOSS_EVERY = 8; // un legendario cada 10 turnos
 export const SHINY_RATE = params.has('shiny') ? 0.25 : 0.01; // probabilidad base de shiny
 export const SHINY_BOOST_RATE = 0.03; // con el medidor shiny lleno
 export const SHINY_BOOST_TURNS = 3;

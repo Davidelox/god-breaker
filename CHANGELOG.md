@@ -5,6 +5,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-06
+
+### Changed
+- Número de vida de los bloques al doble de tamaño (16 px, borde más grueso). Con 3 o más cifras se reduce lo justo para caber en el bloque. En los bloques con criatura, el sprite sube un poco para dejar sitio.
+
 ## [0.13.0] - 2026-11-06
 
 ### Changed

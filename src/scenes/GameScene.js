@@ -415,14 +415,16 @@ export default class GameScene extends Phaser.Scene {
     blk.bg = bg;
     blk.color = color;
     if (d.creature) {
-      const spr = this.add.image(0, d.kind === 'boss' ? -8 : -4, creatureKey(d.creature.id, blk.shiny)).setScale(d.kind === 'boss' ? 3 : 2);
+      const spr = this.add.image(0, d.kind === 'boss' ? -10 : -7, creatureKey(d.creature.id, blk.shiny)).setScale(d.kind === 'boss' ? 3 : 2);
       cont.add(spr);
       blk.sprite = spr;
       this.tweens.add({ targets: spr, y: spr.y - 2, duration: 400 + Math.random() * 300, yoyo: true, repeat: -1 });
       if (blk.shiny) this.decorateShiny(blk, cont, size);
       if (!this.save.entry(d.creature.id)) this.addNewMark(blk, cont, size);
     }
-    blk.hpText = text(this, 0, d.creature ? size / 2 - 10 : 0, '', 8).setOrigin(0.5).setStroke('#101828', 3);
+    // Vida en grande; en bloques con criatura va abajo para no tapar el sprite
+    blk.hpText = text(this, 0, d.creature ? size / 2 - 12 : 0, '', 16).setOrigin(0.5).setStroke('#101828', 4);
+    blk.hpMaxW = size - 8;
     cont.add(blk.hpText);
     blk.cont = cont;
     cont.setScale(0);
@@ -479,6 +481,9 @@ export default class GameScene extends Phaser.Scene {
 
   updateBlockText(blk) {
     blk.hpText.setText(String(Math.ceil(blk.hp)));
+    // Con 3 o más cifras se reduce lo justo para que quepa en el bloque
+    blk.hpText.setScale(1);
+    if (blk.hpText.width > blk.hpMaxW) blk.hpText.setScale(blk.hpMaxW / blk.hpText.width);
   }
 
   shiftAll(n, animate) {
