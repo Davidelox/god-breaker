@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {
   W, H, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, LAUNCH_Y,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, BOSS_EVERY, SHINY_RATE,
-  CORNER_JITTER, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
+  CORNER_JITTER, BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS
 } from '../config.js';
 import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
@@ -73,8 +73,8 @@ export default class GameScene extends Phaser.Scene {
     this.trailG = this.add.graphics().setDepth(7);
     audio.setMood(0);
     this.fxG = this.add.graphics().setDepth(25);
-    this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball').setDepth(6);
-    this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball').setDepth(6).setAlpha(0.4).setVisible(false);
+    this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball').setDepth(6).setScale(BALL_R / BALL_TEXTURE_R);
+    this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball').setDepth(6).setAlpha(0.4).setVisible(false).setScale(BALL_R / BALL_TEXTURE_R);
     this.launchText = text(this, this.launchX, LAUNCH_Y - 14, '', 8).setOrigin(0.5).setDepth(6).setStroke('#101828', 3);
     this.createHud();
     this.createSpecialBar();
@@ -84,6 +84,7 @@ export default class GameScene extends Phaser.Scene {
     this.spawnRow();
 
     this.setupInput();
+    this.updateBossWarning();
     this.refreshHud();
   }
 
@@ -93,10 +94,13 @@ export default class GameScene extends Phaser.Scene {
     // Capas: fondo (color del clima) < partículas del clima < cuadrícula y marco
     this.bgG = this.add.graphics().setDepth(-3);
     this.weather = new Weather(this, -2, (color) => this.drawBoardFill(color));
+    // Cuadrícula opcional (ajuste CUADRICULA en la pausa; oculta por defecto)
+    this.gridG = this.add.graphics().setDepth(-1);
+    this.gridG.lineStyle(1, 0xffffff, 0.06);
+    for (let c = 1; c < COLS; c++) this.gridG.lineBetween(BOARD_X + c * CELL, BOARD_TOP, BOARD_X + c * CELL, BOARD_BOTTOM);
+    for (let r = 1; r < ROWS; r++) this.gridG.lineBetween(BOARD_X, BOARD_TOP + r * CELL, BOARD_RIGHT, BOARD_TOP + r * CELL);
+    this.gridG.setVisible(this.save.data.settings.grid);
     const g = this.add.graphics().setDepth(-1);
-    g.lineStyle(1, 0xffffff, 0.06);
-    for (let c = 1; c < COLS; c++) g.lineBetween(BOARD_X + c * CELL, BOARD_TOP, BOARD_X + c * CELL, BOARD_BOTTOM);
-    for (let r = 1; r < ROWS; r++) g.lineBetween(BOARD_X, BOARD_TOP + r * CELL, BOARD_RIGHT, BOARD_TOP + r * CELL);
     g.fillStyle(0xe05858, 0.5);
     for (let x = BOARD_X; x < BOARD_RIGHT; x += 8) g.fillRect(x, DANGER_Y, 4, 2);
     g.lineStyle(2, 0x3a4668);
@@ -383,11 +387,7 @@ export default class GameScene extends Phaser.Scene {
       cont.add(spr);
       blk.sprite = spr;
       this.tweens.add({ targets: spr, y: spr.y - 2, duration: 400 + Math.random() * 300, yoyo: true, repeat: -1 });
-      if (blk.shiny) {
-        const sp = this.add.image(size / 2 - 9, -size / 2 + 9, 'spark');
-        cont.add(sp);
-        this.tweens.add({ targets: sp, alpha: 0.2, duration: 300, yoyo: true, repeat: -1 });
-      }
+      if (blk.shiny) this.decorateShiny(blk, cont, size);
     }
     blk.hpText = text(this, 0, d.creature ? size / 2 - 10 : 0, '', 8).setOrigin(0.5).setStroke('#101828', 3);
     cont.add(blk.hpText);
@@ -397,6 +397,45 @@ export default class GameScene extends Phaser.Scene {
     this.updateBlockText(blk);
     this.blocks.push(blk);
     return blk;
+  }
+
+  // Shiny: aura dorada que late, borde dorado, destellos en las esquinas y anuncio al aparecer.
+  decorateShiny(blk, cont, size) {
+    const glow = this.add.rectangle(0, 0, size + 6, size + 6, COLORS.gold, 0.5);
+    cont.addAt(glow, 0);
+    this.tweens.add({ targets: glow, alpha: 0.12, scale: 1.06, duration: 520, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    blk.bg.setStrokeStyle(2, COLORS.gold);
+    const h = size / 2 - 7;
+    [[-h, -h], [h, -h], [h, h], [-h, h]].forEach(([x, y], i) => {
+      const sp = this.add.image(x, y, 'spark').setAlpha(0);
+      cont.add(sp);
+      this.tweens.add({ targets: sp, alpha: 1, scale: { from: 0.5, to: 1.4 }, duration: 260, yoyo: true, repeat: -1, repeatDelay: 500, delay: i * 190 });
+    });
+    // Haz de luz que cae sobre el bloque
+    const beam = this.add.rectangle(cont.x, BOARD_TOP, 10, cont.y - BOARD_TOP, COLORS.gold, 0.45).setOrigin(0.5, 0).setDepth(18);
+    this.tweens.add({ targets: beam, scaleX: 4, alpha: 0, duration: 700, ease: 'Quad.easeOut', onComplete: () => beam.destroy() });
+    this.showToast(`¡Ha aparecido un ${blk.creature.name} SHINY!`, '#b07800');
+    audio.play('shiny');
+  }
+
+  // Aviso en la fila superior (siempre vacía) cuando falta poco para el legendario.
+  updateBossWarning() {
+    const left = BOSS_EVERY - (this.turn % BOSS_EVERY);
+    const show = left >= 1 && left <= 2 && this.state !== 'over';
+    if (!show) {
+      this.bossWarn?.setVisible(false);
+      return;
+    }
+    if (!this.bossWarn) {
+      const y = BOARD_TOP + CELL / 2;
+      const bar = this.add.rectangle(W / 2, y, COLS * CELL - 4, CELL - 12, 0xe05858, 0.22);
+      const label = text(this, W / 2, y, '', 8, '#ffb0b0').setOrigin(0.5).setStroke('#101828', 3);
+      this.bossWarn = this.add.container(0, 0, [bar, label]).setDepth(2);
+      this.bossWarn.label = label;
+      this.tweens.add({ targets: bar, alpha: 0.08, duration: 600, yoyo: true, repeat: -1 });
+    }
+    this.bossWarn.label.setText(left === 1 ? '¡LEGENDARIO EL PROXIMO TURNO!' : 'LEGENDARIO EN 2 TURNOS');
+    this.bossWarn.setVisible(true);
   }
 
   addPickup(row, col) {
@@ -489,7 +528,7 @@ export default class GameScene extends Phaser.Scene {
     }
     this.toLaunch--;
     const big = this.hasSpecial('torrente');
-    const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale(big ? WATER_BALL_R / BALL_R : 1);
+    const img = this.add.image(this.shotX, LAUNCH_Y, 'ball').setDepth(8).setScale((big ? WATER_BALL_R : BALL_R) / BALL_TEXTURE_R);
     let trailColor = 0xffffff;
     if (this.activeSpecials.length) trailColor = hexToNum(TYPES[this.activeSpecials[0].type].light);
     else if (BALL_TYPES[this.shotBall].tint) trailColor = BALL_TYPES[this.shotBall].tint;
@@ -820,7 +859,9 @@ export default class GameScene extends Phaser.Scene {
         onComplete: () => {
           rock.destroy();
           this.cameras.main.shake(80, 0.004);
-          this.damage(blk, dmg * effectiveness('roca', blk.creature?.type));
+          // A un legendario no lo elimina: le quita la mitad de su salud actual.
+          if (blk.kind === 'boss') this.damage(blk, blk.hp * 0.5);
+          else this.damage(blk, dmg * effectiveness('roca', blk.creature?.type));
           this.blocks = this.blocks.filter((b) => !b.dead);
         }
       });
@@ -983,6 +1024,11 @@ export default class GameScene extends Phaser.Scene {
     }
     this.spawnRow();
     if (this.shinyBoostTurns > 0) this.shinyBoostTurns--;
+    this.updateBossWarning();
+    if (BOSS_EVERY - (this.turn % BOSS_EVERY) === 2) {
+      this.showToast('¡Un legendario llegará en 2 turnos!', '#a03030');
+      audio.play('bossAppear');
+    }
     this.time.delayedCall(220, () => {
       if (this.state !== 'resolving') return;
       this.state = 'aim';
@@ -1001,16 +1047,25 @@ export default class GameScene extends Phaser.Scene {
     this.time.paused = true;
     const layer = this.add.container(0, 0).setDepth(60);
     layer.add(this.add.rectangle(0, 0, W, H, 0x000000, 0.6).setOrigin(0).setInteractive());
-    layer.add(makePanel(this, 24, 220, W - 48, 230));
-    layer.add(makeAudioToggles(this, 410, this.save));
-    layer.add(text(this, W / 2, 248, 'PAUSA', 16, COLORS.inkHex).setOrigin(0.5));
-    layer.add(makeButton(this, W / 2, 300, 180, 34, 'CONTINUAR', () => {
+    layer.add(makePanel(this, 24, 200, W - 48, 270));
+    layer.add(makeAudioToggles(this, 390, this.save));
+    const gridLabel = () => `CUADRICULA ${this.save.data.settings.grid ? 'SI' : 'NO'}`;
+    const gridBtn = makeButton(this, W / 2, 432, 200, 30, gridLabel(), () => {
+      const st = this.save.data.settings;
+      st.grid = !st.grid;
+      this.save.write();
+      this.gridG.setVisible(st.grid);
+      gridBtn.setLabel(gridLabel());
+    });
+    layer.add(gridBtn);
+    layer.add(text(this, W / 2, 228, 'PAUSA', 16, COLORS.inkHex).setOrigin(0.5));
+    layer.add(makeButton(this, W / 2, 285, 180, 34, 'CONTINUAR', () => {
       layer.destroy();
       this.tweens.resumeAll();
       this.time.paused = false;
       this.paused = false;
     }));
-    layer.add(makeButton(this, W / 2, 350, 180, 34, 'SALIR AL MENU', () => {
+    layer.add(makeButton(this, W / 2, 335, 180, 34, 'SALIR AL MENU', () => {
       this.time.paused = false;
       this.save.recordGame(Math.floor(this.score));
       this.scene.start('title');

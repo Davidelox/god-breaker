@@ -31,16 +31,17 @@ export default class TitleScene extends Phaser.Scene {
     text(this, W / 2, 330, `RECORD  ${save.data.bestScore}`, 8, COLORS.inkHex).setOrigin(0.5);
     text(this, W / 2, 352, `COLECCION ${caught}/${CREATURES.length}  *${shiny}`, 8, COLORS.inkHex).setOrigin(0.5);
 
-    makeButton(this, W / 2, 420, 200, 40, 'JUGAR', () => this.scene.start('game'), { size: 16 });
-    makeButton(this, W / 2, 476, 200, 36, 'COLECCION', () => this.scene.start('collection'));
-    makeAudioToggles(this, 530, save);
+    makeButton(this, W / 2, 410, 200, 40, 'JUGAR', () => this.scene.start('game'), { size: 16 });
+    makeButton(this, W / 2, 458, 200, 34, 'COLECCION', () => this.scene.start('collection'));
+    makeButton(this, W / 2, 500, 200, 34, 'GUIA', () => this.scene.start('guide'));
+    makeAudioToggles(this, 546, save);
 
     text(this, W / 2, H - 20, `v${VERSION}`, 8, '#56607c').setOrigin(0.5);
 
     if (save.recovered) {
       save.recovered = false;
-      makePanel(this, 16, 556, W - 32, 44, { fill: 0xffe0e0 });
-      text(this, W / 2, 578, 'El guardado estaba dañado\ny se ha reiniciado.', 8, '#a03030').setOrigin(0.5);
+      makePanel(this, 16, 566, W - 32, 40, { fill: 0xffe0e0 });
+      text(this, W / 2, 586, 'El guardado estaba dañado\ny se ha reiniciado.', 8, '#a03030').setOrigin(0.5);
     }
   }
 

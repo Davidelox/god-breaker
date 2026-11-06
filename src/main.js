@@ -7,6 +7,7 @@ import BootScene from './scenes/BootScene.js';
 import TitleScene from './scenes/TitleScene.js';
 import GameScene from './scenes/GameScene.js';
 import CollectionScene from './scenes/CollectionScene.js';
+import GuideScene from './scenes/GuideScene.js';
 
 installErrorHandlers();
 
@@ -25,7 +26,7 @@ function start() {
     pixelArt: true,
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     input: { activePointers: 2 },
-    scene: [BootScene, TitleScene, GameScene, CollectionScene]
+    scene: [BootScene, TitleScene, GameScene, CollectionScene, GuideScene]
   });
   if (DEBUG || import.meta.env.DEV) window.__game = game;
 }

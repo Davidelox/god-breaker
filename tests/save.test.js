@@ -81,3 +81,11 @@ describe('ajustes de audio', () => {
     expect(parseSave(JSON.stringify({ version: 1, settings: { music: false } })).settings).toMatchObject({ music: false, sfx: true });
   });
 });
+
+describe('ajustes v0.6', () => {
+  it('acepta x1.5 y x4, y la cuadrícula está oculta por defecto', () => {
+    expect(parseSave(JSON.stringify({ version: 1, settings: { speed: 1.5 } })).settings.speed).toBe(1.5);
+    expect(parseSave(JSON.stringify({ version: 1, settings: { speed: 4 } })).settings.speed).toBe(4);
+    expect(parseSave(JSON.stringify({ version: 1 })).settings.grid).toBe(false);
+  });
+});

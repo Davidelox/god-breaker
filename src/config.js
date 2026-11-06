@@ -16,13 +16,14 @@ export const BOARD_RIGHT = BOARD_X + COLS * CELL;
 export const LAUNCH_Y = BOARD_BOTTOM + 12;
 
 // Bolas
-export const BALL_R = 4;
-export const WATER_BALL_R = 6; // bolas algo más grandes con el especial de agua
+export const BALL_R = 6;
+export const WATER_BALL_R = BALL_R + 2; // bolas algo más grandes con el especial de agua
+export const BALL_TEXTURE_R = 4; // radio del sprite 'ball' (8x8 px); se escala según el radio real
 export const SPAWN_ROW = 1; // la fila 0 (arriba del todo) siempre queda vacía
 export const BALL_SPEED = 620;
 export const START_BALLS = 3;
 export const LAUNCH_DELAY = 55;
-export const SPEEDS = [1, 2, 3]; // velocidades del botón x1/x2/x3
+export const SPEEDS = [1, 1.5, 2, 3, 4]; // velocidades del botón de velocidad
 export const CORNER_JITTER = (14 * Math.PI) / 180; // desvío máximo al chocar justo en una esquina
 export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sale en vertical pura
 

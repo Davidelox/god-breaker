@@ -5,6 +5,24 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-06
+
+### Added
+- Velocidad x1.5. El botón recorre x1, x1.5, x2, x3 y x4.
+- Pantalla GUIA en el menú principal: 7 páginas visuales (objetivo, bloques, captura, poderes, tipos, shiny y controles).
+- Aviso de legendario 2 turnos antes: mensaje, sonido y franja roja parpadeante en la fila superior. Cambia a «¡LEGENDARIO EL PROXIMO TURNO!» el turno anterior.
+- Aparición de shiny resaltada: haz de luz, aura dorada que late, borde dorado, destellos en las esquinas, mensaje y sonido.
+- Opción CUADRICULA SI/NO en la pausa (`settings.grid`).
+
+### Changed
+- La cuadrícula del tablero está oculta por defecto.
+- Derrumbe (roca) no elimina a un legendario: le quita el 50 % de su salud actual.
+- El sprite de la bola se escala según `BALL_R`. Antes, con `BALL_R = 6`, la bola se veía más pequeña que su colisión.
+- `WATER_BALL_R` pasa a ser `BALL_R + 2`, para que Torrente siga haciendo las bolas algo más grandes.
+
+### Fixed
+- Las velocidades guardadas fuera de x1/x2/x3 (por ejemplo x4) volvían a x1 al recargar.
+
 ## [0.5.0] - 2026-11-06
 
 ### Added

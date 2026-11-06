@@ -1,5 +1,6 @@
 // Guardado versionado: validación, migraciones y recuperación ante datos corruptos.
 import { logError } from './errors.js';
+import { SPEEDS } from '../config.js';
 
 export const SAVE_KEY = 'beastbreaker.save';
 export const SAVE_VERSION = 1;
@@ -10,7 +11,7 @@ export function defaultSave() {
     bestScore: 0,
     collection: {}, // id -> { count, shinyCount, firstAt }
     stats: { games: 0, captures: 0, shinies: 0 },
-    settings: { speed: 1, music: true, sfx: true }
+    settings: { speed: 1, music: true, sfx: true, grid: false }
   };
 }
 
@@ -52,9 +53,10 @@ export function sanitize(s, validIds) {
   };
   const speed = s.settings?.speed;
   out.settings = {
-    speed: [1, 2, 3].includes(speed) ? speed : 1,
+    speed: SPEEDS.includes(speed) ? speed : 1,
     music: s.settings?.music !== false,
-    sfx: s.settings?.sfx !== false
+    sfx: s.settings?.sfx !== false,
+    grid: s.settings?.grid === true
   };
   const col = s.collection && typeof s.collection === 'object' ? s.collection : {};
   for (const [id, e] of Object.entries(col)) {
