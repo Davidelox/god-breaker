@@ -5,6 +5,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-11-06
+
+### Added
+- Escaparate de captura. Al capturar, aparece en el centro del tablero una tarjeta con la criatura en grande, flotando y con aura de su color, rayos girando detrás, «¡CAPTURADO!» y el nombre y tipo.
+  - Etiqueta «NUEVO» si es la primera vez. Versión dorada con destellos y «¡SHINY CAPTURADO!» para las shiny.
+  - No pausa el juego. Las capturas seguidas se muestran en cola, y más rápido si se acumulan. Sustituye al mensaje de texto de captura.
+- Al derrotar a un legendario, los bloques y bolas extra que estaban debajo de sus columnas suben hasta quedar justo debajo de otro bloque (o hasta la fila de aparición).
+
 ## [0.14.0] - 2026-11-06
 
 ### Added

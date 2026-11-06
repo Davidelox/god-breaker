@@ -11,7 +11,7 @@ import { TYPES, effectiveness, hexToNum } from '../data/types.js';
 import { SPECIAL_COST, specialById } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from '../data/balls.js';
 import { creatureKey } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, floatText, makeAudioToggles, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, COLORS } from '../gfx/ui.js';
 import { pick, weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
 import { Weather } from '../gfx/weather.js';
@@ -86,6 +86,8 @@ export default class GameScene extends Phaser.Scene {
     this.pendingCaptures = 0;
     this.toastQueue = [];
     this.toastBusy = false;
+    this.showcaseQueue = [];
+    this.showcaseBusy = false;
   }
 
   create() {
@@ -511,6 +513,9 @@ export default class GameScene extends Phaser.Scene {
     if (n <= 0) return;
     const move = (obj, row, size = 1) => {
       const y = BOARD_TOP + row * CELL + (size * CELL) / 2;
+      // Si aún estaba subiendo por el hueco de un legendario, esa animación se cancela
+      obj.riseTween?.remove();
+      obj.riseTween = null;
       if (animate) this.tweens.add({ targets: obj, y, duration: 200, ease: 'Quad.easeOut' });
       else obj.y = y;
     };
@@ -1007,6 +1012,7 @@ export default class GameScene extends Phaser.Scene {
       this.save.bumpStat('bossKills');
       this.checkMissions();
       this.time.delayedCall(600, () => this.changeWeather());
+      this.time.delayedCall(120, () => this.riseUnder(blk));
     }
     this.addEnergy(blk.kind === 'plain' ? 6 : blk.kind === 'creature' ? 12 : 50);
     if (blk.creature) this.tryCapture(blk, x, y);
@@ -1342,10 +1348,103 @@ export default class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: s, x: x + Math.cos(a) * 22, y: y + Math.sin(a) * 22, alpha: 0, duration: 400, onComplete: () => s.destroy() });
     }
     this.tweens.add({ targets: orb, y: y - 30, alpha: 0, duration: 500, delay: 150, onComplete: () => orb.destroy() });
-    let msg = `¡${c.name} capturado!`;
-    if (shiny) msg = `¡${c.name} SHINY!`;
-    if (res.isNew || res.isNewShiny) msg += ' NUEVO';
-    this.showToast(msg, shiny ? '#b07800' : COLORS.inkHex);
+    this.queueShowcase({ c, shiny, isNew: res.isNew || res.isNewShiny });
+  }
+
+  // ---------- Escaparate de captura ----------
+
+  queueShowcase(item) {
+    this.showcaseQueue.push(item);
+    if (!this.showcaseBusy) this.nextShowcase();
+  }
+
+  /** Muestra la criatura capturada en grande en el centro del tablero (sin pausar el juego). */
+  nextShowcase() {
+    const item = this.showcaseQueue.shift();
+    if (!item) {
+      this.showcaseBusy = false;
+      return;
+    }
+    this.showcaseBusy = true;
+    const { c, shiny, isNew } = item;
+    const t = TYPES[c.type];
+    const cx = W / 2;
+    const cy = BOARD_TOP + CELL * 3.2;
+    const hold = this.showcaseQueue.length > 2 ? 450 : 900; // con muchas capturas seguidas va más rápido
+    const rays = this.add.graphics();
+    rays.fillStyle(shiny ? COLORS.gold : hexToNum(t.light), 0.22);
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      rays.fillTriangle(0, 0, Math.cos(a - 0.15) * 110, Math.sin(a - 0.15) * 110, Math.cos(a + 0.15) * 110, Math.sin(a + 0.15) * 110);
+    }
+    const card = this.add.graphics();
+    drawPanel(card, -78, -64, 156, 132, { fill: shiny ? 0xfff4c8 : COLORS.paper, border: shiny ? 0xb07800 : COLORS.ink });
+    const glow = this.add.circle(0, -18, 36, hexToNum(t.light), 0.6);
+    const spr = this.add.image(0, -20, creatureKey(c.id, shiny)).setScale(c.legendary ? 3.5 : 4.5);
+    const title = text(this, 0, -54, shiny ? '¡SHINY CAPTURADO!' : '¡CAPTURADO!', 8, shiny ? '#b07800' : '#2a8a40').setOrigin(0.5);
+    const name = text(this, 0, 30, c.name, 8, COLORS.inkHex).setOrigin(0.5);
+    const chip = this.add.rectangle(0, 48, 64, 14, hexToNum(t.base));
+    const chipText = text(this, 0, 48, upper(t.name), 8, '#ffffff').setOrigin(0.5);
+    const parts = [rays, card, glow, spr, title, name, chip, chipText];
+    if (isNew) {
+      const badge = this.add.rectangle(52, -70, 48, 16, 0xe05858).setStrokeStyle(2, 0x101828);
+      const badgeText = text(this, 52, -70, 'NUEVO', 8, '#ffffff').setOrigin(0.5);
+      parts.push(badge, badgeText);
+      this.tweens.add({ targets: [badge, badgeText], scale: 1.15, duration: 220, yoyo: true, repeat: 3 });
+    }
+    const layer = this.add.container(cx, cy, parts).setDepth(44).setScale(0).setAlpha(1);
+    this.tweens.add({ targets: rays, angle: 90, duration: hold + 600 });
+    this.tweens.add({ targets: spr, y: -26, duration: 300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this.tweens.add({ targets: glow, scale: 1.25, alpha: 0.25, duration: 400, yoyo: true, repeat: -1 });
+    if (shiny) {
+      for (let i = 0; i < 8; i++) {
+        const sp = this.add.image(Math.cos(i) * 60, -18 + Math.sin(i * 1.7) * 40, 'spark').setScale(1.6).setAlpha(0);
+        layer.add(sp);
+        this.tweens.add({ targets: sp, alpha: 1, duration: 200, yoyo: true, repeat: -1, delay: i * 90 });
+      }
+    }
+    this.tweens.add({
+      targets: layer, scale: 1, duration: 260, ease: 'Back.easeOut',
+      onComplete: () => this.tweens.add({
+        targets: layer, scale: 0.4, alpha: 0, y: cy - 40, delay: hold, duration: 220, ease: 'Quad.easeIn',
+        onComplete: () => {
+          layer.destroy();
+          this.nextShowcase();
+        }
+      })
+    });
+  }
+
+  // ---------- Hueco del legendario ----------
+
+  /**
+   * Al caer un legendario, los bloques (y bolas extra) que estaban debajo de sus columnas
+   * suben hasta quedar justo debajo de otro bloque (o de la fila de aparición).
+   */
+  riseUnder(boss) {
+    const cols = [boss.col, boss.col + 1];
+    const items = [
+      ...this.blocks.filter((b) => !b.dead).map((b) => ({ kind: 'block', o: b, col: b.col, size: b.size })),
+      ...this.pickups.map((p) => ({ kind: 'pickup', o: p, col: p.col, size: 1 }))
+    ];
+    const occupied = (row, col, size, self) =>
+      items.some((it) => it !== self && it.o.row <= row && it.o.row + it.size - 1 >= row && it.col <= col + size - 1 && it.col + it.size - 1 >= col);
+    const movers = items
+      .filter((it) => it.o.row >= boss.row && cols.some((c) => it.col <= c && it.col + it.size - 1 >= c))
+      .sort((a, b) => a.o.row - b.o.row);
+    let moved = false;
+    for (const it of movers) {
+      let row = it.o.row;
+      // Sube mientras la fila de encima esté libre en todas sus columnas
+      while (row - 1 >= SPAWN_ROW && !occupied(row - 1, it.col, it.size, it)) row--;
+      if (row === it.o.row) continue;
+      it.o.row = row;
+      moved = true;
+      const target = it.kind === 'block' ? it.o.cont : it.o.img;
+      const y = BOARD_TOP + row * CELL + (it.size * CELL) / 2;
+      target.riseTween = this.tweens.add({ targets: target, y, duration: 260, ease: 'Back.easeOut' });
+    }
+    if (moved) audio.play('rumble');
   }
 
   captureFail(c, spr, orb, scale) {
