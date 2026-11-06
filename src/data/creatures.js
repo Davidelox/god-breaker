@@ -25,15 +25,15 @@ const LEGENDARY = {
 
 const RARITY_BY_SLOT = [1, 1, 2, 3];
 
-export const CREATURES = [];
+const DEFAULTS = [];
 let id = 1;
 for (const type of TYPE_ORDER) {
   NAMES[type].forEach((name, i) => {
-    CREATURES.push({ id: id++, name, type, rarity: RARITY_BY_SLOT[i], legendary: false });
+    DEFAULTS.push({ id: id++, name, type, rarity: RARITY_BY_SLOT[i], legendary: false });
   });
 }
 for (const type of TYPE_ORDER) {
-  CREATURES.push({ id: id++, name: LEGENDARY[type], type, rarity: 4, legendary: true });
+  DEFAULTS.push({ id: id++, name: LEGENDARY[type], type, rarity: 4, legendary: true });
 }
 
 // Segunda generación (id 41+). Se añaden al final para no cambiar los id de los guardados.
@@ -50,11 +50,33 @@ const NAMES_2 = {
 const RARITY_BY_SLOT_2 = [1, 2, 2, 3];
 for (const type of TYPE_ORDER) {
   NAMES_2[type].forEach((name, i) => {
-    CREATURES.push({ id: id++, name, type, rarity: RARITY_BY_SLOT_2[i], legendary: false });
+    DEFAULTS.push({ id: id++, name, type, rarity: RARITY_BY_SLOT_2[i], legendary: false });
   });
 }
 
-export const NORMAL_CREATURES = CREATURES.filter((c) => !c.legendary);
-export const LEGENDARIES = CREATURES.filter((c) => c.legendary);
-export const CREATURE_IDS = new Set(CREATURES.map((c) => c.id));
-export const creatureById = (cid) => CREATURES.find((c) => c.id === Number(cid));
+// Las listas se exportan como objetos estables y se rellenan con setCreatures():
+// así un pack (public/pack/criaturas.json) puede sustituir el catálogo al arrancar.
+export const DEFAULT_CREATURES = DEFAULTS;
+export const CREATURES = [];
+export const NORMAL_CREATURES = [];
+export const LEGENDARIES = [];
+export const CREATURE_IDS = new Set();
+const BY_ID = new Map();
+
+export function setCreatures(list) {
+  CREATURES.length = 0;
+  NORMAL_CREATURES.length = 0;
+  LEGENDARIES.length = 0;
+  CREATURE_IDS.clear();
+  BY_ID.clear();
+  for (const c of list) {
+    CREATURES.push(c);
+    (c.legendary ? LEGENDARIES : NORMAL_CREATURES).push(c);
+    CREATURE_IDS.add(c.id);
+    BY_ID.set(c.id, c);
+  }
+}
+
+export const creatureById = (cid) => BY_ID.get(Number(cid));
+
+setCreatures(DEFAULTS);

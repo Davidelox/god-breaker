@@ -7,7 +7,7 @@ import { CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, TYPE_ORDER, CHART, hexToNum } from '../data/types.js';
 import { SPECIALS } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER } from '../data/balls.js';
-import { creatureKey } from '../gfx/sprites.js';
+import { addCreatureImage } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, drawPanel, COLORS } from '../gfx/ui.js';
 
 const INK = COLORS.inkHex;
@@ -74,7 +74,7 @@ export default class GuideScene extends Phaser.Scene {
   block(x, y, size, color, hp, creature, shiny = false, spriteScale = null) {
     const objs = [this.add.rectangle(x, y, size, size, color).setStrokeStyle(2, creature?.legendary ? COLORS.gold : 0x101828)];
     if (creature) {
-      objs.push(this.add.image(x, y - size * 0.08, creatureKey(creature.id, shiny)).setScale(spriteScale ?? (creature.legendary ? 3 : 2)));
+      objs.push(addCreatureImage(this, x, y - size * 0.08, creature.id, shiny, spriteScale ?? (creature.legendary ? 3 : 2)));
     }
     if (hp != null) {
       objs.push(text(this, x, creature ? y + size / 2 - 9 : y, String(hp), 8).setOrigin(0.5).setStroke('#101828', 3));

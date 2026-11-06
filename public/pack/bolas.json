@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "bolas": [
+    {
+      "id": "normal",
+      "nombre": "Normal",
+      "imagen": null
+    },
+    {
+      "id": "super",
+      "nombre": "Super",
+      "imagen": null
+    },
+    {
+      "id": "ultra",
+      "nombre": "Ultra",
+      "imagen": null
+    }
+  ]
+}

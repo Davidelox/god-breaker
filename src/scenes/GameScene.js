@@ -10,7 +10,7 @@ import { NORMAL_CREATURES, LEGENDARIES } from '../data/creatures.js';
 import { TYPES, effectiveness, hexToNum } from '../data/types.js';
 import { SPECIAL_COST, specialById } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from '../data/balls.js';
-import { creatureKey } from '../gfx/sprites.js';
+import { creatureKey, addCreatureImage, texScale } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, COLORS } from '../gfx/ui.js';
 import { pick, weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
@@ -100,8 +100,8 @@ export default class GameScene extends Phaser.Scene {
     this.trailG = this.add.graphics().setDepth(7);
     audio.setMood(0);
     this.fxG = this.add.graphics().setDepth(25);
-    this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball_normal').setDepth(6).setScale(BALL_R / BALL_TEXTURE_R);
-    this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball_normal').setDepth(6).setAlpha(0.4).setVisible(false).setScale(BALL_R / BALL_TEXTURE_R);
+    this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball_normal').setDepth(6).setScale((BALL_R / BALL_TEXTURE_R) * texScale('ball_normal'));
+    this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball_normal').setDepth(6).setAlpha(0.4).setVisible(false).setScale((BALL_R / BALL_TEXTURE_R) * texScale('ball_normal'));
     this.launchText = text(this, this.launchX, LAUNCH_Y - 14, '', 8).setOrigin(0.5).setDepth(6).setStroke('#101828', 3);
     this.createHud();
     this.createSpecialBar();
@@ -225,7 +225,8 @@ export default class GameScene extends Phaser.Scene {
   }
 
   refreshSpecials() {
-    this.launcher?.setTexture(`ball_${this.selectedBall}`);
+    const ballKey = `ball_${this.selectedBall}`;
+    this.launcher?.setTexture(ballKey).setScale((BALL_R / BALL_TEXTURE_R) * texScale(ballKey));
     const barY = BOARD_FLOOR_Y + 10;
     this.energyG.clear();
     const locked = this.powers.length >= MAX_POWERS;
@@ -422,7 +423,7 @@ export default class GameScene extends Phaser.Scene {
     blk.bg = bg;
     blk.color = color;
     if (d.creature) {
-      const spr = this.add.image(0, d.kind === 'boss' ? -14 : -7, creatureKey(d.creature.id, blk.shiny)).setScale(d.kind === 'boss' ? 3 : 2);
+      const spr = addCreatureImage(this, 0, d.kind === 'boss' ? -14 : -7, d.creature.id, blk.shiny, d.kind === 'boss' ? 3 : 2);
       cont.add(spr);
       blk.sprite = spr;
       this.tweens.add({ targets: spr, y: spr.y - 2, duration: 400 + Math.random() * 300, yoyo: true, repeat: -1 });
@@ -616,7 +617,8 @@ export default class GameScene extends Phaser.Scene {
     // con poder activo o si es una bola añadida de Enredadera, se pinta del color del poder.
     const others = this.activeSpecials.filter((sp) => sp.id !== 'enredadera');
     const powered = extra || others.length > 0;
-    const img = this.add.image(this.shotX, LAUNCH_Y, powered ? 'ball' : `ball_${this.shotBall}`).setDepth(8).setScale(r / BALL_TEXTURE_R);
+    const ballKey = powered ? 'ball' : `ball_${this.shotBall}`;
+    const img = this.add.image(this.shotX, LAUNCH_Y, ballKey).setDepth(8).setScale((r / BALL_TEXTURE_R) * texScale(ballKey));
     let trailColor = BALL_TYPES[this.shotBall].trail;
     if (extra) trailColor = PLANT_COLOR;
     else if (others.length) trailColor = hexToNum(TYPES[others[0].type].light);
@@ -1361,7 +1363,7 @@ export default class GameScene extends Phaser.Scene {
     const success = Math.random() < captureChance(this.shotBall, c, shiny);
     this.pendingCaptures++;
     const scale = blk.kind === 'boss' ? 3 : 2;
-    const spr = this.add.image(x, y, creatureKey(c.id, shiny)).setScale(scale).setDepth(30);
+    const spr = addCreatureImage(this, x, y, c.id, shiny, scale).setDepth(30);
     const orb = this.add.image(x, y, 'orb').setScale(2).setDepth(31).setAlpha(0);
     if (BALL_TYPES[this.shotBall].tint) orb.setTint(BALL_TYPES[this.shotBall].tint);
     this.tweens.add({
@@ -1489,7 +1491,7 @@ export default class GameScene extends Phaser.Scene {
       const x = (col - (inRow - 1) / 2) * cellW;
       const y = -cardH / 2 + 28 + row * cellH + cellH / 2 - 8;
       const glow = this.add.circle(x, y - 10, single ? 36 : 24, hexToNum(t.light), 0.6);
-      const spr = this.add.image(x, y - 12, creatureKey(c.id, shiny)).setScale(single ? (c.legendary ? 3.5 : 4.5) : c.legendary ? 2.2 : 3);
+      const spr = addCreatureImage(this, x, y - 12, c.id, shiny, single ? (c.legendary ? 3.5 : 4.5) : c.legendary ? 2.2 : 3);
       const name = text(this, x, y + (single ? 30 : 22), c.name, 8, COLORS.inkHex).setOrigin(0.5);
       parts.push(glow, spr, name);
       if (single) {
@@ -1559,7 +1561,7 @@ export default class GameScene extends Phaser.Scene {
   captureFail(c, spr, orb, scale) {
     orb.destroy();
     audio.play('escape');
-    spr.setScale(scale);
+    spr.setScale(scale * texScale(spr.texture.key));
     floatText(this, spr.x, spr.y - 12, '¡Escapó!', '#a8b4cc');
     this.tweens.add({ targets: spr, y: spr.y - 20, alpha: 0, duration: 450, onComplete: () => spr.destroy() });
   }

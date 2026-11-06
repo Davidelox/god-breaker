@@ -1,0 +1,9241 @@
+{
+ "version": 1,
+ "descripcion": "Catálogo provisional. Sustituye nombres, tipos e imágenes por tus propios diseños.",
+ "tipos": [
+  "fuego",
+  "agua",
+  "planta",
+  "electrico",
+  "hielo",
+  "roca",
+  "fantasma",
+  "psiquico"
+ ],
+ "criaturas": [
+  {
+   "id": 1,
+   "nombre": "Ascuín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 2,
+   "nombre": "Tizonte",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 3,
+   "nombre": "Fogarín",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 4,
+   "nombre": "Magmolo",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 5,
+   "nombre": "Gotín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 6,
+   "nombre": "Burbullo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 7,
+   "nombre": "Marejo",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 8,
+   "nombre": "Abismar",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 9,
+   "nombre": "Brotito",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 10,
+   "nombre": "Musguín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 11,
+   "nombre": "Helechón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 12,
+   "nombre": "Robledo",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 13,
+   "nombre": "Voltín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 14,
+   "nombre": "Chisparro",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 15,
+   "nombre": "Dinamón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 16,
+   "nombre": "Tormentejo",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 17,
+   "nombre": "Escarchín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 18,
+   "nombre": "Nevadín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 19,
+   "nombre": "Glaciaro",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 20,
+   "nombre": "Témpano",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 21,
+   "nombre": "Guijarrín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 22,
+   "nombre": "Pedrusco",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 23,
+   "nombre": "Basaltón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 24,
+   "nombre": "Montañón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 25,
+   "nombre": "Sombrín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 26,
+   "nombre": "Ectoplín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 27,
+   "nombre": "Espectrón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 28,
+   "nombre": "Animón",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 29,
+   "nombre": "Mentín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 30,
+   "nombre": "Psicorbe",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 31,
+   "nombre": "Oráculo",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 32,
+   "nombre": "Astralio",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 33,
+   "nombre": "Pirovórax",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 34,
+   "nombre": "Leviacuo",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 35,
+   "nombre": "Gaiaflor",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 36,
+   "nombre": "Fulgurión",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 37,
+   "nombre": "Glaciadón",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 38,
+   "nombre": "Titanita",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 39,
+   "nombre": "Nocthar",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 40,
+   "nombre": "Cosmóbius",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 41,
+   "nombre": "Chamuscón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 42,
+   "nombre": "Hogarín",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 43,
+   "nombre": "Brasilisco",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 44,
+   "nombre": "Volcanejo",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 45,
+   "nombre": "Charquín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 46,
+   "nombre": "Coralito",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 47,
+   "nombre": "Medusón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 48,
+   "nombre": "Mareón",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 49,
+   "nombre": "Setín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 50,
+   "nombre": "Raicejo",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 51,
+   "nombre": "Espinillo",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 52,
+   "nombre": "Florazul",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 53,
+   "nombre": "Pilucho",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 54,
+   "nombre": "Relampín",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 55,
+   "nombre": "Bobinón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 56,
+   "nombre": "Centellón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 57,
+   "nombre": "Copito",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 58,
+   "nombre": "Gelidín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 59,
+   "nombre": "Granizón",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 60,
+   "nombre": "Carambano",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 61,
+   "nombre": "Cascajo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 62,
+   "nombre": "Peñasquín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 63,
+   "nombre": "Pizarrón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 64,
+   "nombre": "Obsidión",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 65,
+   "nombre": "Bruman",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 66,
+   "nombre": "Fantasmín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 67,
+   "nombre": "Penumbro",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 68,
+   "nombre": "Velador",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 69,
+   "nombre": "Runín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 70,
+   "nombre": "Telepín",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 71,
+   "nombre": "Augurio",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 72,
+   "nombre": "Psiconte",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 73,
+   "nombre": "Vasolín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 74,
+   "nombre": "Gumarchín",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 75,
+   "nombre": "Lacatrón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 76,
+   "nombre": "Glatoñín",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 77,
+   "nombre": "Fitoñín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 78,
+   "nombre": "Marana",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 79,
+   "nombre": "Firatín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 80,
+   "nombre": "Fafenón",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 81,
+   "nombre": "Trimón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 82,
+   "nombre": "Nitona",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 83,
+   "nombre": "Naratín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 84,
+   "nombre": "Varazo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 85,
+   "nombre": "Zavito",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 86,
+   "nombre": "Sivirax",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 87,
+   "nombre": "Crolitín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 88,
+   "nombre": "Nitaro",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 89,
+   "nombre": "Rotatín",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 90,
+   "nombre": "Nadato",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 91,
+   "nombre": "Maborax",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 92,
+   "nombre": "Quetotín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 93,
+   "nombre": "Mazunón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 94,
+   "nombre": "Jalilín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 95,
+   "nombre": "Vesochín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 96,
+   "nombre": "Drotabón",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 97,
+   "nombre": "Fadatrón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 98,
+   "nombre": "Fadado",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 99,
+   "nombre": "Glanechín",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 100,
+   "nombre": "Lufelo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 101,
+   "nombre": "Calazo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 102,
+   "nombre": "Lutozo",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 103,
+   "nombre": "Gugornón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 104,
+   "nombre": "Damartrón",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 105,
+   "nombre": "Nana",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 106,
+   "nombre": "Fazunón",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 107,
+   "nombre": "Pamarñín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 108,
+   "nombre": "Quevibón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 109,
+   "nombre": "Molibón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 110,
+   "nombre": "Glazuto",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 111,
+   "nombre": "Zutaro",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 112,
+   "nombre": "Mavitrón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 113,
+   "nombre": "Mararax",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 114,
+   "nombre": "Rocatrón",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 115,
+   "nombre": "Crorañín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 116,
+   "nombre": "Sato",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 117,
+   "nombre": "Quemarsa",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 118,
+   "nombre": "Palilín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 119,
+   "nombre": "Firaro",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 120,
+   "nombre": "Calisa",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 121,
+   "nombre": "Nitorín",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 122,
+   "nombre": "Lazumón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 123,
+   "nombre": "Namartín",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 124,
+   "nombre": "Gunenón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 125,
+   "nombre": "Trisotrón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 126,
+   "nombre": "Nafeñín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 127,
+   "nombre": "Pizulín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 128,
+   "nombre": "Lunelín",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 129,
+   "nombre": "Marirín",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 130,
+   "nombre": "Basomón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 131,
+   "nombre": "Sinesa",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 132,
+   "nombre": "Brutaro",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 133,
+   "nombre": "Brucañín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 134,
+   "nombre": "Trifenón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 135,
+   "nombre": "Sirilo",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 136,
+   "nombre": "Badaro",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 137,
+   "nombre": "Catalo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 138,
+   "nombre": "Crorazo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 139,
+   "nombre": "Tritanón",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 140,
+   "nombre": "Lufero",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 141,
+   "nombre": "Quegormón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 142,
+   "nombre": "Glalín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 143,
+   "nombre": "Drorichín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 144,
+   "nombre": "Zudato",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 145,
+   "nombre": "Quenaro",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 146,
+   "nombre": "Janeñín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 147,
+   "nombre": "Lugorna",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 148,
+   "nombre": "Davitrón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 149,
+   "nombre": "Molisa",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 150,
+   "nombre": "Tasorax",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 151,
+   "nombre": "Radasa",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 152,
+   "nombre": "Barisa",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 153,
+   "nombre": "Jalarín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 154,
+   "nombre": "Zalanón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 155,
+   "nombre": "Silarín",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 156,
+   "nombre": "Querirax",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 157,
+   "nombre": "Cronendo",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 158,
+   "nombre": "Ramarndo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 159,
+   "nombre": "Vecalo",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 160,
+   "nombre": "Savina",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 161,
+   "nombre": "Vefenón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 162,
+   "nombre": "Glatando",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 163,
+   "nombre": "Facato",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 164,
+   "nombre": "Trigorzo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 165,
+   "nombre": "Vatodo",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 166,
+   "nombre": "Vavirax",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 167,
+   "nombre": "Fatotrón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 168,
+   "nombre": "Pacato",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 169,
+   "nombre": "Parazo",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 170,
+   "nombre": "Samarlín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 171,
+   "nombre": "Ragormón",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 172,
+   "nombre": "Tritana",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 173,
+   "nombre": "Ludasa",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 174,
+   "nombre": "Sibona",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 175,
+   "nombre": "Nicazo",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 176,
+   "nombre": "Ralisa",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 177,
+   "nombre": "Bavina",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 178,
+   "nombre": "Quelo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 179,
+   "nombre": "Zucasa",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 180,
+   "nombre": "Vesodo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 181,
+   "nombre": "Pimarzo",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 182,
+   "nombre": "Brulalín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 183,
+   "nombre": "Faferín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 184,
+   "nombre": "Rodatín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 185,
+   "nombre": "Nanesa",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 186,
+   "nombre": "Sagormón",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 187,
+   "nombre": "Vavindo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 188,
+   "nombre": "Rataro",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 189,
+   "nombre": "Mocazo",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 190,
+   "nombre": "Zunato",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 191,
+   "nombre": "Trilazo",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 192,
+   "nombre": "Ranatín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 193,
+   "nombre": "Modarax",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 194,
+   "nombre": "Tacato",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 195,
+   "nombre": "Zazuna",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 196,
+   "nombre": "Datanón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 197,
+   "nombre": "Nalatrón",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 198,
+   "nombre": "Gufedo",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 199,
+   "nombre": "Lamarñín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 200,
+   "nombre": "Drogormón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 201,
+   "nombre": "Zucaro",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 202,
+   "nombre": "Zasobón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 203,
+   "nombre": "Zafetrón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 204,
+   "nombre": "Lamarbón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 205,
+   "nombre": "Marabón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 206,
+   "nombre": "Rolanón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 207,
+   "nombre": "Simarsa",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 208,
+   "nombre": "Jatando",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 209,
+   "nombre": "Brunatrón",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 210,
+   "nombre": "Ninazo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 211,
+   "nombre": "Fibomón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 212,
+   "nombre": "Dacato",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 213,
+   "nombre": "Fabotín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 214,
+   "nombre": "Zatotrón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 215,
+   "nombre": "Trifebón",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 216,
+   "nombre": "Lutando",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 217,
+   "nombre": "Ladando",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 218,
+   "nombre": "Croranón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 219,
+   "nombre": "Glanenón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 220,
+   "nombre": "Ravirín",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 221,
+   "nombre": "Pigorlo",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 222,
+   "nombre": "Zatana",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 223,
+   "nombre": "Falizo",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 224,
+   "nombre": "Fililo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 225,
+   "nombre": "Carilín",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 226,
+   "nombre": "Canalín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 227,
+   "nombre": "Jaferax",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 228,
+   "nombre": "Racato",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 229,
+   "nombre": "Zutabón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 230,
+   "nombre": "Niviñín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 231,
+   "nombre": "Querilín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 232,
+   "nombre": "Brutobón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 233,
+   "nombre": "Nalabón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 234,
+   "nombre": "Crozulín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 235,
+   "nombre": "Caviñín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 236,
+   "nombre": "Narasa",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 237,
+   "nombre": "Sizuñín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 238,
+   "nombre": "Quetonón",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 239,
+   "nombre": "Brudazo",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 240,
+   "nombre": "Panerín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 241,
+   "nombre": "Pasorax",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 242,
+   "nombre": "Babomón",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 243,
+   "nombre": "Matrón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 244,
+   "nombre": "Zaferín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 245,
+   "nombre": "Croñín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 246,
+   "nombre": "Drocamón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 247,
+   "nombre": "Rogorbón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 248,
+   "nombre": "Vetachín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 249,
+   "nombre": "Gurirax",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 250,
+   "nombre": "Ratobón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 251,
+   "nombre": "Ragorlín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 252,
+   "nombre": "Gudando",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 253,
+   "nombre": "Valilo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 254,
+   "nombre": "Zatachín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 255,
+   "nombre": "Sitoñín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 256,
+   "nombre": "Dalarax",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 257,
+   "nombre": "Drolatín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 258,
+   "nombre": "Finazo",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 259,
+   "nombre": "Sabonón",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 260,
+   "nombre": "Tagorsa",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 261,
+   "nombre": "Tabón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 262,
+   "nombre": "Zavindo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 263,
+   "nombre": "Glalilo",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 264,
+   "nombre": "Ronezo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 265,
+   "nombre": "Nilatrón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 266,
+   "nombre": "Pivitrón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 267,
+   "nombre": "Pirañín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 268,
+   "nombre": "Glanana",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 269,
+   "nombre": "Parando",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 270,
+   "nombre": "Trilato",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 271,
+   "nombre": "Fafeñín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 272,
+   "nombre": "Narado",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 273,
+   "nombre": "Gladana",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 274,
+   "nombre": "Pitamón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 275,
+   "nombre": "Ficarín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 276,
+   "nombre": "Nilamón",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 277,
+   "nombre": "Satato",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 278,
+   "nombre": "Zafendo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 279,
+   "nombre": "Velindo",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 280,
+   "nombre": "Cronando",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 281,
+   "nombre": "Crozurín",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 282,
+   "nombre": "Patasa",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 283,
+   "nombre": "Pimarlo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 284,
+   "nombre": "Dalasa",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 285,
+   "nombre": "Veviñín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 286,
+   "nombre": "Vavibón",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 287,
+   "nombre": "Lumardo",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 288,
+   "nombre": "Vezutín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 289,
+   "nombre": "Pacana",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 290,
+   "nombre": "Gladato",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 291,
+   "nombre": "Nacando",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 292,
+   "nombre": "Trimarndo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 293,
+   "nombre": "Valichín",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 294,
+   "nombre": "Crobomón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 295,
+   "nombre": "Crorito",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 296,
+   "nombre": "Fibozo",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 297,
+   "nombre": "Sitobón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 298,
+   "nombre": "Guneto",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 299,
+   "nombre": "Cavilo",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 300,
+   "nombre": "Zuzuna",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 301,
+   "nombre": "Gurañín",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 302,
+   "nombre": "Tanalo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 303,
+   "nombre": "Rotonón",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 304,
+   "nombre": "Lunetín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 305,
+   "nombre": "Lalizo",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 306,
+   "nombre": "Guzo",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 307,
+   "nombre": "Sanedo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 308,
+   "nombre": "Bafelín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 309,
+   "nombre": "Safelo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 310,
+   "nombre": "Quefebón",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 311,
+   "nombre": "Radatrón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 312,
+   "nombre": "Sigorsa",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 313,
+   "nombre": "Crogortín",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 314,
+   "nombre": "Drobona",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 315,
+   "nombre": "Samardo",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 316,
+   "nombre": "Dromarto",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 317,
+   "nombre": "Zaramón",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 318,
+   "nombre": "Dafesa",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 319,
+   "nombre": "Calirín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 320,
+   "nombre": "Motasa",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 321,
+   "nombre": "Tataro",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 322,
+   "nombre": "Taviro",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 323,
+   "nombre": "Sirirax",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 324,
+   "nombre": "Quevilo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 325,
+   "nombre": "Taratrón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 326,
+   "nombre": "Roborax",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 327,
+   "nombre": "Nabolín",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 328,
+   "nombre": "Pafebón",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 329,
+   "nombre": "Tadalo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 330,
+   "nombre": "Sifeñín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 331,
+   "nombre": "Natorín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 332,
+   "nombre": "Bamarna",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 333,
+   "nombre": "Simarchín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 334,
+   "nombre": "Rovimón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 335,
+   "nombre": "Veviro",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 336,
+   "nombre": "Nitolo",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 337,
+   "nombre": "Rasondo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 338,
+   "nombre": "Lalarín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 339,
+   "nombre": "Zanerax",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 340,
+   "nombre": "Fazo",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 341,
+   "nombre": "Fasotrón",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 342,
+   "nombre": "Zadasa",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 343,
+   "nombre": "Zulato",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 344,
+   "nombre": "Manañín",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 345,
+   "nombre": "Drosoro",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 346,
+   "nombre": "Dalado",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 347,
+   "nombre": "Masobón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 348,
+   "nombre": "Guborax",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 349,
+   "nombre": "Favido",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 350,
+   "nombre": "Davizo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 351,
+   "nombre": "Nisolín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 352,
+   "nombre": "Davisa",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 353,
+   "nombre": "Filitrón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 354,
+   "nombre": "Dazumón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 355,
+   "nombre": "Zalirín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 356,
+   "nombre": "Guto",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 357,
+   "nombre": "Bazundo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 358,
+   "nombre": "Nizutrón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 359,
+   "nombre": "Lamarro",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 360,
+   "nombre": "Favizo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 361,
+   "nombre": "Pamarnón",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 362,
+   "nombre": "Ronasa",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 363,
+   "nombre": "Glaratín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 364,
+   "nombre": "Dasoñín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 365,
+   "nombre": "Malalo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 366,
+   "nombre": "Sibochín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 367,
+   "nombre": "Tatasa",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 368,
+   "nombre": "Badanón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 369,
+   "nombre": "Zalana",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 370,
+   "nombre": "Drorax",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 371,
+   "nombre": "Glazulo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 372,
+   "nombre": "Banamón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 373,
+   "nombre": "Rabosa",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 374,
+   "nombre": "Batorín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 375,
+   "nombre": "Bavimón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 376,
+   "nombre": "Saboto",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 377,
+   "nombre": "Baneñín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 378,
+   "nombre": "Crolazo",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 379,
+   "nombre": "Pisonón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 380,
+   "nombre": "Racana",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 381,
+   "nombre": "Vetodo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 382,
+   "nombre": "Nazurín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 383,
+   "nombre": "Bacarín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 384,
+   "nombre": "Javizo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 385,
+   "nombre": "Zudabón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 386,
+   "nombre": "Jagordo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 387,
+   "nombre": "Nazutrón",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 388,
+   "nombre": "Fabotrón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 389,
+   "nombre": "Bacato",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 390,
+   "nombre": "Drodado",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 391,
+   "nombre": "Ronón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 392,
+   "nombre": "Nalilín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 393,
+   "nombre": "Trilatín",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 394,
+   "nombre": "Niboñín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 395,
+   "nombre": "Panaro",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 396,
+   "nombre": "Drozubón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 397,
+   "nombre": "Rondo",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 398,
+   "nombre": "Silirín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 399,
+   "nombre": "Nalando",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 400,
+   "nombre": "Moranón",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 401,
+   "nombre": "Vafezo",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 402,
+   "nombre": "Tazusa",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 403,
+   "nombre": "Glabona",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 404,
+   "nombre": "Pitoto",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 405,
+   "nombre": "Zazulín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 406,
+   "nombre": "Marazo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 407,
+   "nombre": "Catachín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 408,
+   "nombre": "Crolatrón",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 409,
+   "nombre": "Pacarax",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 410,
+   "nombre": "Batona",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 411,
+   "nombre": "Silasa",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 412,
+   "nombre": "Matorín",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 413,
+   "nombre": "Bruliro",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 414,
+   "nombre": "Tafelo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 415,
+   "nombre": "Fadachín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 416,
+   "nombre": "Latobón",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 417,
+   "nombre": "Glanena",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 418,
+   "nombre": "Gulina",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 419,
+   "nombre": "Lusochín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 420,
+   "nombre": "Monendo",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 421,
+   "nombre": "Zutachín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 422,
+   "nombre": "Zunalo",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 423,
+   "nombre": "Rarañín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 424,
+   "nombre": "Zunelín",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 425,
+   "nombre": "Dronarín",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 426,
+   "nombre": "Firazo",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 427,
+   "nombre": "Nafelín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 428,
+   "nombre": "Trisochín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 429,
+   "nombre": "Zarilo",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 430,
+   "nombre": "Pizuñín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 431,
+   "nombre": "Molito",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 432,
+   "nombre": "Tacalín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 433,
+   "nombre": "Pilimón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 434,
+   "nombre": "Fagortrón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 435,
+   "nombre": "Bruboro",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 436,
+   "nombre": "Ninelín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 437,
+   "nombre": "Tanendo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 438,
+   "nombre": "Bafero",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 439,
+   "nombre": "Piribón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 440,
+   "nombre": "Brurito",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 441,
+   "nombre": "Gutarín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 442,
+   "nombre": "Balín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 443,
+   "nombre": "Crotado",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 444,
+   "nombre": "Tazulín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 445,
+   "nombre": "Gurando",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 446,
+   "nombre": "Crotonón",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 447,
+   "nombre": "Nidatín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 448,
+   "nombre": "Glafena",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 449,
+   "nombre": "Quelilín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 450,
+   "nombre": "Catolín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 451,
+   "nombre": "Drolabón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 452,
+   "nombre": "Lugorlo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 453,
+   "nombre": "Lanabón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 454,
+   "nombre": "Fadasa",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 455,
+   "nombre": "Canato",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 456,
+   "nombre": "Crogorndo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 457,
+   "nombre": "Natatrón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 458,
+   "nombre": "Bruzurín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 459,
+   "nombre": "Mamartín",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 460,
+   "nombre": "Javiro",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 461,
+   "nombre": "Cronelo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 462,
+   "nombre": "Triborín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 463,
+   "nombre": "Lularax",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 464,
+   "nombre": "Caferax",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 465,
+   "nombre": "Nafechín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 466,
+   "nombre": "Silado",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 467,
+   "nombre": "Palatrón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 468,
+   "nombre": "Zalilín",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 469,
+   "nombre": "Pirato",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 470,
+   "nombre": "Danendo",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 471,
+   "nombre": "Brurizo",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 472,
+   "nombre": "Badalín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 473,
+   "nombre": "Sisoto",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 474,
+   "nombre": "Razunón",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 475,
+   "nombre": "Madato",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 476,
+   "nombre": "Vadato",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 477,
+   "nombre": "Drosolo",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 478,
+   "nombre": "Dazuto",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 479,
+   "nombre": "Rolimón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 480,
+   "nombre": "Sazunón",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 481,
+   "nombre": "Rafero",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 482,
+   "nombre": "Veborax",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 483,
+   "nombre": "Crobón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 484,
+   "nombre": "Jarisa",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 485,
+   "nombre": "Zalato",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 486,
+   "nombre": "Simarñín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 487,
+   "nombre": "Motarín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 488,
+   "nombre": "Jalatín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 489,
+   "nombre": "Monañín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 490,
+   "nombre": "Droboñín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 491,
+   "nombre": "Mobotín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 492,
+   "nombre": "Sirindo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 493,
+   "nombre": "Gusa",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 494,
+   "nombre": "Zamarñín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 495,
+   "nombre": "Rasolín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 496,
+   "nombre": "Matona",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 497,
+   "nombre": "Namarrax",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 498,
+   "nombre": "Triviro",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 499,
+   "nombre": "Raneto",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 500,
+   "nombre": "Malimón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 501,
+   "nombre": "Fitanón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 502,
+   "nombre": "Tritona",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 503,
+   "nombre": "Drotorín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 504,
+   "nombre": "Fidanón",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 505,
+   "nombre": "Cagortrón",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 506,
+   "nombre": "Tabochín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 507,
+   "nombre": "Narichín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 508,
+   "nombre": "Bruvirax",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 509,
+   "nombre": "Patondo",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 510,
+   "nombre": "Sabondo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 511,
+   "nombre": "Zunazo",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 512,
+   "nombre": "Fasozo",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 513,
+   "nombre": "Saliro",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 514,
+   "nombre": "Satotín",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 515,
+   "nombre": "Rolibón",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 516,
+   "nombre": "Rafemón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 517,
+   "nombre": "Quedatrón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 518,
+   "nombre": "Crolilo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 519,
+   "nombre": "Panero",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 520,
+   "nombre": "Pivirax",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 521,
+   "nombre": "Sazubón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 522,
+   "nombre": "Siribón",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 523,
+   "nombre": "Madalín",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 524,
+   "nombre": "Sicasa",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 525,
+   "nombre": "Guzurín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 526,
+   "nombre": "Nilindo",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 527,
+   "nombre": "Nasoro",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 528,
+   "nombre": "Vavilín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 529,
+   "nombre": "Rarindo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 530,
+   "nombre": "Momarnón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 531,
+   "nombre": "Firalo",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 532,
+   "nombre": "Ronero",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 533,
+   "nombre": "Siliñín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 534,
+   "nombre": "Balibón",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 535,
+   "nombre": "Quebobón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 536,
+   "nombre": "Fizuñín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 537,
+   "nombre": "Canarín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 538,
+   "nombre": "Sadana",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 539,
+   "nombre": "Zutatrón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 540,
+   "nombre": "Sitotrón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 541,
+   "nombre": "Zuzulín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 542,
+   "nombre": "Trigortrón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 543,
+   "nombre": "Cromarsa",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 544,
+   "nombre": "Rocabón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 545,
+   "nombre": "Fasorax",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 546,
+   "nombre": "Triralo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 547,
+   "nombre": "Sacanón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 548,
+   "nombre": "Fasorín",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 549,
+   "nombre": "Mabolín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 550,
+   "nombre": "Sizo",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 551,
+   "nombre": "Rabotín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 552,
+   "nombre": "Rolizo",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 553,
+   "nombre": "Padarín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 554,
+   "nombre": "Latasa",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 555,
+   "nombre": "Lalasa",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 556,
+   "nombre": "Zugornón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 557,
+   "nombre": "Drotrón",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 558,
+   "nombre": "Dacana",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 559,
+   "nombre": "Rafezo",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 560,
+   "nombre": "Zulo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 561,
+   "nombre": "Gunesa",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 562,
+   "nombre": "Rozulo",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 563,
+   "nombre": "Fisoto",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 564,
+   "nombre": "Quenado",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 565,
+   "nombre": "Pagorrín",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 566,
+   "nombre": "Venarax",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 567,
+   "nombre": "Vanerín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 568,
+   "nombre": "Sifetrón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 569,
+   "nombre": "Trilibón",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 570,
+   "nombre": "Drozuro",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 571,
+   "nombre": "Casoro",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 572,
+   "nombre": "Venerín",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 573,
+   "nombre": "Nabochín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 574,
+   "nombre": "Bagordo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 575,
+   "nombre": "Datolín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 576,
+   "nombre": "Droneto",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 577,
+   "nombre": "Latana",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 578,
+   "nombre": "Zugordo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 579,
+   "nombre": "Roratín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 580,
+   "nombre": "Fitana",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 581,
+   "nombre": "Tavito",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 582,
+   "nombre": "Sazurax",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 583,
+   "nombre": "Simarna",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 584,
+   "nombre": "Glarido",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 585,
+   "nombre": "Ronemón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 586,
+   "nombre": "Sazuchín",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 587,
+   "nombre": "Pisomón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 588,
+   "nombre": "Nadabón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 589,
+   "nombre": "Luritín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 590,
+   "nombre": "Varachín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 591,
+   "nombre": "Gucalo",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 592,
+   "nombre": "Guferax",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 593,
+   "nombre": "Velañín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 594,
+   "nombre": "Mavirax",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 595,
+   "nombre": "Radato",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 596,
+   "nombre": "Sivimón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 597,
+   "nombre": "Zafemón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 598,
+   "nombre": "Jamarchín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 599,
+   "nombre": "Nigortrón",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 600,
+   "nombre": "Lurachín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 601,
+   "nombre": "Calinón",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 602,
+   "nombre": "Cronañín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 603,
+   "nombre": "Latolín",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 604,
+   "nombre": "Vavinón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 605,
+   "nombre": "Pavizo",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 606,
+   "nombre": "Trivirax",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 607,
+   "nombre": "Taboñín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 608,
+   "nombre": "Rarinón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 609,
+   "nombre": "Fitomón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 610,
+   "nombre": "Facazo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 611,
+   "nombre": "Trinelo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 612,
+   "nombre": "Verax",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 613,
+   "nombre": "Dafebón",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 614,
+   "nombre": "Lagorlo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 615,
+   "nombre": "Zabona",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 616,
+   "nombre": "Brulo",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 617,
+   "nombre": "Pamarro",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 618,
+   "nombre": "Savilín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 619,
+   "nombre": "Crorax",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 620,
+   "nombre": "Drorachín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 621,
+   "nombre": "Fisobón",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 622,
+   "nombre": "Zafeto",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 623,
+   "nombre": "Moborín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 624,
+   "nombre": "Glaratrón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 625,
+   "nombre": "Gucanón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 626,
+   "nombre": "Pitando",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 627,
+   "nombre": "Vevitín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 628,
+   "nombre": "Naferín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 629,
+   "nombre": "Lurana",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 630,
+   "nombre": "Bavindo",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 631,
+   "nombre": "Dalibón",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 632,
+   "nombre": "Ragorsa",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 633,
+   "nombre": "Vefena",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 634,
+   "nombre": "Bacatín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 635,
+   "nombre": "Naritrón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 636,
+   "nombre": "Zumarto",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 637,
+   "nombre": "Lalana",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 638,
+   "nombre": "Tacarín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 639,
+   "nombre": "Lurasa",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 640,
+   "nombre": "Quesodo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 641,
+   "nombre": "Vesobón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 642,
+   "nombre": "Nasobón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 643,
+   "nombre": "Silanón",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 644,
+   "nombre": "Fazulín",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 645,
+   "nombre": "Fatachín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 646,
+   "nombre": "Danelín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 647,
+   "nombre": "Macasa",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 648,
+   "nombre": "Crotorín",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 649,
+   "nombre": "Magortrón",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 650,
+   "nombre": "Luzunón",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 651,
+   "nombre": "Crovirax",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 652,
+   "nombre": "Lucamón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 653,
+   "nombre": "Glarirín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 654,
+   "nombre": "Pinasa",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 655,
+   "nombre": "Mofedo",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 656,
+   "nombre": "Queritín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 657,
+   "nombre": "Datobón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 658,
+   "nombre": "Cafebón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 659,
+   "nombre": "Tridado",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 660,
+   "nombre": "Mogortín",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 661,
+   "nombre": "Silazo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 662,
+   "nombre": "Nanado",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 663,
+   "nombre": "Manaro",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 664,
+   "nombre": "Brutochín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 665,
+   "nombre": "Quegorzo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 666,
+   "nombre": "Rocalín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 667,
+   "nombre": "Zaritín",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 668,
+   "nombre": "Calina",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 669,
+   "nombre": "Tavilín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 670,
+   "nombre": "Savisa",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 671,
+   "nombre": "Firiro",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 672,
+   "nombre": "Vacana",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 673,
+   "nombre": "Vedando",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 674,
+   "nombre": "Vazuna",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 675,
+   "nombre": "Batana",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 676,
+   "nombre": "Tanana",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 677,
+   "nombre": "Quenendo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 678,
+   "nombre": "Jabotín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 679,
+   "nombre": "Laboro",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 680,
+   "nombre": "Dazuzo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 681,
+   "nombre": "Nanato",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 682,
+   "nombre": "Jacabón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 683,
+   "nombre": "Gunalo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 684,
+   "nombre": "Nimarnón",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 685,
+   "nombre": "Rocaro",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 686,
+   "nombre": "Motanón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 687,
+   "nombre": "Lacarín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 688,
+   "nombre": "Drofena",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 689,
+   "nombre": "Fazubón",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 690,
+   "nombre": "Banetín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 691,
+   "nombre": "Nidado",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 692,
+   "nombre": "Quecana",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 693,
+   "nombre": "Valido",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 694,
+   "nombre": "Pabosa",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 695,
+   "nombre": "Robona",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 696,
+   "nombre": "Guramón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 697,
+   "nombre": "Triboro",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 698,
+   "nombre": "Gunemón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 699,
+   "nombre": "Glazundo",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 700,
+   "nombre": "Nirasa",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 701,
+   "nombre": "Latomón",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 702,
+   "nombre": "Lurirín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 703,
+   "nombre": "Nabozo",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 704,
+   "nombre": "Brugormón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 705,
+   "nombre": "Darín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 706,
+   "nombre": "Vecana",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 707,
+   "nombre": "Zudamón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 708,
+   "nombre": "Databón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 709,
+   "nombre": "Babolín",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 710,
+   "nombre": "Brusolín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 711,
+   "nombre": "Zuliñín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 712,
+   "nombre": "Dazubón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 713,
+   "nombre": "Taratín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 714,
+   "nombre": "Sidalo",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 715,
+   "nombre": "Lazulo",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 716,
+   "nombre": "Nimartrón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 717,
+   "nombre": "Bruliñín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 718,
+   "nombre": "Vebona",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 719,
+   "nombre": "Fiñín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 720,
+   "nombre": "Vamarndo",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 721,
+   "nombre": "Rozuñín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 722,
+   "nombre": "Drofetrón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 723,
+   "nombre": "Mocabón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 724,
+   "nombre": "Gulindo",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 725,
+   "nombre": "Nazuñín",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 726,
+   "nombre": "Valachín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 727,
+   "nombre": "Bafeto",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 728,
+   "nombre": "Catotrón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 729,
+   "nombre": "Trivimón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 730,
+   "nombre": "Velizo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 731,
+   "nombre": "Brularo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 732,
+   "nombre": "Gucatín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 733,
+   "nombre": "Rararax",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 734,
+   "nombre": "Cabodo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 735,
+   "nombre": "Batodo",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 736,
+   "nombre": "Quelato",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 737,
+   "nombre": "Drorato",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 738,
+   "nombre": "Gutañín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 739,
+   "nombre": "Fitalín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 740,
+   "nombre": "Labondo",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 741,
+   "nombre": "Veriñín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 742,
+   "nombre": "Pilindo",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 743,
+   "nombre": "Tririmón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 744,
+   "nombre": "Namarrín",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 745,
+   "nombre": "Pasonón",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 746,
+   "nombre": "Jarirín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 747,
+   "nombre": "Mototín",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 748,
+   "nombre": "Zamarmón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 749,
+   "nombre": "Vadachín",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 750,
+   "nombre": "Bruto",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 751,
+   "nombre": "Barando",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 752,
+   "nombre": "Pivindo",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 753,
+   "nombre": "Nagorsa",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 754,
+   "nombre": "Jatona",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 755,
+   "nombre": "Parín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 756,
+   "nombre": "Mobolo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 757,
+   "nombre": "Pilito",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 758,
+   "nombre": "Quevirín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 759,
+   "nombre": "Silana",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 760,
+   "nombre": "Sarindo",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 761,
+   "nombre": "Javirax",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 762,
+   "nombre": "Venatrón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 763,
+   "nombre": "Fanendo",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 764,
+   "nombre": "Fanalo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 765,
+   "nombre": "Valisa",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 766,
+   "nombre": "Bavirax",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 767,
+   "nombre": "Brulamón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 768,
+   "nombre": "Velisa",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 769,
+   "nombre": "Brubozo",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 770,
+   "nombre": "Gucañín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 771,
+   "nombre": "Variñín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 772,
+   "nombre": "Nifero",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 773,
+   "nombre": "Cacañín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 774,
+   "nombre": "Zaboto",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 775,
+   "nombre": "Glalachín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 776,
+   "nombre": "Sisozo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 777,
+   "nombre": "Balando",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 778,
+   "nombre": "Banelín",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 779,
+   "nombre": "Balalín",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 780,
+   "nombre": "Jadasa",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 781,
+   "nombre": "Glavisa",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 782,
+   "nombre": "Glalarax",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 783,
+   "nombre": "Daborín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 784,
+   "nombre": "Baneto",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 785,
+   "nombre": "Ragorndo",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 786,
+   "nombre": "Brularín",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 787,
+   "nombre": "Ralarax",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 788,
+   "nombre": "Vagorlo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 789,
+   "nombre": "Zatobón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 790,
+   "nombre": "Glarirax",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 791,
+   "nombre": "Querilo",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 792,
+   "nombre": "Ratasa",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 793,
+   "nombre": "Rorarax",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 794,
+   "nombre": "Fiferín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 795,
+   "nombre": "Vatalo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 796,
+   "nombre": "Crotomón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 797,
+   "nombre": "Fanelo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 798,
+   "nombre": "Tacamón",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 799,
+   "nombre": "Sadanón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 800,
+   "nombre": "Jamartín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 801,
+   "nombre": "Brunedo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 802,
+   "nombre": "Sidabón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 803,
+   "nombre": "Cavilín",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 804,
+   "nombre": "Trilimón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 805,
+   "nombre": "Zatando",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 806,
+   "nombre": "Fitorax",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 807,
+   "nombre": "Ronebón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 808,
+   "nombre": "Vevindo",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 809,
+   "nombre": "Laliro",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 810,
+   "nombre": "Momardo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 811,
+   "nombre": "Quelando",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 812,
+   "nombre": "Padato",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 813,
+   "nombre": "Tritorín",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 814,
+   "nombre": "Fatatín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 815,
+   "nombre": "Zubona",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 816,
+   "nombre": "Fifezo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 817,
+   "nombre": "Dagorzo",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 818,
+   "nombre": "Trizuchín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 819,
+   "nombre": "Ranendo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 820,
+   "nombre": "Catonón",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 821,
+   "nombre": "Lulirín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 822,
+   "nombre": "Zanebón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 823,
+   "nombre": "Drolarín",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 824,
+   "nombre": "Talichín",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 825,
+   "nombre": "Sidando",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 826,
+   "nombre": "Pamarchín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 827,
+   "nombre": "Faboñín",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 828,
+   "nombre": "Bruvimón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 829,
+   "nombre": "Patotín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 830,
+   "nombre": "Verín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 831,
+   "nombre": "Caralo",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 832,
+   "nombre": "Jarilín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 833,
+   "nombre": "Bruvina",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 834,
+   "nombre": "Sasobón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 835,
+   "nombre": "Jafero",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 836,
+   "nombre": "Natarax",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 837,
+   "nombre": "Fimarchín",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 838,
+   "nombre": "Brulido",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 839,
+   "nombre": "Zunarax",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 840,
+   "nombre": "Vegorsa",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 841,
+   "nombre": "Gutosa",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 842,
+   "nombre": "Pinamón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 843,
+   "nombre": "Zurina",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 844,
+   "nombre": "Trifeñín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 845,
+   "nombre": "Quegorñín",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 846,
+   "nombre": "Dronamón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 847,
+   "nombre": "Fato",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 848,
+   "nombre": "Sacatrón",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 849,
+   "nombre": "Rolisa",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 850,
+   "nombre": "Guvichín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 851,
+   "nombre": "Magorto",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 852,
+   "nombre": "Satochín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 853,
+   "nombre": "Janerín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 854,
+   "nombre": "Pivido",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 855,
+   "nombre": "Marichín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 856,
+   "nombre": "Zubolín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 857,
+   "nombre": "Baro",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 858,
+   "nombre": "Naboro",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 859,
+   "nombre": "Vamardo",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 860,
+   "nombre": "Rana",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 861,
+   "nombre": "Drotozo",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 862,
+   "nombre": "Crodasa",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 863,
+   "nombre": "Vagorrín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 864,
+   "nombre": "Vefero",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 865,
+   "nombre": "Sifero",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 866,
+   "nombre": "Zusoñín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 867,
+   "nombre": "Vedatín",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 868,
+   "nombre": "Gunero",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 869,
+   "nombre": "Glalando",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 870,
+   "nombre": "Catasa",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 871,
+   "nombre": "Daralín",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 872,
+   "nombre": "Trivilín",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 873,
+   "nombre": "Brucarax",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 874,
+   "nombre": "Glatoto",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 875,
+   "nombre": "Nibón",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 876,
+   "nombre": "Camardo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 877,
+   "nombre": "Vevito",
+   "tipo": "hielo",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 878,
+   "nombre": "Cacatrón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 879,
+   "nombre": "Fafena",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 880,
+   "nombre": "Marado",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 881,
+   "nombre": "Glarachín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 882,
+   "nombre": "Brundo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 883,
+   "nombre": "Pimarnón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 884,
+   "nombre": "Glatrón",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 885,
+   "nombre": "Calana",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 886,
+   "nombre": "Crovitín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 887,
+   "nombre": "Pimartín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 888,
+   "nombre": "Droboto",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 889,
+   "nombre": "Jacanón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 890,
+   "nombre": "Sasona",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 891,
+   "nombre": "Nacarín",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 892,
+   "nombre": "Nigornón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 893,
+   "nombre": "Casotín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 894,
+   "nombre": "Lazunón",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 895,
+   "nombre": "Tritomón",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 896,
+   "nombre": "Zaviñín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 897,
+   "nombre": "Luñín",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 898,
+   "nombre": "Basobón",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 899,
+   "nombre": "Salazo",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 900,
+   "nombre": "Tañín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 901,
+   "nombre": "Fasonón",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 902,
+   "nombre": "Balabón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 903,
+   "nombre": "Jariro",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 904,
+   "nombre": "Zadanón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 905,
+   "nombre": "Lararín",
+   "tipo": "fuego",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 906,
+   "nombre": "Danena",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 907,
+   "nombre": "Ficatín",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 908,
+   "nombre": "Lunedo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 909,
+   "nombre": "Romarnón",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 910,
+   "nombre": "Dalinón",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 911,
+   "nombre": "Zacabón",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 912,
+   "nombre": "Trilichín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 913,
+   "nombre": "Gumarbón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 914,
+   "nombre": "Taboro",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 915,
+   "nombre": "Zuratrón",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 916,
+   "nombre": "Jazunón",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 917,
+   "nombre": "Vana",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 918,
+   "nombre": "Ralarín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 919,
+   "nombre": "Jarirax",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 920,
+   "nombre": "Tafetrón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 921,
+   "nombre": "Nacamón",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 922,
+   "nombre": "Lubosa",
+   "tipo": "agua",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 923,
+   "nombre": "Batando",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 924,
+   "nombre": "Zabotín",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 925,
+   "nombre": "Satosa",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 926,
+   "nombre": "Jatoto",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 927,
+   "nombre": "Talasa",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 928,
+   "nombre": "Dadazo",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 929,
+   "nombre": "Bado",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 930,
+   "nombre": "Firín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 931,
+   "nombre": "Badasa",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 932,
+   "nombre": "Vafeto",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 933,
+   "nombre": "Fizundo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 934,
+   "nombre": "Fasondo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 935,
+   "nombre": "Dalirax",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 936,
+   "nombre": "Gufelín",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 937,
+   "nombre": "Cacarax",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 938,
+   "nombre": "Sifenón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 939,
+   "nombre": "Dazuro",
+   "tipo": "planta",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 940,
+   "nombre": "Zacasa",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 941,
+   "nombre": "Varo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 942,
+   "nombre": "Banatrón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 943,
+   "nombre": "Palana",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 944,
+   "nombre": "Pitarax",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 945,
+   "nombre": "Morazo",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 946,
+   "nombre": "Lararax",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 947,
+   "nombre": "Pineto",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 948,
+   "nombre": "Niferax",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 949,
+   "nombre": "Nacazo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 950,
+   "nombre": "Masa",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 951,
+   "nombre": "Vaborín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 952,
+   "nombre": "Movilín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 953,
+   "nombre": "Glanalo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 954,
+   "nombre": "Roborín",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 955,
+   "nombre": "Zarinón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 956,
+   "nombre": "Moborax",
+   "tipo": "electrico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 957,
+   "nombre": "Bruborín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 958,
+   "nombre": "Vesozo",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 959,
+   "nombre": "Gusochín",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 960,
+   "nombre": "Niratrón",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 961,
+   "nombre": "Gulilo",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 962,
+   "nombre": "Datodo",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 963,
+   "nombre": "Paneto",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 964,
+   "nombre": "Romartrón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 965,
+   "nombre": "Finanón",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 966,
+   "nombre": "Mazuzo",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 967,
+   "nombre": "Nabondo",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 968,
+   "nombre": "Crotodo",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 969,
+   "nombre": "Crogorto",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 970,
+   "nombre": "Zudando",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 971,
+   "nombre": "Ladana",
+   "tipo": "planta",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 972,
+   "nombre": "Fidatrón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 973,
+   "nombre": "Lutonón",
+   "tipo": "hielo",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 974,
+   "nombre": "Maneñín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 975,
+   "nombre": "Glanesa",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 976,
+   "nombre": "Trizunón",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 977,
+   "nombre": "Nalana",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 978,
+   "nombre": "Farindo",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 979,
+   "nombre": "Quenelín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 980,
+   "nombre": "Labotín",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 981,
+   "nombre": "Nanerax",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 982,
+   "nombre": "Falachín",
+   "tipo": "roca",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 983,
+   "nombre": "Sasorín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 984,
+   "nombre": "Crovitrón",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 985,
+   "nombre": "Quezutín",
+   "tipo": "fuego",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 986,
+   "nombre": "Nalibón",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 987,
+   "nombre": "Crobotín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 988,
+   "nombre": "Trilido",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 989,
+   "nombre": "Molimón",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 990,
+   "nombre": "Janado",
+   "tipo": "roca",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 991,
+   "nombre": "Verana",
+   "tipo": "fantasma",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 992,
+   "nombre": "Rolinón",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 993,
+   "nombre": "Larato",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 994,
+   "nombre": "Larirín",
+   "tipo": "agua",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 995,
+   "nombre": "Tritotín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 996,
+   "nombre": "Caferín",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 997,
+   "nombre": "Nanetín",
+   "tipo": "hielo",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 998,
+   "nombre": "Pimón",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 999,
+   "nombre": "Satazo",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1000,
+   "nombre": "Panachín",
+   "tipo": "psiquico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1001,
+   "nombre": "Nanena",
+   "tipo": "fuego",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1002,
+   "nombre": "Mavindo",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1003,
+   "nombre": "Madarín",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1004,
+   "nombre": "Cacalo",
+   "tipo": "electrico",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1005,
+   "nombre": "Vecañín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1006,
+   "nombre": "Calachín",
+   "tipo": "roca",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1007,
+   "nombre": "Valitrón",
+   "tipo": "fantasma",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1008,
+   "nombre": "Lucato",
+   "tipo": "psiquico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1009,
+   "nombre": "Rotaro",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1010,
+   "nombre": "Bañín",
+   "tipo": "agua",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1011,
+   "nombre": "Trigormón",
+   "tipo": "planta",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1012,
+   "nombre": "Dadato",
+   "tipo": "electrico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1013,
+   "nombre": "Vazundo",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1014,
+   "nombre": "Sidachín",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1015,
+   "nombre": "Palido",
+   "tipo": "fantasma",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1016,
+   "nombre": "Drorimón",
+   "tipo": "psiquico",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1017,
+   "nombre": "Zulalín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1018,
+   "nombre": "Sizusa",
+   "tipo": "agua",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1019,
+   "nombre": "Veferín",
+   "tipo": "planta",
+   "rareza": 3,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1020,
+   "nombre": "Roratrón",
+   "tipo": "electrico",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1021,
+   "nombre": "Roliñín",
+   "tipo": "hielo",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1022,
+   "nombre": "Canaro",
+   "tipo": "roca",
+   "rareza": 2,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1023,
+   "nombre": "Dafechín",
+   "tipo": "fantasma",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1024,
+   "nombre": "Masorax",
+   "tipo": "psiquico",
+   "rareza": null,
+   "legendaria": true,
+   "imagen": null,
+   "imagenShiny": null
+  },
+  {
+   "id": 1025,
+   "nombre": "Glaritín",
+   "tipo": "fuego",
+   "rareza": 1,
+   "legendaria": false,
+   "imagen": null,
+   "imagenShiny": null
+  }
+ ]
+}

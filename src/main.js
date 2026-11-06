@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import { installErrorHandlers, logError, showFatal } from './core/errors.js';
 import { W, H, DEBUG } from './config.js';
 import { audio } from './audio/audio.js';
+import { loadPack } from './data/pack.js';
 import BootScene from './scenes/BootScene.js';
 import TitleScene from './scenes/TitleScene.js';
 import GameScene from './scenes/GameScene.js';
@@ -33,9 +34,10 @@ function start() {
 }
 
 // Esperamos a la fuente pixel para que el texto no salga con la tipografía de reserva.
-document.fonts
-  .load('8px "Press Start 2P"')
-  .catch((err) => logError('font', err))
+Promise.all([
+  document.fonts.load('8px "Press Start 2P"').catch((err) => logError('font', err)),
+  loadPack().catch((err) => logError('pack', err))
+])
   .finally(() => {
     try {
       start();

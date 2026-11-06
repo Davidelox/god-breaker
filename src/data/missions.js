@@ -1,12 +1,13 @@
 // Misiones de captura y de progreso. Cada una calcula su avance a partir del guardado
 // (y de la partida en curso, si se pasa `run`). Las recompensas se definirán más adelante.
-import { CREATURES } from './creatures.js';
+import { CREATURES, LEGENDARIES } from './creatures.js';
 import { TYPES, TYPE_ORDER } from './types.js';
 
 const caughtList = (d) => CREATURES.filter((c) => d.collection[c.id]);
 const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-const capture = [
+function buildCapture() {
+  return [
   ...[10, 25, 50, 100, 250].map((n) => ({
     id: `cap_${n}`, title: `Captura ${n} bestias`, target: n, progress: (d) => d.stats.captures
   })),
@@ -21,10 +22,11 @@ const capture = [
     progress: (d) => caughtList(d).filter((c) => c.type === t && !c.legendary).length
   })),
   { id: 'legend_1', title: 'Captura un legendario', target: 1, progress: (d) => caughtList(d).filter((c) => c.legendary).length },
-  { id: 'legend_all', title: 'Captura los 8 legendarios', target: 8, progress: (d) => caughtList(d).filter((c) => c.legendary).length },
+  { id: 'legend_all', title: `Captura los ${LEGENDARIES.length} legendarios`, target: Math.max(1, LEGENDARIES.length), progress: (d) => caughtList(d).filter((c) => c.legendary).length },
   { id: 'shiny_1', title: 'Captura una shiny', target: 1, progress: (d) => d.stats.shinies },
   { id: 'shiny_5', title: 'Captura 5 shiny', target: 5, progress: (d) => d.stats.shinies }
 ].map((m) => ({ ...m, cat: 'captura' }));
+}
 
 const progress = [
   ...[5000, 20000, 50000].map((n) => ({
@@ -47,7 +49,19 @@ const progress = [
   { id: 'games_10', title: 'Juega 10 partidas', target: 10, progress: (d) => d.stats.games }
 ].map((m) => ({ ...m, cat: 'progreso' }));
 
-export const MISSIONS = [...capture, ...progress];
+export const MISSIONS = [];
+
+/** (Re)calcula las misiones según el catálogo actual (p. ej. tras cargar un pack). */
+export function buildMissions() {
+  const list = [...buildCapture(), ...progress].filter(
+    // Fuera las misiones imposibles (p. ej. «50 distintas» con un catálogo de 40)
+    (m) => m.target > 0 && !(m.id.startsWith('uniq_') && m.id !== 'uniq_all' && m.target > CREATURES.length)
+  );
+  MISSIONS.length = 0;
+  MISSIONS.push(...list);
+}
+
+buildMissions();
 
 export function missionProgress(m, data, run) {
   return Math.min(m.target, Math.max(0, m.progress(data, run) || 0));

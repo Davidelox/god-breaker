@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { W, H, RARITY_NAMES } from '../config.js';
 import { CREATURES } from '../data/creatures.js';
 import { TYPES, hexToNum } from '../data/types.js';
-import { creatureKey } from '../gfx/sprites.js';
+import { addCreatureImage } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, COLORS } from '../gfx/ui.js';
 
 const GRID_COLS = 5;
@@ -37,6 +37,11 @@ export default class CollectionScene extends Phaser.Scene {
     this.pageText = text(this, W / 2, H - 70, '', 8, '#a8b4cc').setOrigin(0.5);
     makeButton(this, W / 2 - 80, H - 70, 50, 26, '<', () => this.go(-1), { size: 16 });
     makeButton(this, W / 2 + 80, H - 70, 50, 26, '>', () => this.go(1), { size: 16 });
+    // Saltos de 10 páginas para catálogos grandes
+    if (this.pages > 10) {
+      makeButton(this, W / 2 - 140, H - 70, 50, 26, '<<', () => this.go(-10));
+      makeButton(this, W / 2 + 140, H - 70, 50, 26, '>>', () => this.go(10));
+    }
     this.input.keyboard?.on('keydown-LEFT', () => this.go(-1));
     this.input.keyboard?.on('keydown-RIGHT', () => this.go(1));
     this.drawGrid();
@@ -50,7 +55,7 @@ export default class CollectionScene extends Phaser.Scene {
   }
 
   go(d) {
-    this.page = (this.page + d + this.pages) % this.pages;
+    this.page = (((this.page + d) % this.pages) + this.pages) % this.pages;
     this.drawGrid();
   }
 
@@ -69,7 +74,7 @@ export default class CollectionScene extends Phaser.Scene {
         g.lineStyle(2, COLORS.gold);
         g.strokeRect(cx - CELL_W / 2 + 3, cy - CELL_H / 2 + 3, CELL_W - 6, CELL_H - 6);
       }
-      const img = this.add.image(cx, cy - 6, creatureKey(c.id, this.showShiny)).setScale(c.legendary ? 2 : 2.5);
+      const img = addCreatureImage(this, cx, cy - 6, c.id, this.showShiny, c.legendary ? 2 : 2.5);
       if (!owned) img.setTint(0x000000).setAlpha(0.7);
       const num = text(this, cx, cy + CELL_H / 2 - 10, `#${String(c.id).padStart(2, '0')}`, 8, owned ? '#f8f8f8' : '#56607c').setOrigin(0.5);
       // Contador de capturas de esta bestia (o de su versión shiny)
@@ -92,7 +97,7 @@ export default class CollectionScene extends Phaser.Scene {
     layer.add([dim, panel]);
     const known = !!entry;
     const shinyOwned = entry?.shinyCount > 0;
-    const img = this.add.image(W / 2, 230, creatureKey(c.id, this.showShiny && shinyOwned)).setScale(6);
+    const img = addCreatureImage(this, W / 2, 230, c.id, this.showShiny && shinyOwned, 6);
     if (!known) img.setTint(0x000000);
     layer.add(img);
     const t = TYPES[c.type];

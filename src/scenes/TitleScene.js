@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { W, H } from '../config.js';
 import { VERSION } from '../version.js';
 import { CREATURES } from '../data/creatures.js';
-import { creatureKey } from '../gfx/sprites.js';
+import { addCreatureImage } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, makeAudioToggles, COLORS } from '../gfx/ui.js';
 import { pick } from '../core/rng.js';
 
@@ -22,7 +22,7 @@ export default class TitleScene extends Phaser.Scene {
     // Desfile de criaturas
     const shown = [0, 1, 2].map(() => pick(CREATURES));
     shown.forEach((c, i) => {
-      const img = this.add.image(W / 2 + (i - 1) * 80, 250, creatureKey(c.id, false)).setScale(c.legendary ? 3 : 4);
+      const img = addCreatureImage(this, W / 2 + (i - 1) * 80, 250, c.id, false, c.legendary ? 3 : 4);
       this.tweens.add({ targets: img, y: 244, duration: 500 + i * 120, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     });
 

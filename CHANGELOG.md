@@ -5,6 +5,22 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-06
+
+### Added
+- Sistema de packs de contenido en `public/pack/` (explicado en `public/pack/LEEME.md`):
+  - `criaturas.json`: catálogo de criaturas (id, nombre, tipo, rareza, legendaria y PNG opcionales normal y shiny).
+  - `bolas.json`: nombre e imagen PNG opcional de las bolas normal, super y ultra.
+  - Las entradas con errores se ignoran y quedan anotadas en el registro de errores. Si falta el pack, se usa el contenido por defecto.
+  - Las imágenes del pack se encajan al tamaño de los sprites. Si una criatura tiene imagen pero no `imagenShiny`, su shiny se obtiene cambiando los colores.
+- Pack provisional de 1025 criaturas (64 legendarias, 8 por tipo) con nombres inventados y sin imágenes, y 3 bolas. Las 72 primeras son las actuales con el mismo id, así que los guardados siguen valiendo.
+- `scripts/generate-pack.mjs` para regenerar el pack provisional (`node scripts/generate-pack.mjs 1025`).
+- Colección: botones `<<` y `>>` para saltar de 10 en 10 páginas cuando hay muchas.
+
+### Changed
+- Las texturas de criaturas se crean bajo demanda en lugar de todas al arrancar, para que el inicio siga siendo rápido con más de 1000 criaturas.
+- Las misiones se recalculan según el catálogo cargado. Se ocultan las imposibles, por ejemplo «50 distintas» con un catálogo menor.
+
 ## [0.18.1] - 2026-11-06
 
 ### Changed
