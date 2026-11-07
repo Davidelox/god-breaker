@@ -5,6 +5,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Pantalla
+- iPhone: la parte de arriba ya no queda tapada por la isla dinámica o la muesca. La zona segura se mide cuando la página ya está maquetada (el juego se carga desde src/app.js después del primer fotograma), y si iOS aún la da como 0 en el modo pantalla completa se usan 59 px arriba y 34 abajo.
+
 ### Orbes e impactos
 - Estela tipo cometa: en lugar de una sola sombra, cuatro copias del orbe cada vez más pequeñas y transparentes siguen su recorrido (también en los rebotes), formando una cola continua y suave. Ajustable con GHOSTS en GameScene.js.
 - Al rebotar en un bloque se marca el punto exacto de contacto con un pequeño destello en su borde.

@@ -1,49 +1,16 @@
 import '@fontsource/press-start-2p';
-import Phaser from 'phaser';
 import { installErrorHandlers, logError, showFatal } from './core/errors.js';
-import { W, FULL_H, MOBILE, DEBUG } from './config.js';
-import { audio } from './audio/audio.js';
-import { loadPack } from './data/pack.js';
-import BootScene from './scenes/BootScene.js';
-import TitleScene from './scenes/TitleScene.js';
-import GameScene from './scenes/GameScene.js';
-import CollectionScene from './scenes/CollectionScene.js';
-import GuideScene from './scenes/GuideScene.js';
-import MissionsScene from './scenes/MissionsScene.js';
 
 installErrorHandlers();
 
-// Los navegadores solo permiten audio después de una interacción del usuario.
-const unlockAudio = () => audio.unlock();
-window.addEventListener('pointerdown', unlockAudio, { passive: true });
-window.addEventListener('keydown', unlockAudio);
-
-function start() {
-  const game = new Phaser.Game({
-    type: Phaser.AUTO,
-    parent: 'game',
-    width: W,
-    height: FULL_H,
-    backgroundColor: '#0c1020',
-    pixelArt: true,
-    // En el móvil el lienzo tiene la proporción de la pantalla y la cubre entera (ENVELOP: sin franjas);
-    // en escritorio se encaja (FIT).
-    scale: { mode: MOBILE ? Phaser.Scale.ENVELOP : Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    input: { activePointers: 2 },
-    scene: [BootScene, TitleScene, GameScene, CollectionScene, GuideScene, MissionsScene]
-  });
-  if (DEBUG || import.meta.env.DEV) window.__game = game;
-}
-
-// Esperamos a la fuente pixel para que el texto no salga con la tipografía de reserva.
+// El juego (y config.js, que mide la pantalla) se carga cuando la fuente pixel está lista y la
+// página ya se ha maquetado: en el iPhone la zona segura (env(safe-area-inset-*)) puede valer 0
+// en los primeros instantes y entonces la parte de arriba quedaría tapada por la isla.
+const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 Promise.all([
   document.fonts.load('8px "Press Start 2P"').catch((err) => logError('font', err)),
-  loadPack().catch((err) => logError('pack', err))
+  nextFrame().then(nextFrame)
 ])
-  .finally(() => {
-    try {
-      start();
-    } catch (err) {
-      showFatal(logError('boot', err));
-    }
-  });
+  .then(() => import('./app.js'))
+  .then((app) => app.boot())
+  .catch((err) => showFatal(logError('boot', err)));

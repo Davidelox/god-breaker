@@ -26,6 +26,14 @@ function screenInfo() {
     const cs = getComputedStyle(probe);
     let top = parseFloat(cs.paddingTop) || 0, bottom = parseFloat(cs.paddingBottom) || 0;
     probe.remove();
+    // Reserva: en el iPhone abierto desde el icono (pantalla completa), si iOS aún no da la zona
+    // segura se usan las medidas de los iPhone con muesca o isla (59 px arriba, 34 abajo).
+    const ios = /iPhone|iPod/.test(globalThis.navigator?.userAgent ?? '');
+    const standalone = globalThis.navigator?.standalone || globalThis.matchMedia?.('(display-mode: standalone)').matches;
+    if (ios && standalone && h / w >= 2) {
+      if (top < 20) top = 59;
+      if (bottom < 20) bottom = 34;
+    }
     // Prueba: ?safe=59,34 simula la zona segura de un iPhone (arriba, abajo) en el navegador
     const sim = params.get('safe')?.split(',').map(Number);
     if (sim?.length === 2 && sim.every((v) => v >= 0)) [top, bottom] = sim;
