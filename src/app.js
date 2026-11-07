@@ -2,7 +2,7 @@
 // config.js mida bien la pantalla y la zona segura del móvil.
 import Phaser from 'phaser';
 import { logError } from './core/errors.js';
-import { W, FULL_H, MOBILE, DEBUG } from './config.js';
+import { W, FULL_H, MOBILE, DEBUG, SAFE_TOP, SCALE_K, measureSafeArea } from './config.js';
 import { audio } from './audio/audio.js';
 import { loadPack } from './data/pack.js';
 import BootScene from './scenes/BootScene.js';
@@ -38,4 +38,25 @@ export function start() {
 export async function boot() {
   await loadPack().catch((err) => logError('pack', err));
   start();
+  recheckSafeArea();
+}
+
+/**
+ * En el iPhone la zona segura puede llegar tarde. Si al poco de arrancar resulta mayor que la que
+ * se usó (el menú quedaría bajo la isla), se recarga la página una vez para recolocarlo todo.
+ */
+function recheckSafeArea() {
+  if (!MOBILE) return;
+  setTimeout(() => {
+    try {
+      const top = Math.round(measureSafeArea().top * SCALE_K);
+      const key = 'godbreaker.safeReload';
+      if (top > SAFE_TOP + 6 && !sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1');
+        location.reload();
+      }
+    } catch {
+      /* sin sessionStorage o sin medida: se deja como está */
+    }
+  }, 700);
 }

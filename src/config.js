@@ -10,6 +10,27 @@ const params = new URLSearchParams(globalThis.location?.search ?? '');
 // y el inferior (BOTTOM_EXTRA) de la partida.
 export const BASE_W = 360;
 export const BASE_H = 640;
+/** Zona segura (muesca / isla y barra de inicio) en px de CSS, según env(safe-area-inset-*). */
+export function measureSafeArea() {
+  const doc = globalThis.document;
+  if (!doc?.body) return { top: 0, bottom: 0 };
+  const probe = doc.createElement('div');
+  probe.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
+  doc.body.appendChild(probe);
+  const cs = getComputedStyle(probe);
+  const top = parseFloat(cs.paddingTop) || 0, bottom = parseFloat(cs.paddingBottom) || 0;
+  probe.remove();
+  return { top, bottom };
+}
+
+/** ¿Es un iPhone con el juego abierto desde el icono de la pantalla de inicio? */
+export function iosHomeScreenApp() {
+  const nav = globalThis.navigator;
+  if (!/iPhone|iPod/.test(nav?.userAgent ?? '')) return false;
+  const mm = (q) => !!globalThis.matchMedia?.(q).matches;
+  return !!nav.standalone || mm('(display-mode: standalone)') || mm('(display-mode: fullscreen)');
+}
+
 function screenInfo() {
   const desktop = { mobile: false };
   try {
@@ -19,20 +40,13 @@ function screenInfo() {
     const w = el?.clientWidth || globalThis.innerWidth, h = el?.clientHeight || globalThis.innerHeight;
     const touch = globalThis.matchMedia?.('(pointer: coarse)').matches;
     if (!w || !h || !touch || Math.min(w, h) > 600) return desktop;
-    // Márgenes de la zona segura (muesca / isla y barra de inicio), en px de CSS
-    const probe = doc.createElement('div');
-    probe.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
-    doc.body.appendChild(probe);
-    const cs = getComputedStyle(probe);
-    let top = parseFloat(cs.paddingTop) || 0, bottom = parseFloat(cs.paddingBottom) || 0;
-    probe.remove();
-    // Reserva: en el iPhone abierto desde el icono (pantalla completa), si iOS aún no da la zona
-    // segura se usan las medidas de los iPhone con muesca o isla (59 px arriba, 34 abajo).
-    const ios = /iPhone|iPod/.test(globalThis.navigator?.userAgent ?? '');
-    const standalone = globalThis.navigator?.standalone || globalThis.matchMedia?.('(display-mode: standalone)').matches;
-    if (ios && standalone && h / w >= 2) {
-      if (top < 20) top = 59;
-      if (bottom < 20) bottom = 34;
+    let { top, bottom } = measureSafeArea();
+    // Reserva: en el iPhone abierto desde el icono (pantalla completa) el juego se dibuja también
+    // bajo la isla / muesca. iOS no siempre da bien la zona segura al arrancar, así que se reserva
+    // como mínimo lo que ocupan en los iPhone actuales: 59 px arriba y 34 abajo.
+    if (iosHomeScreenApp() && h / w >= 2) {
+      top = Math.max(top, 59);
+      bottom = Math.max(bottom, 34);
     }
     // Prueba: ?safe=59,34 simula la zona segura de un iPhone (arriba, abajo) en el navegador
     const sim = params.get('safe')?.split(',').map(Number);
@@ -46,6 +60,7 @@ const S = screenInfo();
 // Unidades lógicas por px: que quepan 360 de ancho y 640 de alto útil
 const K = S.mobile ? Math.max(BASE_W / S.w, BASE_H / Math.max(1, S.h - S.top - S.bottom)) : 1;
 export const MOBILE = S.mobile;
+export const SCALE_K = K; // unidades lógicas por px de CSS (para volver a medir la zona segura)
 export const W = S.mobile ? Math.round(S.w * K) : BASE_W;
 export const FULL_H = S.mobile ? Math.round(S.h * K) : BASE_H;
 export const SAFE_TOP = S.mobile ? Math.round(S.top * K) : 0;

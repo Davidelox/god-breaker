@@ -6,6 +6,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 ## [Unreleased]
 
 ### Pantalla
+- iPhone (acceso directo): se reservan siempre como mínimo 59 px arriba y 34 abajo para la isla / muesca y la barra de inicio, también cuando la app se abre en modo pantalla completa; si al poco de arrancar iOS da una zona segura mayor, la página se recarga una vez para recolocarlo todo. El manifiesto pasa a display «standalone», el modo que mejor soporta iOS.
+
+### Pantalla
 - iPhone: la parte de arriba ya no queda tapada por la isla dinámica o la muesca. La zona segura se mide cuando la página ya está maquetada (el juego se carga desde src/app.js después del primer fotograma), y si iOS aún la da como 0 en el modo pantalla completa se usan 59 px arriba y 34 abajo.
 
 ### Orbes e impactos

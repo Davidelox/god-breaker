@@ -4,7 +4,7 @@
   "description": "Pixel art brick breaker: defeat and capture mythological beasts and gods.",
   "start_url": "./",
   "scope": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0c1020",
   "theme_color": "#0c1020",
