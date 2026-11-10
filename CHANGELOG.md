@@ -5,6 +5,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Pantalla
+- iPhone (acceso directo): si iOS coloca la página bajo la barra de estado (más baja que la pantalla), ya no se reservan otra vez los 59 px de la isla. Esa doble reserva estrechaba el alto útil, así que el juego se ensanchaba (franjas a los lados del tablero) y sobraba espacio abajo.
+
 ### Avisos
 - Los letreros de información de arriba (explicación de los hechizos y demás avisos) duran 1 segundo más (2,1 s) y se desvanecen poco a poco en lugar de desaparecer de golpe.
 

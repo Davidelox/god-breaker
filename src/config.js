@@ -44,7 +44,12 @@ function screenInfo() {
     // Reserva: en el iPhone abierto desde el icono (pantalla completa) el juego se dibuja también
     // bajo la isla / muesca. iOS no siempre da bien la zona segura al arrancar, así que se reserva
     // como mínimo lo que ocupan en los iPhone actuales: 59 px arriba y 34 abajo.
-    if (iosHomeScreenApp() && h / w >= 2) {
+    // Solo si la página ocupa de verdad toda la pantalla: si iOS la coloca bajo la barra de estado
+    // (la página es más baja que la pantalla), esa zona ya queda fuera y reservarla otra vez
+    // estrechaba el alto útil, dejando franjas a los lados y espacio de sobra abajo.
+    const screenH = Math.max(globalThis.screen?.width ?? 0, globalThis.screen?.height ?? 0) || h;
+    const fullScreen = screenH - h < 30;
+    if (iosHomeScreenApp() && h / w >= 2 && fullScreen) {
       top = Math.max(top, 59);
       bottom = Math.max(bottom, 34);
     }
