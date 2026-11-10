@@ -8,7 +8,7 @@ const params = new URLSearchParams(globalThis.location?.search ?? '');
 // cámara SAFE_TOP hacia abajo (ver fitCamera en gfx/ui.js). En escritorio todo queda en 360x640.
 // El tablero mide siempre lo mismo: el alto extra se reparte entre el menú superior (HUD_EXTRA)
 // y el inferior (BOTTOM_EXTRA) de la partida.
-export const BASE_W = 360;
+export const BASE_W = 336; // = COLS * CELL: el tablero ocupa todo el ancho y la cuadrícula son cuadrados exactos
 export const BASE_H = 640;
 /** Zona segura (muesca / isla y barra de inicio) en px de CSS, según env(safe-area-inset-*). */
 export function measureSafeArea() {
@@ -70,6 +70,7 @@ export const EXTRA_H = H - BASE_H;
 export const HUD_EXTRA = Math.round(EXTRA_H * 0.45);
 export const BOTTOM_EXTRA = EXTRA_H - HUD_EXTRA;
 export const FONT = '"Press Start 2P", monospace';
+export const BODY_FONT = '"VT323", monospace'; // texto largo (guía, consejos): pixel art más legible
 
 // Tablero
 export const COLS = 7;
@@ -79,27 +80,40 @@ export const BOARD_X = (W - COLS * CELL) / 2;
 export const BOARD_TOP = 64 + HUD_EXTRA;
 export const BOARD_BOTTOM = BOARD_TOP + ROWS * CELL;
 export const BOARD_RIGHT = BOARD_X + COLS * CELL;
+// Paredes de los rebotes: los bordes del tablero, que en pantallas normales son los de la pantalla
+// (BASE_W = COLS * CELL). En pantallas más anchas el tablero queda centrado.
+export const WALL_L = BOARD_X;
+export const WALL_R = BOARD_RIGHT;
 // El disparo sale desde la línea de derrota (arriba de la última fila). Las bolas vuelven a esa línea.
 export const LAUNCH_Y = BOARD_TOP + (ROWS - 1) * CELL;
 // Borde inferior visible del tablero: incluye la fila vacía bajo la línea de derrota.
 export const BOARD_FLOOR_Y = BOARD_BOTTOM + 6;
 
 // Bolas
-export const BALL_R = 6;
-export const WATER_BALL_R = BALL_R + 2; // bolas algo más grandes con el especial de agua
+export const BALL_R = 8; // radio del orbe (sprite de 8 px a escala 2: píxeles nítidos)
+export const WATER_BALL_R = 12; // orbes más grandes con Maremoto (escala 3); MAX: 14
 export const BALL_TEXTURE_R = 4; // radio del sprite 'ball' (8x8 px); se escala según el radio real
 export const SPAWN_ROW = 1; // la fila 0 (arriba del todo) siempre queda vacía
-export const BALL_SPEED = 620;
+export const BALL_SPEED = 470; // px/s a x1 (antes 620: se sentía demasiado rápido)
 export const START_BALLS = 1;
-export const LAUNCH_DELAY = 115; // ms entre orbes a x1: separación de ~70 px (crece con la velocidad, ver SPACING_GROWTH)
+export const LAUNCH_DELAY = 150; // ms entre orbes a x1: separación de ~70 px (crece con la velocidad, ver SPACING_GROWTH)
 export const SPEEDS = [1, 1.5, 2, 3, 4]; // velocidades del botón de velocidad
-// (Las esquinas de los bloques son redondeadas en la física: ver CORNER_R en GameScene.js)
+// Rebotes: tras cada rebote el orbe sale más lento y acelera hasta su velocidad (BOUNCE_SLOW / BOUNCE_RECOVER).
+export const BOUNCE_SLOW = 0.55; // velocidad justo después del rebote (fracción de la normal)
+export const BOUNCE_RECOVER = 6; // rapidez de la aceleración de vuelta (1/s): ~0,35 s hasta la velocidad normal
+// Golpe en la esquina de un bloque: desvío aleatorio del ángulo de salida, casi siempre pequeño.
+export const CORNER_JITTER = (12 * Math.PI) / 180;
 export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sale en vertical pura
 
 // Contenido
 export const CREATURE_CHANCE = 0.11; // probabilidad de que un bloque nuevo sea una bestia
+// Las criaturas ya capturadas salen con este peso frente a 1 de las que faltan (la mitad de
+// probabilidad): se completa antes la colección, pero sin que deje de salir lo ya capturado.
+export const CAUGHT_WEIGHT = 0.5;
 export const CREATURE_FROM_TURN = 5; // en los 4 primeros turnos no salen bestias (los dioses van aparte)
-export const BOSS_EVERY = 8; // un legendario cada 10 turnos
+export const BOSS_EVERY = 8; // un dios cada 8 turnos
+export const GOD_W = 3; // los dioses ocupan 3x2 casillas
+export const GOD_H = 2;
 export const SHINY_RATE = params.has('shiny') || params.has('gold') ? 0.25 : 0.03; // probabilidad base de la versión dorada (gold)
 export const SHINY_BOOST_RATE = 0.11; // probabilidad de gold con el medidor gold lleno
 export const SHINY_BOOST_TURNS = 3;
@@ -115,7 +129,20 @@ export const CREATURE_HP_PER_RARITY = 0.02; // ...y +2 % por cada nivel de rarez
 export const BALLS_PER_TURN = 1; // munición que se gana automáticamente cada ronda
 export const PICKUP_CHANCE = 0.5; // probabilidad de que salga una bola extra +1 cuando está permitido
 export const PICKUP_COOLDOWN = 2; // tiradas que deben pasar tras recoger la bola extra antes de que salga otra
-export const ROW_GROWTH_TURNS = 5; // cada cuántos turnos cabe un bloque más por fila
+// Bloques por fila nueva según la fase de la partida: [cantidad, peso]. Crece con los turnos.
+export const ROW_BLOCKS_BY_TURN = [
+  { upTo: 5, weights: [[3, 60], [4, 40]] }, // turnos 1-5: media 3,4
+  { upTo: 15, weights: [[3, 25], [4, 35], [5, 30], [6, 10]] }, // turnos 6-15: media 4,25
+  { upTo: Infinity, weights: [[3, 15], [4, 30], [5, 35], [6, 20]] } // turno 16 en adelante: media 4,6
+];
+/** Pesos de bloques por fila para el turno t. */
+export const rowBlocksFor = (t) => ROW_BLOCKS_BY_TURN.find((p) => t <= p.upTo).weights;
+// Magia que da cada bloque roto (SPECIAL_COST = 100 para un hechizo)
+export const MAGIC_GAIN = { plain: 4, creature: 10, boss: 40 };
+// Rareza de las bestias que salen: [rareza, peso] (común 50 %, poco común 30 %, rara 20 %)
+export const RARITY_WEIGHTS = [[1, 50], [2, 30], [3, 20]];
+// En un lanzamiento con hechizo, lo que suma al medidor gold se reduce a la mitad
+export const SHINY_MAGIC_FACTOR = 0.5;
 export const BOSS_HP = (turn) => 20 + turn * 8;
 export const RARITY_NAMES = { 1: 'Common', 2: 'Uncommon', 3: 'Rare', 4: 'Legendary' };
 

@@ -4,9 +4,9 @@ import { SPECIALS } from './specials.js';
 
 export const BALL_TYPES = {
   // fill: color del botón; trail: color de la estela; tint: color del cristal de captura
-  normal: { id: 'normal', name: 'Common', fill: 0xc8f4f8, trail: 0x4ce0e8, tint: null, rates: { normal: 0.4, legendary: 0.1 } },
-  super: { id: 'super', name: 'Runic', fill: 0xdcc8ff, trail: 0xa070f0, tint: 0xc0a0ff, rates: { normal: 0.7, legendary: 0.3 } },
-  ultra: { id: 'ultra', name: 'Divine', fill: 0xffe070, trail: 0xffd84a, tint: 0xffe070, rates: { normal: 0.9, legendary: 0.5 } }
+  normal: { id: 'normal', name: 'Common', fill: 0xc8f4f8, trail: 0x4ce0e8, tint: null, rates: { normal: 0.6, legendary: 0.25 } },
+  super: { id: 'super', name: 'Runic', fill: 0xdcc8ff, trail: 0xa070f0, tint: 0xc0a0ff, rates: { normal: 0.75, legendary: 0.4 } },
+  ultra: { id: 'ultra', name: 'Divine', fill: 0xffe070, trail: 0xffd84a, tint: 0xffe070, rates: { normal: 0.9, legendary: 0.6 } }
 };
 
 export const BALL_ORDER = ['normal', 'super', 'ultra'];

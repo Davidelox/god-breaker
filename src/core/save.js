@@ -11,8 +11,10 @@ export function defaultSave() {
     bestScore: 0,
     collection: {}, // id -> { count, shinyCount, firstAt }
     stats: { games: 0, captures: 0, shinies: 0, bossKills: 0, clears: 0, powersUsed: 0, bestTurn: 0 },
+    seen: [], // ids de las criaturas que ya han salido alguna vez en una partida (vistas)
     missions: {}, // id de misión -> fecha en que se completó (las recompensas llegarán más adelante)
-    settings: { speed: 1, music: true, sfx: true, grid: false, haptics: true }
+    settings: { speed: 1, music: true, sfx: true, grid: false, haptics: true, lang: 'en' },
+    tutorial: { off: false, seen: [] } // consejos de la primera partida ya vistos (o desactivados)
   };
 }
 
@@ -51,14 +53,19 @@ export function sanitize(s, validIds) {
   for (const key of Object.keys(defaultSave().stats)) out.stats[key] = nonNegInt(stats[key]);
   const missions = s.missions && typeof s.missions === 'object' ? s.missions : {};
   for (const [id, at] of Object.entries(missions)) if (typeof at === 'string') out.missions[id] = at;
+  const seenIds = Array.isArray(s.seen) ? s.seen.map(Number).filter((id) => Number.isInteger(id) && (!validIds || validIds.has(id))) : [];
+  out.seen = [...new Set(seenIds)];
   const speed = s.settings?.speed;
   out.settings = {
     speed: SPEEDS.includes(speed) ? speed : 1,
     music: s.settings?.music !== false,
     sfx: s.settings?.sfx !== false,
     grid: s.settings?.grid === true,
-    haptics: s.settings?.haptics !== false
+    haptics: s.settings?.haptics !== false,
+    lang: s.settings?.lang === 'es' ? 'es' : 'en'
   };
+  const seen = Array.isArray(s.tutorial?.seen) ? s.tutorial.seen.filter((t) => typeof t === 'string') : [];
+  out.tutorial = { off: s.tutorial?.off === true, seen: [...new Set(seen)] };
   const col = s.collection && typeof s.collection === 'object' ? s.collection : {};
   for (const [id, e] of Object.entries(col)) {
     if (validIds && !validIds.has(Number(id))) continue;
@@ -170,11 +177,43 @@ export class SaveStore {
     return isBest;
   }
 
-  /** Borra capturas, misiones, récord y estadísticas. Mantiene los ajustes. */
+  /** ¿Ha salido ya esta criatura en alguna partida? (las capturadas cuentan como vistas) */
+  isSeen(id) {
+    return this.data.seen.includes(Number(id)) || !!this.data.collection[id];
+  }
+
+  /** Marca una criatura como vista. Devuelve true si es la primera vez. */
+  markSeen(id) {
+    if (this.isSeen(id)) return false;
+    this.data.seen.push(Number(id));
+    this.write();
+    return true;
+  }
+
+  /** ¿Hay que mostrar este consejo del tutorial? */
+  wantsTip(id) {
+    const t = this.data.tutorial;
+    return !t.off && !t.seen.includes(id);
+  }
+
+  markTip(id) {
+    if (!this.data.tutorial.seen.includes(id)) this.data.tutorial.seen.push(id);
+    this.write();
+  }
+
+  /** Desactiva el resto de consejos del tutorial. */
+  skipTips() {
+    this.data.tutorial.off = true;
+    this.write();
+  }
+
+  /** Borra capturas, misiones, récord y estadísticas. Mantiene los ajustes y el tutorial visto. */
   resetProgress() {
     const settings = this.data.settings;
+    const tutorial = this.data.tutorial;
     this.data = defaultSave();
     this.data.settings = settings;
+    this.data.tutorial = tutorial;
     return this.write();
   }
 

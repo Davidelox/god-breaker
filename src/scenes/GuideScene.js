@@ -9,7 +9,8 @@ import { TYPES, hexToNum } from '../data/types.js';
 import { SPECIALS, ELEMENTS } from '../data/specials.js';
 import { BALL_TYPES, BALL_ORDER } from '../data/balls.js';
 import { addCreatureImage } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, drawPanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { text, bodyText, makeButton, makePanel, drawPanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { t as tr } from '../i18n.js';
 
 const INK = COLORS.inkHex;
 const SOFT = '#56607c';
@@ -56,7 +57,7 @@ export default class GuideScene extends Phaser.Scene {
     this.layer.removeAll(true);
     this.tweens.killAll();
     const [name, draw] = this.pages[this.page];
-    this.title.setText(name);
+    this.title.setText(tr(name));
     this.counter.setText(`${this.page + 1} / ${this.pages.length}`);
     draw();
   }
@@ -69,16 +70,16 @@ export default class GuideScene extends Phaser.Scene {
 
   label(x, y, str, color = INK, size = 8, origin = 0.5) {
     const opts = origin === 0 ? { align: 'left', wordWrap: { width: W - x - 24 } } : { wordWrap: { width: W - 60 } };
-    return this.add2(text(this, x, y, str, size, color, opts).setOrigin(origin, 0.5));
+    return this.add2(bodyText(this, x, y, str, size, color, opts).setOrigin(origin, 0.5));
   }
 
-  block(x, y, size, color, hp, creature, shiny = false, spriteScale = null) {
-    const objs = [this.add.rectangle(x, y, size, size, color).setStrokeStyle(2, creature?.legendary ? COLORS.gold : 0x101828)];
+  block(x, y, size, color, hp, creature, shiny = false, spriteScale = null, height = size) {
+    const objs = [this.add.rectangle(x, y, size, height, color).setStrokeStyle(2, creature?.legendary ? COLORS.gold : 0x101828)];
     if (creature) {
-      objs.push(addCreatureImage(this, x, y - size * 0.08, creature.id, shiny, spriteScale ?? (creature.legendary ? 3 : 2)));
+      objs.push(addCreatureImage(this, x, y - height * 0.08, creature.id, shiny, spriteScale ?? (creature.legendary ? 3 : 2)));
     }
     if (hp != null) {
-      objs.push(text(this, x, creature ? y + size / 2 - 9 : y, String(hp), 8).setOrigin(0.5).setStroke('#101828', 3));
+      objs.push(text(this, x, creature ? y + height / 2 - 9 : y, String(hp), 8).setOrigin(0.5).setStroke('#101828', 3));
     }
     this.add2(...objs);
   }
@@ -136,8 +137,9 @@ export default class GuideScene extends Phaser.Scene {
       draw();
       this.label(104, 112 + i * 60, str, INK, 8, 0);
     });
-    this.block(W / 2, 340, 88, hexToNum(TYPES[LEGENDARIES[0].type].light), 80, LEGENDARIES[0]);
-    this.label(W / 2, 410, `Legendary god: every ${BOSS_EVERY} turns.`);
+    // Los dioses ocupan 3x2 casillas
+    this.block(W / 2, 340, 132, hexToNum(TYPES[LEGENDARIES[0].type].light), 80, LEGENDARIES[0], false, null, 88);
+    this.label(W / 2, 410, tr('Legendary god: every {0} turns.', BOSS_EVERY));
     this.label(W / 2, 434, 'Warned 2 turns ahead. When it\narrives, all drops 2 rows.', SOFT);
     const warn = this.add.rectangle(W / 2, 480, 260, 28, 0xe05858, 0.3);
     this.add2(warn);
@@ -157,12 +159,12 @@ export default class GuideScene extends Phaser.Scene {
       const g = this.add.graphics();
       drawPanel(g, 30, y - 18, 110, 36, { fill: t.fill });
       this.add2(g);
-      this.label(85, y, upper(t.name));
+      this.label(85, y, upper(tr(t.name)));
       this.label(W - 112, y, `${Math.round(t.rates.normal * 100)}%`, '#2a8a40');
       this.label(W - 52, y, `${Math.round(t.rates.legendary * 100)}%`, '#b07800');
     });
     this.label(W / 2, 384, 'Pick an orb at the bottom\nright before launching.');
-    this.label(W / 2, 436, `${upper(BALL_TYPES.super.name)} (80%) or ${upper(BALL_TYPES.ultra.name)} (20%):\nclear the board or\ndefeat a god.`, '#2a6aa8');
+    this.label(W / 2, 436, tr('{0} (80%) or {1} (20%):\nclear the board or\ndefeat a god.', upper(tr(BALL_TYPES.super.name)), upper(tr(BALL_TYPES.ultra.name))), '#2a6aa8');
     this.label(W / 2, 510, 'Gold beasts: always 100%!', '#b07800');
   }
 
@@ -172,9 +174,9 @@ export default class GuideScene extends Phaser.Scene {
     this.label(W / 2, 144, '= a random spell. Hold up to 2.', SOFT);
     SPECIALS.forEach((sp, i) => {
       const t = ELEMENTS[sp.type];
-      const y = 182 + i * 50;
+      const y = 176 + i * 44;
       const g = this.add.graphics();
-      drawPanel(g, 26, y - 18, 64, 36, { fill: hexToNum(t.base) });
+      drawPanel(g, 26, y - 17, 64, 34, { fill: hexToNum(t.base) });
       this.add2(g);
       this.label(58, y, t.short, '#ffffff');
       this.add2(text(this, 100, y - 16, sp.name, 8, INK).setOrigin(0, 0));
@@ -194,13 +196,13 @@ export default class GuideScene extends Phaser.Scene {
       const sp = this.add2(this.add.image(W / 2 + x, 140 + y, 'spark').setScale(2));
       this.tweens.add({ targets: sp, alpha: 0.2, duration: 300, yoyo: true, repeat: -1, delay: Math.random() * 300 });
     }
-    this.label(W / 2, 212, `Gold: a golden version.\nAppears ${pct(SHINY_RATE)} of the time.`);
+    this.label(W / 2, 212, tr('Gold: a golden version.\nAppears {0} of the time.', pct(SHINY_RATE)));
     this.label(W / 2, 260, 'Fill the GOLD meter:', INK);
     this.meter(80, 278, 200, 0.6, 0xffd84a);
     ['Many blocks in one shot', 'Capturing beasts', 'Defeating a god', 'Clearing the board'].forEach((s, i) => {
-      this.label(W / 2, 314 + i * 24, `+ ${s}`, SOFT);
+      this.label(W / 2, 314 + i * 24, `+ ${tr(s)}`, SOFT);
     });
-    this.label(W / 2, 420, `Full = ${pct(SHINY_BOOST_RATE)} gold chance\nfor ${SHINY_BOOST_TURNS} turns.`, '#b07800');
+    this.label(W / 2, 420, tr('Full = {0} gold chance\nfor {1} turns.', pct(SHINY_BOOST_RATE), SHINY_BOOST_TURNS), '#b07800');
     this.label(W / 2, 480, 'Gold beasts are always\ncaptured.', '#b07800');
   }
 
@@ -210,7 +212,7 @@ export default class GuideScene extends Phaser.Scene {
       ['▼', 'Recall all orbs'],
       ['II', 'Pause, music, sound\nand grid'],
       [ELEMENTS.fuego.short, 'Tap a spell to arm\nit before launching'],
-      [upper(BALL_TYPES.super.name), 'Tap an orb to use\nit for the launch']
+      [upper(tr(BALL_TYPES.super.name)), 'Tap an orb to use\nit for the launch']
     ];
     rows.forEach(([icon, str], i) => {
       const y = 112 + i * 70;

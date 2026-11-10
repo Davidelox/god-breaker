@@ -97,6 +97,16 @@ const SFX = {
   gameover: (a) => [392, 330, 262, 196].forEach((f, i) => a.tone(f, 0.3, { type: 'triangle', gain: 0.09, delay: i * 0.2 }))
 };
 
+// Fin de partida: compases lentos en la menor y una melodía que baja (notas MIDI; null = silencio)
+const DEFEAT_BAR = 3.2;
+const DEFEAT_CHORDS = [[57, 'm'], [53, 'M'], [50, 'm'], [52, 'M']];
+const DEFEAT_MELODY = [
+  [76, 74, 72, null],
+  [72, 71, 69, null],
+  [69, 67, 65, 64],
+  [64, null, 68, null]
+];
+
 class AudioEngine {
   constructor() {
     this.ctx = null;
@@ -210,12 +220,12 @@ class AudioEngine {
     this.mood = ((i % MOODS.length) + MOODS.length) % MOODS.length;
   }
 
-  /** 'ambient' (menús) o 'battle' (partida). El cambio entra al momento, desde el compás 0. */
+  /** 'ambient' (menús), 'battle' (partida) o 'defeat' (fin de partida). Entra al momento, desde el compás 0. */
   setTrack(name) {
     if (this.track === name) return;
     this.track = name;
     if (!this.ctx) return;
-    this.musicFilter.frequency.setTargetAtTime(name === 'battle' ? 4200 : 1500, this.ctx.currentTime, 0.2);
+    this.musicFilter.frequency.setTargetAtTime(name === 'battle' ? 4200 : name === 'defeat' ? 1100 : 1500, this.ctx.currentTime, 0.2);
     if (this.musicTimer) {
       this.bar = 0;
       this.nextBar = this.ctx.currentTime + 0.12;
@@ -223,7 +233,7 @@ class AudioEngine {
   }
 
   barLen() {
-    return this.track === 'battle' ? BATTLE_BAR : BAR;
+    return this.track === 'battle' ? BATTLE_BAR : this.track === 'defeat' ? DEFEAT_BAR : BAR;
   }
 
   setMusic(on) {
@@ -261,8 +271,9 @@ class AudioEngine {
         }
         this.beat = 0;
         while (this.nextBar < now + 0.8) {
-          this.playBar(this.nextBar);
-          this.nextBar += BAR;
+          if (this.track === 'defeat') this.playDefeatBar(this.nextBar);
+          else this.playBar(this.nextBar);
+          this.nextBar += this.barLen();
           this.bar++;
         }
       } catch (err) {
@@ -408,6 +419,24 @@ class AudioEngine {
         if (section === 3) this.brass(n - 12, t + s * S16, dur, 0.035, { cutoff: 1600, attack: 0.025 });
       }
     }
+  }
+
+  /**
+   * Música de derrota: lenta, en la menor (Am - F - Dm - E), con coro suave, bajo largo, un timbal
+   * apagado al empezar cada compás y una melodía de trompa que desciende.
+   */
+  playDefeatBar(t) {
+    const now = this.ctx.currentTime;
+    const [root, q] = DEFEAT_CHORDS[this.bar % 4];
+    const chord = [root, root + (q === 'm' ? 3 : 4), root + 7];
+    for (const n of chord) this.pad(n, t, DEFEAT_BAR, 0.026);
+    this.tone(midi(root - 12), DEFEAT_BAR * 0.9, { type: 'triangle', gain: 0.06, attack: 0.08, delay: t - now, dest: this.musicFilter });
+    this.kick(t, 0.16);
+    const line = DEFEAT_MELODY[this.bar % 4];
+    line.forEach((n, i) => {
+      if (n == null) return;
+      this.brass(n, t + (i * DEFEAT_BAR) / line.length, (DEFEAT_BAR / line.length) * 0.95, 0.04, { cutoff: 900, attack: 0.08, type: 'triangle' });
+    });
   }
 
   playBar(t) {

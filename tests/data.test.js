@@ -61,12 +61,12 @@ describe('orbes y hechizos', () => {
   const normal = { legendary: false };
   const legend = { legendary: true };
   it('aplica los ratios de captura de cada orbe', () => {
-    expect(captureChance('normal', normal, false)).toBe(0.4);
-    expect(captureChance('normal', legend, false)).toBe(0.1);
-    expect(captureChance('super', normal, false)).toBe(0.7);
-    expect(captureChance('super', legend, false)).toBe(0.3);
+    expect(captureChance('normal', normal, false)).toBe(0.6);
+    expect(captureChance('normal', legend, false)).toBe(0.25);
+    expect(captureChance('super', normal, false)).toBe(0.75);
+    expect(captureChance('super', legend, false)).toBe(0.4);
     expect(captureChance('ultra', normal, false)).toBe(0.9);
-    expect(captureChance('ultra', legend, false)).toBe(0.5);
+    expect(captureChance('ultra', legend, false)).toBe(0.6);
   });
   it('las shiny se capturan siempre', () => {
     expect(captureChance('normal', legend, true)).toBe(1);
@@ -77,5 +77,26 @@ describe('orbes y hechizos', () => {
   });
   it('el hechizo aleatorio siempre es válido', () => {
     for (const r of [0, 0.5, 0.999]) expect(specialById(rollPower(() => r))).not.toBeNull();
+  });
+  it('hay 7 hechizos, cada uno con su elemento (también Darkness)', () => {
+    expect(SPECIALS).toHaveLength(7);
+    expect(new Set(SPECIALS.map((s) => s.id)).size).toBe(7);
+    for (const sp of SPECIALS) expect(ELEMENTS[sp.type]).toBeTruthy();
+    expect(specialById('sombra').type).toBe('oscuridad');
+  });
+});
+
+import { rowBlocksFor, MAGIC_GAIN } from '../src/config.js';
+
+describe('dificultad', () => {
+  const avg = (w) => w.reduce((s, [n, p]) => s + n * p, 0) / w.reduce((s, [, p]) => s + p, 0);
+  it('los bloques por fila crecen con la partida (3-6 bloques)', () => {
+    expect(avg(rowBlocksFor(1))).toBeCloseTo(3.4);
+    expect(avg(rowBlocksFor(10))).toBeCloseTo(4.25);
+    expect(avg(rowBlocksFor(40))).toBeCloseTo(4.6);
+    for (const t of [1, 5, 6, 15, 16, 99]) for (const [n] of rowBlocksFor(t)) expect(n >= 3 && n <= 6).toBe(true);
+  });
+  it('magia por bloque', () => {
+    expect(MAGIC_GAIN).toEqual({ plain: 4, creature: 10, boss: 40 });
   });
 });

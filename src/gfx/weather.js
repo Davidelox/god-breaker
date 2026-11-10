@@ -1,5 +1,5 @@
 // Fondos de clima: partículas suaves y de baja opacidad dentro del tablero (solo visual).
-import { BOARD_X, BOARD_TOP, BOARD_RIGHT, BOARD_FLOOR_Y } from '../config.js';
+import { BOARD_TOP, BOARD_FLOOR_Y, WALL_L, WALL_R } from '../config.js';
 
 export const WEATHERS = [
   { id: 'despejado', name: 'Clear night', bg: 0x182038 },
@@ -10,8 +10,8 @@ export const WEATHERS = [
   { id: 'sol', name: 'Blazing sun', bg: 0x222a40 }
 ];
 
-const X0 = BOARD_X;
-const X1 = BOARD_RIGHT;
+const X0 = WALL_L;
+const X1 = WALL_R;
 const Y0 = BOARD_TOP;
 const Y1 = BOARD_FLOOR_Y;
 const W = X1 - X0;

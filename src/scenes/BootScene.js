@@ -6,6 +6,7 @@ import { logError, showFatal } from '../core/errors.js';
 import { audio } from '../audio/audio.js';
 import { haptics } from '../core/haptics.js';
 import { PACK_IMAGES } from '../data/pack.js';
+import { setLang } from '../i18n.js';
 
 export default class BootScene extends Phaser.Scene {
   constructor() {
@@ -25,6 +26,7 @@ export default class BootScene extends Phaser.Scene {
       store.load();
       audio.configure(store.data.settings);
       haptics.setEnabled(store.data.settings.haptics);
+      setLang(store.data.settings.lang);
       this.registry.set('save', store);
       this.scene.start('title');
     } catch (err) {

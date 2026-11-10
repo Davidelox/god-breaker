@@ -5,6 +5,119 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Avisos
+- Los letreros de información de arriba (explicación de los hechizos y demás avisos) duran 1 segundo más (2,1 s) y se desvanecen poco a poco en lugar de desaparecer de golpe.
+
+### Apuntado
+- El punto de choque de la línea de apuntado también se marca en las paredes y el techo, no solo en los bloques.
+
+### Equilibrio
+- Barra de magia (100 = un hechizo): bloque normal +4, bestia +10, dios +40 (antes +6, +12 y +50; MAGIC_GAIN en config.js).
+- Nuevas probabilidades de captura: Común 60 % (dioses 25 %), Rúnico 75 % (40 %), Divino 90 % (60 %). Las gold, siempre 100 %.
+- Rareza de las bestias que salen: común 50 %, poco común 30 %, rara 20 % (RARITY_WEIGHTS en config.js).
+- Cada fila nueva trae de 3 a 6 bloques y crece con la partida (ROW_BLOCKS_BY_TURN en config.js): turnos 1-5, 3 (60 %) o 4 (40 %); turnos 6-15, 3 (25 %), 4 (35 %), 5 (30 %) o 6 (10 %); desde el turno 16, 3 (15 %), 4 (30 %), 5 (35 %) o 6 (20 %).
+- En un lanzamiento con hechizo, todo lo que suma al medidor gold (bloques de más, dioses, tablero limpio y capturas de ese lanzamiento) vale la mitad (SHINY_MAGIC_FACTOR).
+
+### Fin de partida
+- Efecto de derrota: destello rojo y temblor, el tablero se oscurece, los orbes desaparecen y los bloques se desmoronan y caen de abajo arriba soltando polvo.
+- Música de derrota: pista lenta en la menor (Am - F - Dm - E) con coro, bajo largo, timbal suave y una melodía de trompa que desciende. Entra tras el sonido de derrota y suena hasta salir del cartel.
+- Cartel de derrota más detallado: entra desde arriba con una franja roja «GAME OVER», la puntuación grande contando hacia arriba, récord o cinta «NEW BEST!», y las estadísticas de la partida (turno alcanzado, bloques rotos, bestias y dioses derrotados, hechizos lanzados, mejor lanzamiento y capturas). Debajo, las miniaturas de las últimas capturas de la partida (las gold con brillo). Las estadísticas se guardan también con la partida en curso.
+
+### Orbes
+- Estela más transparente.
+
+### Hechizos y barras
+- Con dos hechizos iguales guardados, los dos huecos se juntan en un solo botón ancho con el nombre del hechizo y «MAX» (p. ej. «BOLA DE FUEGO / MAX»), que activa los dos a la vez.
+- Barra de magia bloqueada con los dos huecos llenos: se ve llena en gris con «FULL» / «LLENA». Barra gold bloqueada durante los turnos de oro: llena en dorado apagado con «ACTIVE» / «ACTIVO», y ya no suma nada hasta que terminan.
+
+### Orbes
+- Estela nueva: una línea fina y luminosa (halo del color del orbe y núcleo blanco, con mezcla aditiva) de unos 40 px que sigue el recorrido, también en los rebotes, y se estrecha y apaga hacia atrás. Sustituye a las copias del orbe que se veían antes.
+
+### Modo gold
+- Con el medidor gold lleno (probabilidad gold aumentada), el fondo del tablero se tiñe de un dorado cálido y suave sobre el color del clima, con destellos dorados que aparecen y se apagan poco a poco por el tablero. Al terminar, el fondo vuelve a su color.
+- Cartel dorado a la izquierda del botón de velocidad con los turnos gold que quedan («GOLD 3» / «ORO 3»); sustituye al texto pequeño que había a la derecha del menú.
+
+### Aparición de criaturas
+- Las criaturas ya capturadas salen con la mitad de probabilidad que las que faltan (CAUGHT_WEIGHT = 0,5 en config.js), dentro de su rareza. A los dioses se les aplica lo mismo al elegir el siguiente, sin repetir hasta que salen todos.
+
+### Tablero
+- Sin bordes laterales: el ancho lógico pasa de 360 a 336 (= 7 casillas de 48), así que el tablero ocupa todo el ancho y la cuadrícula está formada por cuadrados exactos, también en las columnas de los lados. Las paredes de los rebotes son los bordes del tablero, que en el móvil y en el escritorio coinciden con los de la pantalla (en una pantalla más ancha de lo normal, el tablero queda centrado).
+
+### Idioma
+- En español, la huida de una criatura muestra «HA HUIDO!!».
+
+### Criaturas vistas
+- La primera vez que una criatura sale en una partida, su bloque la muestra como silueta negra; desde entonces cuenta como «vista» (se guarda en save.seen). Las gold se ven siempre doradas.
+- Colección con tres estados: nunca vista (silueta negra), vista pero no capturada (transparente, con su nombre en la ficha: «Seen, not captured yet») y capturada (color normal). La vista gold no cambia.
+
+### Partida
+- Línea de apuntado con los puntos más juntos (cada 8 px). Ya no se corta en el primer bloque: marca el punto de choque y sigue por encima de los bloques, transparente, hasta la pared o el techo.
+
+### Menú principal
+- Botones de colores por sección: jugar/continuar en verde, nueva partida en verde claro, colección en azul, misiones en naranja y guía en morado.
+
+### Idioma
+- Opción de idioma en el menú principal: «LANGUAGE: ENGLISH» / «IDIOMA: ESPAÑOL». Se guarda en los ajustes y traduce todo el juego: menús, partida, avisos, tutorial, guía, colección, misiones, mitologías, rarezas, orbes, climas y hechizos (los nombres de las criaturas no cambian).
+- Sistema de traducción en src/i18n.js (t()) con el diccionario en src/data/es.js: la clave es el texto inglés, con {0}, {1}… para los valores. Los textos fijos se traducen solos al dibujarse (text, botones y avisos); los títulos de misiones con números usan patrones.
+- La fuente pixel no tiene vocales mayúsculas con tilde: en mayúsculas se escriben sin tilde (la Ñ, ¡ y ¿ sí se ven).
+
+### Partida
+- El botón de velocidad tiene el mismo alto y tamaño de letra que el de pausa, con su color de siempre.
+- Bestias más grandes dentro de su bloque (con el número de vida algo más pequeño para que se vean) y dioses que ocupan todo su bloque de 3x2.
+
+### Dioses
+- Los dioses ocupan 6 casillas: 3 de ancho y 2 de alto (GOD_W / GOD_H en config.js). Los bloques tienen ahora ancho y alto (w / h) en lugar de un solo tamaño. Las partidas guardadas con dioses de 2x2 se cargan con el nuevo tamaño.
+
+### Hechizos
+- Fireball: daña todos los bloques de alrededor (8 casillas). MAX: hasta 2 casillas de distancia.
+- Overgrowth: +50 % de orbes. MAX: el doble.
+- Chain Lightning: cada golpe salta a 4 bloques al azar de todo el tablero. MAX: 6.
+- Tidal Wave: orbes grandes que atraviesan los 2 primeros bloques. MAX: los 3 primeros, con el mismo tamaño de orbe (ya no atraviesa todo ni hace doble daño).
+- Stone Rain: destruye los 2 bloques con más vida; a un dios le quita el 50 % de su vida total. MAX: 3 bloques, y el 80 % a un dios.
+- Nuevo hechizo Shadow Bounce (elemento Darkness, DRK, morado): los orbes rebotan una vez en el suelo antes de volver.
+- Shadow Bounce MAX: además del rebote, da una vida extra para el resto de la partida (no se acumula; se ve «+1 LIFE» arriba y se guarda con la partida). Si un turno fuera a hacerte perder, se gasta: ese turno las filas no bajan, no sale fila nueva (un dios que tocara se pospone) y el lanzador pasa a la columna más cercana sin bloque justo encima.
+- La guía muestra los 7 hechizos con su efecto normal y MAX, y el dios de 3x2.
+
+### Pantalla de juego
+- El tablero ocupa todo el ancho: los rebotes laterales son los propios bordes de la pantalla (WALL_L / WALL_R en config.js). Los bloques siguen en su cuadrícula centrada; el fondo, el clima, la línea de peligro y los efectos llegan de borde a borde.
+- Barra inferior a todo el ancho y con botones más alargados: 2 hechizos, orbes RUNIC y DIVINE, y la bajada rápida ▼ en la esquina inferior derecha (siempre visible; activa solo con los orbes en juego). Se quita el botón COMMON: sin orbe especial activado se lanza el común, y RUNIC y DIVINE se activan de uno en uno.
+- Arriba quedan la velocidad y la pausa, que ahora es más grande y dorada.
+
+### Capturas
+- Cartel de captura nueva rehecho para que se lea: a tamaño real (antes se encogía y el texto quedaba borroso), con el sprite a la izquierda, el nombre en la fuente de lectura y el origen en una etiqueta. Con varias capturas a la vez, una fila por criatura (hasta 4 por cartel).
+
+### Hechizos MAX
+- Al lanzar dos hechizos iguales: destello del color del elemento, golpe de zoom, rayos girando tras el cartel, «MAX!» gigante, brillo que cruza la banda, ondas desde el lanzador, fuentes de partículas en las esquinas y un aura en los bordes del tablero durante todo el lanzamiento.
+- Cada golpe MAX es más vistoso: Fireball con explosión doble y temblor, Tidal Wave con ola doble y salpicadura, Ice Lance con esquirlas en estrella, Chain Lightning con rayos el doble de gruesos y ondas, Stone Rain con rocas más grandes e impacto enorme, y Overgrowth con estallido de hojas y flores.
+
+### Partida guardada
+- Guardado automático de la partida en curso al empezar cada turno (localStorage `godbreaker.run`, aparte del guardado principal; ver src/core/run.js): bloques con su vida, bestias y dioses (también gold), orbes, hechizos, orbes especiales, medidores, clima, posición del lanzador, dioses pendientes y capturas de la partida.
+- «QUIT TO MENU» ya no termina la partida: en el título aparece «CONTINUE» (y el turno de la partida guardada) para seguir desde el principio del turno en que se salió. También al cerrar la app.
+- «NEW GAME» pide confirmación, da por terminada la partida guardada (cuenta para el récord) y empieza otra. Al perder o al borrar el progreso se borra la partida guardada.
+
+### Orbes
+- Los orbes son ligeramente ovalados en la dirección en la que van: se alargan más cuanto más rápido se mueven y se aplastan un poco al tocar una pared o un bloque. La estela sigue la misma forma.
+- Mantener pulsada la pantalla mientras vuelan los orbes duplica la velocidad (también sobre la velocidad automática); al soltar vuelve a la normal. El botón de velocidad muestra la velocidad real.
+
+### Orbes y rebotes
+- Velocidad base más baja en todas las velocidades (BALL_SPEED 620 → 470 px/s) y algo más de separación entre orbes al lanzar (LAUNCH_DELAY 115 → 150 ms).
+- Aceleración tras los rebotes: al rebotar el orbe sale al 55 % de su velocidad y acelera hasta la normal en unos 0,35 s (BOUNCE_SLOW / BOUNCE_RECOVER en config.js).
+- Contacto visible en paredes y techo: el fotograma del rebote el orbe se dibuja tocando el muro, y se marca el punto de contacto con un destello (antes solo en los bloques). A alta velocidad ya se ve el choque.
+- Esquinas de los bloques casi en ángulo recto en la física (CORNER_R 4 → 1): el golpe de esquina ocurre en la esquina real. Al dar en una esquina el orbe sale con un pequeño desvío aleatorio (casi siempre pequeño, como mucho 12°, CORNER_JITTER); se mantiene la rara salida en vertical del Ataque vertical.
+- Orbes más grandes (radio 6 → 8) y del mismo tamaño con cualquier hechizo (los orbes extra de Overgrowth ya no laten); con Tidal Wave son aún más grandes (12, y 14 en MAX).
+- Cuando ningún orbe en juego puede golpear un bloque, la velocidad automática pasa a x6 (antes x5).
+
+### Capturas
+- Huida más clara: si la captura falla, el orbe se rompe en trozos, la criatura da un salto de susto y se va corriendo a saltitos (con polvo) por un lado de la pantalla elegido al azar, con un «ESCAPED!» grande.
+- El cartel de nueva captura aparece más pequeño en la esquina inferior izquierda del tablero, entrando y saliendo por la izquierda, y dura algo más.
+
+### Tutorial y guía
+- Consejos en la primera partida, la primera vez que pasa cada cosa: apuntar y lanzar, cada ronda, bestias, orbe extra, huida, hechizos, velocidad, dioses, bestias gold y peligro. Paran la partida hasta pulsar GOT IT; SKIP TIPS los desactiva. Se guardan en el guardado (tutorial), también al borrar el progreso.
+- Fuente más legible en los textos de la guía y de los consejos: VT323 (pixel art de lectura); los títulos siguen con Press Start 2P.
+
+### Bloques
+- Nuevo diseño pixel art: sombra proyectada, borde con esquinas recortadas, bisel (luz arriba a la izquierda, sombra abajo a la derecha), textura de piedra tramada y brillo en la esquina.
+
 ### Pantalla
 - iPhone (acceso directo): se reservan siempre como mínimo 59 px arriba y 34 abajo para la isla / muesca y la barra de inicio, también cuando la app se abre en modo pantalla completa; si al poco de arrancar iOS da una zona segura mayor, la página se recarga una vez para recolocarlo todo. El manifiesto pasa a display «standalone», el modo que mejor soporta iOS.
 

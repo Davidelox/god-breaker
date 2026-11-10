@@ -65,6 +65,21 @@ describe('guardado', () => {
     expect(b.data.bestScore).toBe(1234);
     expect(b.data.stats.games).toBe(2);
   });
+
+  it('recuerda los consejos del tutorial vistos o desactivados', () => {
+    const storage = memoryStorage();
+    const a = new SaveStore(storage, CREATURE_IDS);
+    a.load();
+    expect(a.wantsTip('aim')).toBe(true);
+    a.markTip('aim');
+    const b = new SaveStore(storage, CREATURE_IDS);
+    b.load();
+    expect(b.wantsTip('aim')).toBe(false);
+    expect(b.wantsTip('beast')).toBe(true);
+    b.skipTips();
+    b.resetProgress();
+    expect(b.wantsTip('beast')).toBe(false);
+  });
 });
 
 describe('ajustes', () => {
@@ -110,5 +125,21 @@ describe('borrar progreso', () => {
     expect(again.data.bestScore).toBe(0);
     expect(again.data.stats.captures).toBe(0);
     expect(again.data.settings).toMatchObject({ speed: 3, music: false });
+  });
+});
+
+describe('criaturas vistas', () => {
+  it('marca las vistas una sola vez, las guarda y cuenta las capturadas como vistas', () => {
+    const storage = memoryStorage();
+    const a = new SaveStore(storage, CREATURE_IDS);
+    a.load();
+    expect(a.markSeen(3)).toBe(true);
+    expect(a.markSeen(3)).toBe(false);
+    a.recordCapture(4, false);
+    const b = new SaveStore(storage, CREATURE_IDS);
+    b.load();
+    expect(b.isSeen(3)).toBe(true);
+    expect(b.isSeen(4)).toBe(true);
+    expect(b.isSeen(5)).toBe(false);
   });
 });

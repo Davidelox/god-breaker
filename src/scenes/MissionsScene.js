@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import { W, H } from '../config.js';
 import { MISSIONS, missionProgress } from '../data/missions.js';
 import { text, makeButton, drawPanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { t as tr } from '../i18n.js';
 
 const PER_PAGE = 6;
 const ROW_H = 72;
@@ -27,7 +28,7 @@ export default class MissionsScene extends Phaser.Scene {
     fullRect(this, COLORS.night);
     const done = MISSIONS.filter((m) => this.save.data.missions[m.id]).length;
     text(this, W / 2, 20, 'MISSIONS', 16, COLORS.goldHex).setOrigin(0.5);
-    text(this, W / 2, 44, `Completed ${done}/${MISSIONS.length}`, 8, '#a8b4cc').setOrigin(0.5);
+    text(this, W / 2, 44, tr('Completed {0}/{1}', done, MISSIONS.length), 8, '#a8b4cc').setOrigin(0.5);
     this.tabButtons = TABS.map(([id, label], i) =>
       makeButton(this, W / 2 + (i === 0 ? -82 : 82), 74, 156, 30, label, () => {
         this.tab = id;

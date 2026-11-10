@@ -142,19 +142,67 @@ function makeHpFont(scene) {
   scene.cache.bitmapFont.add(HP_FONT, data);
 }
 
-/** Textura del fondo de un bloque (relleno + borde de 2 px), creada una vez por combinación. */
-export function blockBgKey(scene, fill, border, size) {
-  const key = `blkbg_${fill.toString(16)}_${border.toString(16)}_${size}`;
+/** Sombra de los bloques: la textura es BLOCK_SHADOW px más grande abajo a la derecha. */
+export const BLOCK_SHADOW = 3;
+/** Origen (x o y) para que el bloque (sin la sombra) quede centrado en su posición. */
+export const blockBgOrigin = (size) => (size - 2) / 2 / (size - 2 + BLOCK_SHADOW);
+
+/** Mezcla un color hacia blanco (f > 0) o negro (f < 0). */
+function tone(c, f) {
+  const ch = (v) => Math.round(f >= 0 ? v + (255 - v) * f : v * (1 + f));
+  const r = ch((c >> 16) & 255), g = ch((c >> 8) & 255), b = ch(c & 255);
+  return `rgb(${r},${g},${b})`;
+}
+
+/**
+ * Textura del fondo de un bloque, estilo pixel art, creada una vez por combinación:
+ * sombra proyectada, borde con esquinas recortadas, bisel (luz arriba-izquierda, sombra
+ * abajo-derecha), textura de piedra tramada y un brillo en la esquina.
+ */
+export function blockBgKey(scene, fill, border, size, height = size) {
+  const key = `blkbg2_${fill.toString(16)}_${border.toString(16)}_${size}x${height}`;
   if (scene.textures.exists(key)) return key;
-  const s = size - 2;
+  const s = size - 2, t = height - 2; // ancho y alto del bloque (los dioses son 3x2)
   const canvas = document.createElement('canvas');
-  canvas.width = s;
-  canvas.height = s;
+  canvas.width = s + BLOCK_SHADOW;
+  canvas.height = t + BLOCK_SHADOW;
   const ctx = canvas.getContext('2d');
-  ctx.fillStyle = `#${border.toString(16).padStart(6, '0')}`;
-  ctx.fillRect(0, 0, s, s);
-  ctx.fillStyle = `#${fill.toString(16).padStart(6, '0')}`;
-  ctx.fillRect(2, 2, s - 4, s - 4);
+  const rect = (x, y, w, h, color) => {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+  };
+  // Silueta con las esquinas recortadas (1 px)
+  const shape = (o, color) => {
+    rect(o + 1, o, s - 2, t, color);
+    rect(o, o + 1, s, t - 2, color);
+  };
+  shape(BLOCK_SHADOW, 'rgba(4,6,14,0.45)');
+  shape(0, `#${border.toString(16).padStart(6, '0')}`);
+  // Cuerpo
+  const i0 = 2, iw = s - 4, ih = t - 4;
+  rect(i0, i0, iw, ih, tone(fill, 0));
+  // Textura: trama de píxeles más oscuros y alguna mancha, fija para cada color
+  let seed = (fill * 2654435761) >>> 0;
+  const rnd = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296);
+  ctx.fillStyle = tone(fill, -0.1);
+  for (let y = i0 + 3; y < i0 + ih - 3; y += 4) {
+    for (let x = i0 + 3 + ((y >> 2) % 2) * 2; x < i0 + iw - 3; x += 4) if (rnd() < 0.35) ctx.fillRect(x, y, 1, 1);
+  }
+  for (let k = 0; k < Math.round(Math.sqrt(iw * ih) / 12); k++) {
+    const x = i0 + 4 + Math.floor(rnd() * (iw - 10)), y = i0 + 4 + Math.floor(rnd() * (ih - 10));
+    rect(x, y, 2, 1, tone(fill, -0.14));
+    rect(x, y + 1, 1, 1, tone(fill, -0.14));
+    rect(x + 1, y - 1, 2, 1, tone(fill, 0.18));
+  }
+  // Bisel: luz arriba e izquierda, sombra abajo y derecha (2 px, con escalón en las esquinas)
+  rect(i0, i0, iw, 2, tone(fill, 0.38));
+  rect(i0, i0, 2, ih, tone(fill, 0.26));
+  rect(i0, i0 + ih - 2, iw, 2, tone(fill, -0.32));
+  rect(i0 + iw - 2, i0 + 2, 2, ih - 2, tone(fill, -0.22));
+  rect(i0 + 2, i0 + 2, iw - 6, 1, tone(fill, 0.16));
+  // Brillo de la esquina
+  rect(i0 + 3, i0 + 3, 3, 1, 'rgba(255,255,255,0.85)');
+  rect(i0 + 3, i0 + 4, 1, 2, 'rgba(255,255,255,0.85)');
   scene.textures.addCanvas(key, canvas);
   return key;
 }

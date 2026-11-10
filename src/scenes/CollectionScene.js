@@ -5,6 +5,7 @@ import { PANTHEON_NAMES } from '../data/bestiary.js';
 import { TYPES, TYPE_ORDER, hexToNum } from '../data/types.js';
 import { addCreatureImage } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { t as tr, godOf } from '../i18n.js';
 
 const GRID_COLS = 5;
 const CELL_W = 68;
@@ -22,7 +23,7 @@ const PER_PAGE = GRID_COLS * GRID_ROWS;
 const SECTIONS = ['all', ...TYPE_ORDER];
 // Color del marco de cada casilla según la rareza (4 = dios: dorado)
 const RARITY_FRAME = { 1: 0x58c878, 2: 0x4c8cf0, 3: 0xa060e8, 4: COLORS.gold };
-const sectionName =(s) => (s === 'all' ? 'ALL BEASTS' : TYPES[s].name.toUpperCase());
+const sectionName = (s) => (s === 'all' ? tr('ALL BEASTS') : tr(TYPES[s].name).toUpperCase());
 
 export default class CollectionScene extends Phaser.Scene {
   constructor() {
@@ -67,8 +68,8 @@ export default class CollectionScene extends Phaser.Scene {
 
     const { caught, shiny, total } = this.save.counts();
     text(this, W / 2, 18, 'COLLECTION', 16, COLORS.goldHex).setOrigin(0.5);
-    text(this, W / 2, 40, `Unique ${caught}/${CREATURES.length}  Gold ${shiny}`, 8, '#a8b4cc').setOrigin(0.5);
-    text(this, W / 2, 56, `Beasts caught: ${total}`, 8, COLORS.goldHex).setOrigin(0.5);
+    text(this, W / 2, 40, tr('Unique {0}/{1}  Gold {2}', caught, CREATURES.length, shiny), 8, '#a8b4cc').setOrigin(0.5);
+    text(this, W / 2, 56, tr('Beasts caught: {0}', total), 8, COLORS.goldHex).setOrigin(0.5);
 
     // Selector de mitología: un botón por sección (8 arriba y 7 abajo) con su color
     const perRow = 8;
@@ -101,7 +102,7 @@ export default class CollectionScene extends Phaser.Scene {
     this.input.keyboard?.on('keydown-DOWN', () => this.changeSection(1));
 
     // Filtro: solo las capturadas
-    const filterLabel = () => `CAUGHT: ${this.onlyCaught ? 'ON' : 'OFF'}`;
+    const filterLabel = () => tr('CAUGHT: {0}', tr(this.onlyCaught ? 'ON' : 'OFF'));
     this.filterBtn = makeButton(this, W / 2 - 80, H - 104, 150, 24, filterLabel(), () => {
       this.onlyCaught = !this.onlyCaught;
       this.registry.set('collectionOnlyCaught', this.onlyCaught);
@@ -110,7 +111,7 @@ export default class CollectionScene extends Phaser.Scene {
       this.drawGrid();
     }).setSelected(this.onlyCaught);
     // Filtro: solo los legendarios (dioses)
-    const godsLabel = () => `GODS: ${this.onlyGods ? 'ON' : 'OFF'}`;
+    const godsLabel = () => tr('GODS: {0}', tr(this.onlyGods ? 'ON' : 'OFF'));
     this.godsBtn = makeButton(this, W / 2 + 80, H - 104, 150, 24, godsLabel(), () => {
       this.onlyGods = !this.onlyGods;
       this.registry.set('collectionOnlyGods', this.onlyGods);
@@ -155,7 +156,7 @@ export default class CollectionScene extends Phaser.Scene {
   drawSection() {
     for (const [s, btn] of Object.entries(this.sectionBtns)) btn.setSelected(s === this.section);
     const [have, all] = this.sectionCount(this.section);
-    const what = this.onlyGods ? (this.section === 'all' ? 'ALL GODS' : `${sectionName(this.section)} GODS`) : sectionName(this.section);
+    const what = this.onlyGods ? (this.section === 'all' ? tr('ALL GODS') : tr('{0} GODS', sectionName(this.section))) : sectionName(this.section);
     this.sectionText.setText(`${what}  ${have}/${all}`);
     this.sectionText.setColor(this.section === 'all' ? '#ffffff' : TYPES[this.section].light);
   }
@@ -168,7 +169,7 @@ export default class CollectionScene extends Phaser.Scene {
     this.pageText.setText(`${this.page + 1} / ${this.pages}`);
     for (const b of this.jumpBtns) b.setVisible(this.pages > 10);
     const noGods = this.onlyGods && !this.sectionBeasts(this.section).length;
-    this.emptyText.setText(list.length ? '' : noGods ? 'No gods in\nthis mythology.' : this.showShiny ? 'No gold beasts\ncaptured here yet.' : 'No beasts\ncaptured here yet.');
+    this.emptyText.setText(list.length ? '' : tr(noGods ? 'No gods in\nthis mythology.' : this.showShiny ? 'No gold beasts\ncaptured here yet.' : 'No beasts\ncaptured here yet.'));
     list.slice(this.page * PER_PAGE, (this.page + 1) * PER_PAGE).forEach((c, i) => {
       const cx = GRID_X + (i % GRID_COLS) * CELL_W + CELL_W / 2;
       const cy = GRID_Y + Math.floor(i / GRID_COLS) * CELL_H + CELL_H / 2;
@@ -181,7 +182,13 @@ export default class CollectionScene extends Phaser.Scene {
       g.lineStyle(2, RARITY_FRAME[c.rarity] ?? COLORS.gold, owned ? 1 : 0.6);
       g.strokeRect(cx - CELL_W / 2 + 3, cy - CELL_H / 2 + 3, CELL_W - 6, CELL_H - 6);
       const img = addCreatureImage(this, cx, cy - 6, c.id, this.showShiny, c.legendary ? 2 : 2.5);
-      if (!owned) img.setTint(0x000000).setAlpha(0.7);
+      // Capturada: color normal. Vista pero no capturada: transparente. Nunca vista: silueta negra.
+      // (En la vista gold, todas las que no tienes en gold salen como silueta.)
+      const seen = !this.showShiny && this.save.isSeen(c.id);
+      if (!owned) {
+        if (seen) img.setAlpha(0.4);
+        else img.setTint(0x000000).setAlpha(0.7);
+      }
       const num = text(this, cx, cy + CELL_H / 2 - 10, `#${String(c.id).padStart(2, '0')}`, 8, owned ? '#f8f8f8' : '#56607c').setOrigin(0.5);
       // Contador de capturas de esta bestia (o de su versión gold)
       const n = this.showShiny ? entry?.shinyCount ?? 0 : entry?.count ?? 0;
@@ -202,21 +209,25 @@ export default class CollectionScene extends Phaser.Scene {
     const panel = makePanel(this, 30, 150, W - 60, 300);
     layer.add([dim, panel]);
     const known = !!entry;
+    const seen = this.save.isSeen(c.id);
     const shinyOwned = entry?.shinyCount > 0;
     const img = addCreatureImage(this, W / 2, 230, c.id, this.showShiny && shinyOwned, 6);
-    if (!known) img.setTint(0x000000);
+    if (!known) {
+      if (seen) img.setAlpha(0.4);
+      else img.setTint(0x000000);
+    }
     layer.add(img);
     const t = TYPES[c.type];
-    const origin = c.pantheon ? `${PANTHEON_NAMES[c.pantheon]} god` : `Rarity: ${RARITY_NAMES[c.rarity]}`;
+    const origin = c.pantheon ? godOf(c.pantheon, PANTHEON_NAMES[c.pantheon]) : tr('Rarity: {0}', tr(RARITY_NAMES[c.rarity]));
     const lines = known
       ? [
           `#${String(c.id).padStart(2, '0')} ${c.name}`,
-          `Origin: ${t.name}`,
+          tr('Origin: {0}', tr(t.name)),
           origin,
-          `Captured: ${entry.count}`,
-          `Gold: ${shinyOwned ? `yes (${entry.shinyCount})` : 'no'}`
+          tr('Captured: {0}', entry.count),
+          tr('Gold: {0}', shinyOwned ? tr('yes ({0})', entry.shinyCount) : tr('no'))
         ]
-      : [`#${String(c.id).padStart(2, '0')} ???`, `Origin: ${t.name}`, origin, 'Not captured yet'];
+      : [`#${String(c.id).padStart(2, '0')} ${seen ? c.name : '???'}`, tr('Origin: {0}', tr(t.name)), origin, tr(seen ? 'Seen, not captured yet' : 'Not captured yet')];
     layer.add(text(this, W / 2, 340, lines.join('\n'), 8, COLORS.inkHex).setOrigin(0.5));
     layer.add(makeButton(this, W / 2, 420, 140, 30, 'CLOSE', () => layer.destroy()));
   }

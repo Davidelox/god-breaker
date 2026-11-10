@@ -1,12 +1,17 @@
 import Phaser from 'phaser';
 import { W, H, FULL_H, SAFE_TOP, SAFE_BOTTOM } from '../config.js';
 import { VERSION } from '../version.js';
-import { CREATURES, LEGENDARIES } from '../data/creatures.js';
+import { CREATURES, LEGENDARIES, creatureById } from '../data/creatures.js';
+import { loadRun, clearRun } from '../core/run.js';
 import { TYPES } from '../data/types.js';
 import { addCreatureImage } from '../gfx/sprites.js';
-import { text, makeButton, makePanel, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, makeAudioToggles, makeLangToggle, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { t as tr, godOf } from '../i18n.js';
 import { pick, shuffle } from '../core/rng.js';
 import { audio } from '../audio/audio.js';
+
+// Color de cada sección del menú principal
+const MENU = { play: 0x8cdc7c, newGame: 0xd8f0d0, collection: 0x9cc8ff, missions: 0xffc488, guide: 0xd4bcff };
 
 const upper = (str) => str.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
 
@@ -26,14 +31,24 @@ export default class TitleScene extends Phaser.Scene {
 
     makePanel(this, 40, 312, W - 80, 64);
     const { caught, total } = save.counts();
-    text(this, W / 2, 330, `BEST  ${save.data.bestScore}`, 8, COLORS.inkHex).setOrigin(0.5);
-    text(this, W / 2, 352, `COLLECTION ${caught}/${CREATURES.length}  CAUGHT ${total}`, 8, COLORS.inkHex).setOrigin(0.5);
+    // Partida guardada automáticamente: CONTINUE la sigue, NEW GAME la abandona
+    const run = loadRun(undefined, (id) => !!creatureById(id));
+    text(this, W / 2, 330, run ? tr('BEST {0}  RUN: TURN {1}', save.data.bestScore, run.turn) : tr('BEST  {0}', save.data.bestScore), 8, COLORS.inkHex).setOrigin(0.5);
+    text(this, W / 2, 352, tr('COLLECTION {0}/{1}  CAUGHT {2}', caught, CREATURES.length, total), 8, COLORS.inkHex).setOrigin(0.5);
 
-    makeButton(this, W / 2, 404, 200, 40, 'PLAY', () => this.scene.start('game'), { size: 16 });
-    makeButton(this, W / 2, 452, 200, 34, 'COLLECTION', () => this.scene.start('collection'));
-    makeButton(this, W / 2 - 52, 494, 96, 34, 'MISSIONS', () => this.scene.start('missions'));
-    makeButton(this, W / 2 + 52, 494, 96, 34, 'GUIDE', () => this.scene.start('guide'));
+    if (run) {
+      makeButton(this, W / 2, 404, 200, 40, 'CONTINUE', () => this.scene.start('game', { resume: true }), { size: 16, fill: MENU.play });
+      makeButton(this, W / 2 - 52, 452, 96, 34, 'NEW GAME', () => this.confirmNewGame(save, run), { fill: MENU.newGame });
+      makeButton(this, W / 2 + 52, 452, 96, 34, 'COLLECTION', () => this.scene.start('collection'), { fill: MENU.collection });
+    } else {
+      makeButton(this, W / 2, 404, 200, 40, 'PLAY', () => this.scene.start('game', {}), { size: 16, fill: MENU.play });
+      makeButton(this, W / 2, 452, 200, 34, 'COLLECTION', () => this.scene.start('collection'), { fill: MENU.collection });
+    }
+    makeButton(this, W / 2 - 52, 494, 96, 34, 'MISSIONS', () => this.scene.start('missions'), { fill: MENU.missions });
+    makeButton(this, W / 2 + 52, 494, 96, 34, 'GUIDE', () => this.scene.start('guide'), { fill: MENU.guide });
     makeAudioToggles(this, 542, save);
+    // Idioma: inglés / español (se redibuja el menú con el nuevo idioma)
+    makeLangToggle(this, W / 2, 581, 280, save, () => this.scene.restart());
 
     text(this, 34, H - 20, `v${VERSION}`, 8, '#56607c').setOrigin(0.5);
     makeButton(this, W - 86, H - 22, 156, 26, 'RESET PROGRESS', () => this.confirmReset(save), {
@@ -48,6 +63,21 @@ export default class TitleScene extends Phaser.Scene {
     }
   }
 
+  /** Empezar de cero con una partida guardada: se da por terminada (cuenta para el récord). */
+  confirmNewGame(save, run) {
+    const layer = this.add.container(0, 0).setDepth(50);
+    layer.add(fullRect(this, 0x000000, 0.7).setInteractive());
+    layer.add(makePanel(this, 24, 210, W - 48, 210));
+    layer.add(text(this, W / 2, 244, 'NEW GAME?', 16, COLORS.inkHex).setOrigin(0.5));
+    layer.add(text(this, W / 2, 300, tr('Your current run (turn {0},\nscore {1}) will end.', run.turn, run.score), 8, COLORS.inkHex).setOrigin(0.5));
+    layer.add(makeButton(this, W / 2 - 72, 380, 128, 34, 'CANCEL', () => layer.destroy()));
+    layer.add(makeButton(this, W / 2 + 72, 380, 128, 34, 'NEW GAME', () => {
+      save.recordGame(run.score, run.turn);
+      clearRun();
+      this.scene.start('game', {});
+    }, { fill: 0xd8f0d0 }));
+  }
+
   confirmReset(save) {
     const layer = this.add.container(0, 0).setDepth(50);
     layer.add(fullRect(this, 0x000000, 0.7).setInteractive());
@@ -57,6 +87,7 @@ export default class TitleScene extends Phaser.Scene {
     layer.add(makeButton(this, W / 2 - 72, 380, 128, 34, 'CANCEL', () => layer.destroy()));
     layer.add(makeButton(this, W / 2 + 72, 380, 128, 34, 'YES, RESET', () => {
       save.resetProgress();
+      clearRun();
       this.scene.restart();
     }, { fill: 0xe05858, textColor: '#ffffff' }));
   }
@@ -201,7 +232,7 @@ export default class TitleScene extends Phaser.Scene {
       const c = LEGENDARIES.length ? pick(LEGENDARIES) : CREATURES[0];
       this.showImg = addCreatureImage(this, x, y, c.id, false, c.legendary ? 3.6 : 4.4).setTint(0x000000).setAlpha(0.85);
       this.showName.setText('???');
-      this.showInfo.setText('Capture beasts to show them here');
+      this.showInfo.setText(tr('Capture beasts to show them here'));
       this.tweens.add({ targets: this.showImg, y: y - 6, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       return;
     }
@@ -233,8 +264,8 @@ export default class TitleScene extends Phaser.Scene {
       this.showAura.setFillStyle(auraColor, gold ? 0.3 : 0.14).setScale(0.6).setAlpha(1);
       this.tweens.add({ targets: this.showAura, scale: 1.1, alpha: 0.5, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       this.showName.setText(upper(c.name)).setColor(gold ? '#ffd84a' : '#f8f8f8');
-      const kind = c.legendary ? `${TYPES[c.type].name} god` : TYPES[c.type].name;
-      this.showInfo.setText(gold ? `GOLD  ${kind}` : kind).setColor(gold ? '#e0b030' : '#a8b4cc');
+      const kind = c.legendary ? godOf(c.type, TYPES[c.type].name) : tr(TYPES[c.type].name);
+      this.showInfo.setText(gold ? tr('GOLD  {0}', kind) : kind).setColor(gold ? '#e0b030' : '#a8b4cc');
       for (const t of [this.showName, this.showInfo]) {
         t.setAlpha(0);
         this.tweens.add({ targets: t, alpha: 1, duration: 300 });

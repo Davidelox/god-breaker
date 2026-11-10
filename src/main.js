@@ -1,4 +1,5 @@
 import '@fontsource/press-start-2p';
+import '@fontsource/vt323';
 import { installErrorHandlers, logError, showFatal } from './core/errors.js';
 
 installErrorHandlers();
@@ -9,6 +10,7 @@ installErrorHandlers();
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 Promise.all([
   document.fonts.load('8px "Press Start 2P"').catch((err) => logError('font', err)),
+  document.fonts.load('16px "VT323"').catch((err) => logError('font', err)),
   nextFrame().then(nextFrame)
 ])
   .then(() => import('./app.js'))
