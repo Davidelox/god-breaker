@@ -5,10 +5,16 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Menú principal
+- «GOD» flota más cerca de «BREAKER» en la cabecera. «BREAKER» tiene las letras más separadas y es azul claro, como el orbe común, con borde negro.
+- El avatar y el recuadro de información ocupan juntos el mismo ancho que los botones; el recuadro muestra solo el récord y la colección total.
+- El avatar está a la izquierda del recuadro de información, y la cinta con el título queda centrada entre la bestia del escaparate y ese recuadro.
+
 ### Misiones, desbloqueos y perfil
-- Al empezar solo están abiertos los orígenes griego, nórdico y egipcio: solo salen sus bestias y dioses. El resto se desbloquea con la pestaña de misiones «ORIGINS» / «ORÍGENES»: turno 15 (Celta), 20 capturas (Eslava), turno 25 (Ibérica), 50 capturas (Europea), derrotar 3 dioses (Japonesa), turno 35 (Asia oriental), 100 capturas (Indomalaya), 60 bestias distintas (Oriente Medio), turno 45 (Americana), 200 capturas (Africana) y turno 60 (Oceánica).
-- Las misiones de captura desbloquean títulos (Cazador, Rastreador, Domabestias, Coleccionista, Legendario, Ocultista, Matadioses, Señor de panteones, uno por cada mitología completa…). El título elegido se muestra en una cinta bajo el logo del menú principal; al tocarla se elige otro.
-- Las misiones de progreso desbloquean avatares: retratos enmarcados de dioses rediseñados con una paleta propia (Zeus dorado, Hades obsidiana, Ares sangre, Poseidón espectral…). El avatar elegido se muestra en el menú principal (al tocarlo se elige otro) y su paleta cambia el color del orbe común y de su estela. Datos en src/data/profile.js; se guardan en save.profile.
+- Al empezar solo están abiertos los orígenes griego, nórdico y egipcio: solo salen sus bestias y dioses. El resto se desbloquea con la pestaña de misiones «ORIGINS» / «ORÍGENES»: turno 20 (Celta), 30 capturas (Eslava), turno 30 (Ibérica), 75 capturas (Europea), derrotar 5 dioses (Japonesa), turno 40 (Asia oriental), 150 capturas (Indomalaya), 80 bestias distintas (Oriente Medio), turno 55 (Americana), 300 capturas (Africana) y turno 70 (Oceánica).
+- Misiones más difíciles: capturas 25/75/150/300/600, bestias distintas 20/40/80/150, 3 dioses capturados, 2 y 10 gold, puntos 10.000/40.000/100.000, turnos 30/50/75, dioses derrotados 3/10/30, tablero limpio 3/20 veces, 25/100 hechizos y 25 partidas.
+- Las misiones de captura desbloquean títulos (Cazador, Rastreador, Domabestias, Coleccionista, Legendario, Ocultista, Matadioses, Señor de panteones, uno por cada mitología completa…). El título elegido se muestra en un botón del menú principal, sobre el recuadro de información; al tocarlo se elige otro.
+- Las misiones de progreso desbloquean mascotas: mascotas celestiales, animales luminosos con detalles cósmicos al estilo de un espíritu guardián (Perro estelar, Gato lunar, Dragón cometa, Zorro aurora, Lobo de escarcha, Elefante cósmico, Mono solar, Búho nocturno, Ciervo cometa, Conejo lunar, Delfín de marea, Tortuga galáctica, Caballo solar y Osa Mayor). Cada retrato tiene cielo estrellado con nebulosa, halo luminoso y estrellas por el cuerpo. La mascota elegida cambia el orbe común: su paleta, más luz y un símbolo blanco dentro (huella, luna, estrella, ojo, ola o anillo) con destellos, además de la estela. En el menú principal, el título y la mascota son botones que abren su selector; a la izquierda de la mascota se ve el orbe a su tamaño real en la partida, y en la galería cada mascota muestra su orbe. Datos en src/data/profile.js; se guardan en save.profile.
 - Cada misión muestra su recompensa. Las misiones ya cumplidas se marcan también al abrir el menú, la colección o las misiones, no solo al jugar.
 - En la colección, los orígenes bloqueados salen apagados y, al elegirlos, dicen qué misión los abre.
 - Las criaturas ya capturadas salen con el 60 % de la probabilidad de las que faltan (antes, la mitad).

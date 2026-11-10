@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 import { creatureById } from '../data/creatures.js';
 import { drawBeast, goldCanvas } from './beastArt.js';
 import { CUSTOM_CREATURE_IMAGES, CUSTOM_BALL_IMAGES } from '../data/pack.js';
+import { AVATARS, AVATAR_STYLES, avatarOrb } from '../data/profile.js';
 
 // Las imágenes de un pack se guardan a CUSTOM_RES veces la resolución de los sprites generados
 // para no perder detalle; texScale() compensa esa diferencia al dibujarlas.
@@ -227,39 +228,93 @@ function gradientMap(src, stops) {
   return c;
 }
 
+/** Recorta un lienzo a la caja de sus píxeles visibles. */
+function trimCanvas(src) {
+  const ctx = src.getContext('2d');
+  const { data, width, height } = ctx.getImageData(0, 0, src.width, src.height);
+  let x0 = width, y0 = height, x1 = -1, y1 = -1;
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] === 0) continue;
+      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
+    }
+  }
+  if (x1 < 0) return src;
+  const c = document.createElement('canvas');
+  c.width = x1 - x0 + 1;
+  c.height = y1 - y0 + 1;
+  c.getContext('2d').drawImage(src, -x0, -y0);
+  return c;
+}
+
 /**
- * Retrato de avatar: marco de oro, fondo de su paleta y el dios recoloreado con ella.
- * Devuelve la clave de la textura (48x56 px).
+ * Retrato de la mascota celestial (48x56): marco de oro, cielo profundo con estrellas y nebulosa,
+ * y el animal luminoso (recoloreado con su paleta) con halo y estrellas por el cuerpo.
  */
-export function avatarKey(scene, id, creatureId, stops) {
+export function avatarKey(scene, id) {
   const key = `avatar_${id}`;
   if (scene.textures.exists(key)) return key;
+  const a = AVATARS[id];
+  const stops = AVATAR_STYLES[a.style];
   const w = 48, h = 56;
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
   const ctx = c.getContext('2d');
   ctx.imageSmoothingEnabled = false;
+  // Marco de oro
   ctx.fillStyle = '#6a3e0c';
   ctx.fillRect(0, 0, w, h);
   ctx.fillStyle = '#d8a030';
   ctx.fillRect(1, 1, w - 2, h - 2);
   ctx.fillStyle = '#ffe27a';
   ctx.fillRect(1, 1, w - 2, 1);
-  ctx.fillStyle = stops[0];
+  // Cielo con nebulosa y estrellas
+  ctx.fillStyle = '#05060f';
   ctx.fillRect(4, 4, w - 8, h - 8);
-  // Halo de la paleta detrás del dios
+  let seed = [...id].reduce((s, ch) => s + ch.charCodeAt(0), 7);
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
   ctx.fillStyle = stops[1];
-  ctx.globalAlpha = 0.55;
-  ctx.fillRect(8, 12, w - 16, h - 20);
-  ctx.globalAlpha = 0.35;
-  ctx.fillRect(12, 8, w - 24, h - 12);
+  for (let i = 0; i < 6; i++) {
+    ctx.globalAlpha = 0.18;
+    const r = 6 + rnd() * 8;
+    ctx.fillRect(Math.round(8 + rnd() * (w - 24)), Math.round(8 + rnd() * (h - 24)), r, r * 0.7);
+  }
   ctx.globalAlpha = 1;
-  const src = scene.textures.get(creatureKey(creatureId, false)).getSourceImage();
-  const art = gradientMap(src, stops);
-  const s = Math.min((w - 10) / art.width, (h - 10) / art.height);
-  const dw = Math.round(art.width * s), dh = Math.round(art.height * s);
-  ctx.drawImage(art, Math.round((w - dw) / 2), Math.round((h - dh) / 2) + 2, dw, dh);
+  for (let i = 0; i < 22; i++) {
+    ctx.fillStyle = rnd() < 0.3 ? stops[3] : '#8890b0';
+    ctx.fillRect(4 + Math.floor(rnd() * (w - 8)), 4 + Math.floor(rnd() * (h - 8)), 1, 1);
+  }
+  // Animal: recortado, recoloreado y escalado a entero para llenar el marco
+  // Se dibuja a doble resolución para que el animal llene el marco con más detalle
+  let art = trimCanvas(gradientMap(drawBeast(a.art, 72, 84, 101), stops));
+  const fit = Math.min((w - 10) / art.width, (h - 12) / art.height);
+  const k = fit >= 1 ? Math.floor(fit) : fit;
+  const dw = art.width * k, dh = art.height * k;
+  const dx = Math.round((w - dw) / 2), dy = Math.round((h - dh) / 2) + 2;
+  // Halo luminoso alrededor de la silueta (como un espíritu)
+  const glow = document.createElement('canvas');
+  glow.width = art.width;
+  glow.height = art.height;
+  const gctx = glow.getContext('2d');
+  gctx.drawImage(art, 0, 0);
+  gctx.globalCompositeOperation = 'source-in';
+  gctx.fillStyle = stops[2];
+  gctx.fillRect(0, 0, glow.width, glow.height);
+  ctx.globalAlpha = 0.45;
+  for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, dx + ox * k, dy + oy * k, dw, dh);
+  ctx.globalAlpha = 1;
+  ctx.drawImage(art, dx, dy, dw, dh);
+  // Estrellas sobre el cuerpo (solo encima del animal)
+  const stars = document.createElement('canvas');
+  stars.width = dw;
+  stars.height = dh;
+  const sctx = stars.getContext('2d');
+  sctx.drawImage(art, 0, 0, dw, dh);
+  sctx.globalCompositeOperation = 'source-atop';
+  sctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 7; i++) sctx.fillRect(Math.floor(rnd() * dw), Math.floor(rnd() * dh), 1, 1);
+  ctx.drawImage(stars, dx, dy);
   // Remaches
   ctx.fillStyle = '#ffe27a';
   for (const [x, y] of [[2, 2], [w - 4, 2], [2, h - 4], [w - 4, h - 4]]) ctx.fillRect(x, y, 2, 2);
@@ -267,11 +322,54 @@ export function avatarKey(scene, id, creatureId, stops) {
   return key;
 }
 
-/** Orbe común con los colores del avatar elegido (o los de siempre, si no hay avatar). */
-export function setCommonOrb(scene, colors) {
+// Marcas dentro del orbe (coordenadas en la esfera de 8x8), en blanco brillante
+const ORB_MARKS = {
+  paw: [[3, 3], [5, 3], [4, 5], [3, 5], [5, 5]],
+  moon: [[4, 2], [3, 3], [3, 4], [4, 5]],
+  star: [[4, 2], [3, 4], [4, 3], [4, 4], [5, 4], [4, 5]],
+  eye: [[3, 4], [4, 4], [5, 4], [4, 3], [4, 5]],
+  wave: [[2, 4], [3, 3], [4, 4], [5, 3]],
+  ring: [[3, 3], [4, 3], [3, 5], [4, 5], [2, 4], [5, 4]]
+};
+
+/**
+ * Orbe de una mascota (8x8, el mismo tamaño que el común): esfera luminosa con su paleta (borde de
+ * su tono medio en lugar de oscuro, cuerpo brillante), su símbolo en blanco y destellos dentro.
+ */
+export function petOrbKey(scene, id) {
+  const key = `orb_pet_${id}`;
+  if (scene.textures.exists(key)) return key;
+  const o = avatarOrb(id);
+  const [, d, b, l] = o.stops;
+  const c = document.createElement('canvas');
+  c.width = c.height = 8;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(drawPixels(BALL_2, { A: d, L: l, B: b, D: d, h: '#ffffff' }), 0, 0);
+  // Luz interior: el centro algo más claro
+  ctx.fillStyle = l;
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(2, 2, 4, 4);
+  ctx.globalAlpha = 1;
+  // Símbolo de la mascota
+  ctx.fillStyle = '#ffffff';
+  for (const [x, y] of ORB_MARKS[o.mark] ?? []) ctx.fillRect(x, y, 1, 1);
+  // Destellos dentro de la esfera
+  ctx.fillStyle = l;
+  for (const [x, y] of [[2, 5], [6, 3]]) ctx.fillRect(x, y, 1, 1);
+  scene.textures.addCanvas(key, c);
+  return key;
+}
+
+/** Orbe común: el de la mascota elegida (con marca y adorno) o el de siempre si no hay ninguna. */
+export function setCommonOrb(scene, avatarId) {
   if (CUSTOM_BALL_IMAGES.get('normal')) return; // el pack trae su propia imagen
+  const src = avatarId && AVATARS[avatarId] ? scene.textures.get(petOrbKey(scene, avatarId)).getSourceImage() : drawPixels(BALL_2, BALL_COLORS.normal);
   if (scene.textures.exists('ball_normal')) scene.textures.remove('ball_normal');
-  scene.textures.addCanvas('ball_normal', drawPixels(BALL_2, colors ?? BALL_COLORS.normal));
+  const c = document.createElement('canvas');
+  c.width = src.width;
+  c.height = src.height;
+  c.getContext('2d').drawImage(src, 0, 0);
+  scene.textures.addCanvas('ball_normal', c);
 }
 
 /** Píxel blanco (barras teñidas) y marca roja «!» de bestia sin capturar, como imágenes. */

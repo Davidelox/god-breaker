@@ -12,14 +12,15 @@ describe('misiones', () => {
   it('cuentan el progreso desde el guardado y la partida en curso', () => {
     const d = defaultSave();
     d.stats.captures = 12;
-    const cap10 = MISSIONS.find((m) => m.id === 'cap_10');
-    const score = MISSIONS.find((m) => m.id === 'score_5000');
-    expect(missionProgress(cap10, d)).toBe(10);
-    expect(missionProgress(score, d, { score: 6200 })).toBe(5000);
-    const ids = newlyCompleted(d, { score: 6200, turn: 3 }).map((m) => m.id);
-    expect(ids).toContain('cap_10');
-    expect(ids).toContain('score_5000');
-    expect(ids).not.toContain('cap_25');
+    d.stats.captures = 30;
+    const cap25 = MISSIONS.find((m) => m.id === 'cap_25');
+    const score = MISSIONS.find((m) => m.id === 'score_10000');
+    expect(missionProgress(cap25, d)).toBe(25);
+    expect(missionProgress(score, d, { score: 12000 })).toBe(10000);
+    const ids = newlyCompleted(d, { score: 12000, turn: 3 }).map((m) => m.id);
+    expect(ids).toContain('cap_25');
+    expect(ids).toContain('score_10000');
+    expect(ids).not.toContain('cap_75');
   });
 
   it('no repite misiones ya completadas', () => {
@@ -46,7 +47,7 @@ describe('desbloqueos y recompensas', () => {
   });
   it('completar una misión de desbloqueo abre su origen', () => {
     const d = defaultSave();
-    d.stats.bestTurn = 16;
+    d.stats.bestTurn = 21;
     const ids = newlyCompleted(d).map((m) => m.id);
     expect(ids).toContain('unlock_celta');
     d.missions.unlock_celta = 'x';
@@ -65,22 +66,27 @@ describe('desbloqueos y recompensas', () => {
   });
 });
 
-import { currentTitle, currentAvatar, avatarOrb, DEFAULT_TITLE, AVATARS } from '../src/data/profile.js';
+import { currentTitle, currentAvatar, avatarOrb, DEFAULT_TITLE, AVATARS, AVATAR_STYLES } from '../src/data/profile.js';
 import { LEGENDARIES } from '../src/data/creatures.js';
 
 describe('perfil', () => {
   it('título y avatar solo cuentan si su misión está completada', () => {
     const d = defaultSave();
-    d.profile = { title: 'cap_10', avatar: 'boss_1' };
+    d.profile = { title: 'cap_25', avatar: 'boss_3' };
     expect(currentTitle(d)).toBe(DEFAULT_TITLE);
     expect(currentAvatar(d)).toBeNull();
-    d.missions.cap_10 = 'x';
-    d.missions.boss_1 = 'x';
+    d.missions.cap_25 = 'x';
+    d.missions.boss_3 = 'x';
     expect(currentTitle(d)).toBe('Hunter');
-    expect(currentAvatar(d)).toBe('boss_1');
-    expect(avatarOrb('boss_1').colors.B).toBe('#e03040');
+    expect(currentAvatar(d)).toBe('boss_3');
+    expect(avatarOrb('boss_3').stops[2]).toBe('#ffc820');
+    expect(avatarOrb('boss_3').mark).toBe('star');
   });
-  it('todos los dioses de los avatares existen', () => {
-    for (const a of Object.values(AVATARS)) expect(LEGENDARIES.some((c) => c.name === a.god), a.god).toBe(true);
+  it('cada mascota celestial tiene dibujo, paleta, marca y adorno', () => {
+    for (const a of Object.values(AVATARS)) {
+      expect(a.art && a.pet && a.name, a.pet).toBeTruthy();
+      expect(AVATAR_STYLES[a.style], a.style).toBeTruthy();
+      expect(a.mark, a.pet).toBeTruthy();
+    }
   });
 });

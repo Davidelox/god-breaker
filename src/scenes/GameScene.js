@@ -134,7 +134,7 @@ export default class GameScene extends Phaser.Scene {
   create() {
     // Orbe común con los colores del avatar elegido (y su estela)
     this.avatarOrb = avatarOrb(currentAvatar(this.save.data));
-    setCommonOrb(this, this.avatarOrb?.colors);
+    setCommonOrb(this, currentAvatar(this.save.data));
     fitCamera(this);
     this.drawBoard();
     this.aimG = this.add.graphics().setDepth(5);
@@ -1866,7 +1866,7 @@ export default class GameScene extends Phaser.Scene {
     } else if (reward.title) {
       this.showToast(tr('New title: {0}!', tr(TITLES[reward.title])), '#b07800');
     } else if (reward.avatar) {
-      this.showToast(tr('New avatar: {0}!', tr(avatarName(reward.avatar))), '#7a4ac0');
+      this.showToast(tr('New pet: {0}!', tr(avatarName(reward.avatar))), '#7a4ac0');
     } else if (reward.orb) {
       this.save.addBank(reward.orb);
       this.showToast(tr('Reward: +1 {0} orb for your next game', tr(BALL_TYPES[reward.orb].name)), '#2a6aa8');

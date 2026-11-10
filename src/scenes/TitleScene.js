@@ -5,8 +5,9 @@ import { CREATURES, LEGENDARIES, creatureById } from '../data/creatures.js';
 import { loadRun, clearRun } from '../core/run.js';
 import { claimMissions } from '../data/missions.js';
 import { TYPES } from '../data/types.js';
-import { addCreatureImage, avatarKey, setCommonOrb } from '../gfx/sprites.js';
-import { TITLES, AVATARS, AVATAR_STYLES, DEFAULT_TITLE, currentTitle, currentAvatar, avatarName, avatarOrb } from '../data/profile.js';
+import { addCreatureImage, avatarKey, setCommonOrb, petOrbKey } from '../gfx/sprites.js';
+import { TITLES, AVATARS, DEFAULT_TITLE, currentTitle, currentAvatar } from '../data/profile.js';
+import { BALL_R, BALL_TEXTURE_R } from '../config.js';
 import { MISSIONS } from '../data/missions.js';
 import { text, makeButton, makePanel, makeAudioToggles, makeLangToggle, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { t as tr, godOf } from '../i18n.js';
@@ -19,17 +20,22 @@ const DARK_BTN = { fill: 0x2a1e44, border: 0xd8a030, textColor: '#ffe27a' };
 const SOFT_BTN = { fill: 0x161c34, border: 0x8a6a30, textColor: '#e8dcc0' };
 const RED_BTN = { fill: 0x4a1418, border: 0xc04040, textColor: '#ffb8b0' };
 const EPIC_PANEL = { fill: 0x1a1430, border: 0xd8a030 };
+const INFO_AVATAR_W = 41; // ancho del retrato del avatar junto al recuadro de información
+const RIBBON_Y = 302; // cinta del título: entre la bestia del escaparate y el recuadro de información
 
 /**
  * Texto del logo dibujado en un lienzo propio: sombra, contorno, degradado y grietas oscuras con
  * borde claro que solo se pintan sobre las letras (source-atop).
  */
-function logoTexture(scene, key, str, size, stops, strokeColor, strokeW, shadowY, cracks, { inner = null, depth = 0, depthColor = '#000' } = {}) {
+function logoTexture(scene, key, str, size, stops, strokeColor, strokeW, shadowY, cracks, { inner = null, depth = 0, depthColor = '#000', spacing = 0 } = {}) {
   if (scene.textures.exists(key)) scene.textures.remove(key);
   const font = `${size}px "Press Start 2P"`;
   const probe = document.createElement('canvas').getContext('2d');
   probe.font = font;
-  const tw = Math.ceil(probe.measureText(str).width);
+  // Con spacing, las letras se dibujan una a una con separación extra entre ellas
+  const chars = [...str];
+  const widths = chars.map((ch) => probe.measureText(ch).width);
+  const tw = Math.ceil(spacing ? widths.reduce((a, b) => a + b, 0) + spacing * (chars.length - 1) : probe.measureText(str).width);
   const pad = strokeW + 4;
   const canvas = document.createElement('canvas');
   canvas.width = tw + pad * 2;
@@ -39,32 +45,40 @@ function logoTexture(scene, key, str, size, stops, strokeColor, strokeW, shadowY
   ctx.textBaseline = 'top';
   ctx.lineJoin = 'round';
   const x = pad, y = pad;
+  const put = (method, px, py) => {
+    if (!spacing) return ctx[method](str, px, py);
+    let cx0 = px;
+    chars.forEach((ch, i) => {
+      ctx[method](ch, cx0, py);
+      cx0 += widths[i] + spacing;
+    });
+  };
   // Sombra
   ctx.fillStyle = '#05060c';
   ctx.strokeStyle = '#05060c';
   ctx.lineWidth = strokeW;
-  ctx.strokeText(str, x, y + shadowY);
-  ctx.fillText(str, x, y + shadowY);
+  put('strokeText', x, y + shadowY);
+  put('fillText', x, y + shadowY);
   // Relieve: capas oscuras hacia abajo (letras talladas con volumen)
   for (let d = depth; d >= 1; d--) {
     ctx.strokeStyle = depthColor;
     ctx.fillStyle = depthColor;
-    ctx.strokeText(str, x, y + d);
-    ctx.fillText(str, x, y + d);
+    put('strokeText', x, y + d);
+    put('fillText', x, y + d);
   }
   // Contorno exterior, contorno interior (aro de color) y relleno con degradado
   ctx.strokeStyle = strokeColor;
-  ctx.strokeText(str, x, y);
+  put('strokeText', x, y);
   if (inner) {
     ctx.lineWidth = Math.max(2, strokeW * 0.45);
     ctx.strokeStyle = inner;
-    ctx.strokeText(str, x, y);
+    put('strokeText', x, y);
     ctx.lineWidth = strokeW;
   }
   const grd = ctx.createLinearGradient(0, y, 0, y + size);
   stops.forEach((c, i) => grd.addColorStop(i / (stops.length - 1), c));
   ctx.fillStyle = grd;
-  ctx.fillText(str, x, y);
+  put('fillText', x, y);
   // Grietas: zigzag de arriba abajo con alguna rama, solo sobre las letras
   ctx.globalCompositeOperation = 'source-atop';
   let seed = size * 31 + str.length;
@@ -115,12 +129,15 @@ export default class TitleScene extends Phaser.Scene {
     this.createShowcase(save);
     this.createProfile(save);
 
-    makePanel(this, 40, 312, W - 80, 64, EPIC_PANEL);
-    const { caught, total } = save.counts();
+    // Recuadro de información: avatar + recuadro ocupan juntos el ancho de los botones (200)
+    const infoX0 = W / 2 - 100 + INFO_AVATAR_W + 6, infoW = W / 2 + 100 - infoX0;
+    const infoX = infoX0 + infoW / 2;
+    makePanel(this, infoX0, 318, infoW, 58, EPIC_PANEL);
+    const { caught } = save.counts();
     // Partida guardada automáticamente: CONTINUE la sigue, NEW GAME la abandona
     const run = loadRun(undefined, (id) => !!creatureById(id));
-    text(this, W / 2, 330, run ? tr('BEST {0}  RUN: TURN {1}', save.data.bestScore, run.turn) : tr('BEST  {0}', save.data.bestScore), 8, '#ffe27a').setOrigin(0.5);
-    text(this, W / 2, 352, tr('COLLECTION {0}/{1}  CAUGHT {2}', caught, CREATURES.length, total), 8, '#e8dcc0').setOrigin(0.5);
+    text(this, infoX, 336, tr('BEST  {0}', save.data.bestScore), 8, '#ffe27a').setOrigin(0.5);
+    text(this, infoX, 358, tr('COLLECTION {0}/{1}', caught, CREATURES.length), 8, '#e8dcc0').setOrigin(0.5);
 
     if (run) {
       makeButton(this, W / 2, 404, 200, 40, 'CONTINUE', () => this.scene.start('game', { resume: true }), { size: 16, ...GOLD_BTN });
@@ -181,7 +198,7 @@ export default class TitleScene extends Phaser.Scene {
   /** Logo «GOD BREAKER»: letras agrietadas sobre una tablilla de piedra, rayos girando y destellos. */
   drawLogo() {
     const cx = W / 2;
-    const gy = 84; // centro de «GOD»
+    const gy = 94; // centro de «GOD» (cerca de «BREAKER»)
     const by = 142; // centro de «BREAKER»
 
     // Halo y rayos detrás del título
@@ -208,7 +225,7 @@ export default class TitleScene extends Phaser.Scene {
     const laurel = this.add.graphics();
     for (const side of [-1, 1]) {
       // Rama curva de abajo arriba, con hojas alternas a cada lado
-      const at = (t) => [cx + side * (84 + 12 * Math.sin(t * Math.PI)), gy + 30 - t * 60];
+      const at = (t) => [cx + side * (84 + 12 * Math.sin(t * Math.PI)), gy + 20 - t * 58];
       for (let i = 0; i <= 20; i++) {
         const [x, y] = at(i / 20);
         laurel.fillStyle(0x3a1c04);
@@ -239,8 +256,8 @@ export default class TitleScene extends Phaser.Scene {
     // «GOD»: oro con degradado, contorno grueso, sombra y grietas (bloques que se rompen)
     const god = this.add.image(cx, gy, logoTexture(this, 'logo_god', 'GOD', 48, ['#fff8d0', '#ffd84a', '#e8a020', '#8a4a08'], '#2a1002', 10, 6, 4, { inner: '#fff0a0', depth: 5, depthColor: '#5a2c04' }));
     // «BREAKER»: plata azulada, también agrietada
-    // «BREAKER»: azul lapislázuli con aro de oro, también agrietada
-    const breaker = this.add.image(cx, by, logoTexture(this, 'logo_breaker', 'BREAKER', 24, ['#d8e4ff', '#7c9cf0', '#3c58c0', '#1c2c7c'], '#0c1020', 7, 3, 3, { inner: '#d8a030', depth: 3, depthColor: '#0c1020' }));
+    // «BREAKER»: azul claro como el orbe, borde negro y letras más separadas, también agrietada
+    const breaker = this.add.image(cx, by, logoTexture(this, 'logo_breaker', 'BREAKER', 24, ['#f0ffff', '#b8faff', '#30d8f0', '#1a8cb0'], '#000000', 7, 3, 3, { depth: 3, depthColor: '#04121a', spacing: 5 }));
 
     // Entrada: «GOD» cae con rebote y destello; «BREAKER» y adornos aparecen después
     god.setScale(2.4).setAlpha(0);
@@ -289,47 +306,34 @@ export default class TitleScene extends Phaser.Scene {
 
   /** Retrato del avatar (o el orbe común si no hay) y título del cazador bajo el logo. */
   createProfile(save) {
-    setCommonOrb(this, avatarOrb(currentAvatar(save.data))?.colors);
-    // Cinta con el título elegido
-    const ry = 190;
-    this.titleText = text(this, W / 2, ry, '', 8, '#ffe27a').setOrigin(0.5).setDepth(3);
-    this.titleRibbon = this.add.graphics().setDepth(2);
-    const zone = this.add.zone(W / 2, ry, 200, 20).setInteractive({ useHandCursor: true });
-    zone.on('pointerup', () => this.openTitlePicker(save));
+    setCommonOrb(this, currentAvatar(save.data));
+    // Botón con el título elegido (al tocarlo se elige otro)
+    this.titleBtn = makeButton(this, W / 2, RIBBON_Y, 200, 22, '', () => this.openTitlePicker(save), DARK_BTN);
     this.drawTitleRibbon(save);
-    // Retrato del avatar a la izquierda del escaparate
-    this.avatarImg = this.add.image(48, 240, '__DEFAULT').setDepth(3);
-    this.avatarImg.setInteractive({ useHandCursor: true }).on('pointerup', () => this.openAvatarPicker(save));
+    // Botón de la mascota junto al recuadro de información: el retrato va encima del botón
+    const ax = W / 2 - 100 + INFO_AVATAR_W / 2;
+    makeButton(this, ax, 347, INFO_AVATAR_W + 4, 58, '', () => this.openAvatarPicker(save), DARK_BTN);
+    this.avatarImg = this.add.image(ax, 345, '__DEFAULT').setDepth(3);
     this.drawAvatar(save);
-    this.tweens.add({ targets: this.avatarImg, y: 236, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
   drawTitleRibbon(save) {
-    const str = tr(currentTitle(save.data)).toUpperCase();
-    this.titleText.setText(`« ${str} »`);
-    const w = this.titleText.width + 24, h = 16, x = W / 2 - w / 2, y = 190 - h / 2;
-    const g = this.titleRibbon;
-    g.clear();
-    g.fillStyle(0x6a3e0c);
-    g.fillTriangle(x - 10, y + 2, x + 2, y + h / 2 + 1, x - 10, y + h);
-    g.fillTriangle(x + w + 10, y + 2, x + w - 2, y + h / 2 + 1, x + w + 10, y + h);
-    g.fillStyle(0x6a3e0c);
-    g.fillRect(x - 1, y - 1, w + 2, h + 2);
-    g.fillStyle(0x2a1e44);
-    g.fillRect(x, y, w, h);
-    g.fillStyle(0xd8a030);
-    g.fillRect(x, y, w, 1);
-    g.fillRect(x, y + h - 1, w, 1);
+    this.titleBtn.setLabel(`« ${tr(currentTitle(save.data)).toUpperCase()} »`);
   }
 
   drawAvatar(save) {
     const id = currentAvatar(save.data);
     if (id) {
-      const god = LEGENDARIES.find((c) => c.name === AVATARS[id].god) ?? LEGENDARIES[0];
-      this.avatarImg.setTexture(avatarKey(this, id, god.id, AVATAR_STYLES[AVATARS[id].style].stops)).setScale(1.1);
+      this.avatarImg.setTexture(avatarKey(this, id)).setScale(0.85);
     } else {
-      this.avatarImg.setTexture('ball_normal').setScale(5);
+      this.avatarImg.setTexture('ball').setScale(4.5).setTint(0x30d8f0);
     }
+    if (id) this.avatarImg.clearTint();
+    // El orbe común a su tamaño real en la partida, a la izquierda del avatar
+    this.orbPreview?.destroy();
+    this.orbPreview = this.add.image(this.avatarImg.x - INFO_AVATAR_W / 2 - 13, 347, 'ball_normal').setDepth(3)
+      .setScale(BALL_R / BALL_TEXTURE_R);
+    this.tweens.add({ targets: this.orbPreview, angle: 360, duration: 6000, repeat: -1 });
   }
 
   /** Capa de selector con panel, título y botón de cerrar. */
@@ -381,7 +385,7 @@ export default class TitleScene extends Phaser.Scene {
 
   /** Selector de avatar: retratos desbloqueados (los demás, en silueta). Cambia el orbe común. */
   openAvatarPicker(save) {
-    const layer = this.pickerLayer('AVATARS');
+    const layer = this.pickerLayer('PETS');
     const ids = [null, ...Object.keys(AVATARS)];
     const cols = 4, cw = (W - 40) / cols, ch = 84;
     ids.forEach((id, i) => {
@@ -389,15 +393,14 @@ export default class TitleScene extends Phaser.Scene {
       const open = !id || save.data.missions[id];
       let img;
       if (id) {
-        const god = LEGENDARIES.find((c) => c.name === AVATARS[id].god) ?? LEGENDARIES[0];
-        img = this.add.image(x, y, avatarKey(this, id, god.id, AVATAR_STYLES[AVATARS[id].style].stops)).setScale(1.15);
-        if (!open) img.setTint(0x2a2440); // bloqueado: retrato en sombra
+        img = this.add.image(x, y, avatarKey(this, id)).setScale(1.15);
+        if (!open) img.setTint(0x2a2440); // bloqueada: retrato en sombra
       } else {
         img = this.add.image(x, y, 'ball').setScale(5).setTint(0x30d8f0); // orbe común de siempre
       }
       const selected = (currentAvatar(save.data) ?? null) === id;
       const ring = this.add.rectangle(x, y, 60, 70).setStrokeStyle(2, selected ? 0xffe27a : 0x000000, selected ? 1 : 0);
-      const label = text(this, x, y + 40, id ? (open ? AVATARS[id].god : '???') : tr('Default'), 8, open ? '#e8dcc0' : '#56607c').setOrigin(0.5);
+      const label = text(this, x, y + 40, id ? (open ? tr(AVATARS[id].pet) : '???') : tr('Default'), 8, open ? '#e8dcc0' : '#56607c').setOrigin(0.5);
       img.setInteractive({ useHandCursor: true }).on('pointerup', () => {
         if (!open) {
           const m = MISSIONS.find((mm) => mm.id === id);
@@ -405,13 +408,15 @@ export default class TitleScene extends Phaser.Scene {
           return;
         }
         save.setProfile('avatar', id);
-        setCommonOrb(this, avatarOrb(id)?.colors);
+        setCommonOrb(this, id);
         this.drawAvatar(save);
         layer.destroy();
       });
       layer.add([ring, img, label]);
+      // Su orbe, a tamaño real, en la esquina del retrato
+      if (id && open) layer.add(this.add.image(x + 20, y + 24, petOrbKey(this, id)).setScale(BALL_R / BALL_TEXTURE_R));
     });
-    layer.add(text(this, W / 2, H - 100, 'Your avatar also changes your common orb.', 8, '#a8b4cc', { wordWrap: { width: W - 60 } }).setOrigin(0.5));
+    layer.add(text(this, W / 2, H - 100, 'Your pet also changes your common orb.', 8, '#a8b4cc', { wordWrap: { width: W - 60 } }).setOrigin(0.5));
   }
 
   /** Aviso breve encima de todo (en los selectores del perfil). */
@@ -435,7 +440,7 @@ export default class TitleScene extends Phaser.Scene {
     }
     this.showPool = shuffle(pool);
     this.showIndex = 0;
-    const x = W / 2, y = 232;
+    const x = W / 2, y = 222;
     this.showY = y;
 
     this.pedestal = this.add.ellipse(x, y + 38, 96, 14, 0xffd84a, 0.16);

@@ -90,7 +90,7 @@ export default class MissionsScene extends Phaser.Scene {
         const chip = this.add.rectangle(30, y + 27, label.width + 12, 13, hexToNum(completed ? t.base : t.dark)).setOrigin(0, 0.5);
         this.layer.add([chip, label]);
       } else if (r?.title || r?.avatar) {
-        const what = r.title ? tr('Title: {0}', tr(TITLES[r.title])) : tr('Avatar: {0}', tr(avatarName(r.avatar)));
+        const what = r.title ? tr('Title: {0}', tr(TITLES[r.title])) : tr('Pet: {0}', tr(avatarName(r.avatar)));
         this.layer.add(text(this, 28, y + 27, what, 8, r.title ? '#b07800' : '#7a4ac0').setOrigin(0, 0.5));
       } else if (r?.orb) {
         this.layer.add(text(this, 28, y + 27, completed ? tr('Reward received') : tr('Reward: +1 {0} orb', tr(BALL_TYPES[r.orb].name)), 8, r.orb === 'ultra' ? '#b07800' : '#7a4ac0').setOrigin(0, 0.5));
@@ -101,6 +101,6 @@ export default class MissionsScene extends Phaser.Scene {
         this.tweens.add({ targets: star, angle: 90, duration: 1600, repeat: -1 });
       }
     });
-    this.layer.add(text(this, W / 2, H - 98, this.tab === 'desbloqueo' ? 'Unlock new origins by completing these missions.' : this.tab === 'captura' ? 'Earn titles to show on the main menu.' : 'Earn avatars: they also change your common orb.', 8, '#a8b4cc', { wordWrap: { width: W - 40 } }).setOrigin(0.5));
+    this.layer.add(text(this, W / 2, H - 98, this.tab === 'desbloqueo' ? 'Unlock new origins by completing these missions.' : this.tab === 'captura' ? 'Earn titles to show on the main menu.' : 'Earn pets: they also change your common orb.', 8, '#a8b4cc', { wordWrap: { width: W - 40 } }).setOrigin(0.5));
   }
 }
