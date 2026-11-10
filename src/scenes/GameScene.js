@@ -13,9 +13,11 @@ import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from
 import { checkTips } from './tutorial.js';
 import { t as tr } from '../i18n.js';
 import { loadRun, saveRun, clearRun } from '../core/run.js';
-import { creatureKey, addCreatureImage, texScale, blockBgKey, blockBgOrigin, HP_FONT, setCommonOrb } from '../gfx/sprites.js';
+import { creatureKey, addCreatureImage, texScale, blockBgKey, blockBgOrigin, HP_FONT, setCommonOrb, godFrameKeys, creatureBlinkKey } from '../gfx/sprites.js';
+import { GOD_FRAME_MS } from '../gfx/gods.js';
+import { stageTextures, STAGE_FOR_ORIGIN } from '../gfx/stage.js';
 import { TITLES, currentAvatar, avatarOrb, avatarName } from '../data/profile.js';
-import { text, bodyText, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { text, bodyText, makeButton, makePanel, drawPanel, drawGoldPanel, GOLD_UI, floatText, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
 import { Weather } from '../gfx/weather.js';
@@ -92,6 +94,7 @@ export default class GameScene extends Phaser.Scene {
     this.maxAura = null;
     this.shinyMeter = 0;
     this.shinyBoostTurns = 0;
+    this.stageTheme = null; // tema del tablero (la escena se reutiliza al reintentar)
     this.goldMode = false; // modo gold activo (fondo dorado y destellos, ver updateGoldMode)
     this.goldSparkles = null;
     this.weatherColor = null;
@@ -142,6 +145,13 @@ export default class GameScene extends Phaser.Scene {
     audio.setMood(0);
     audio.setTrack('battle');
     this.fxG = this.add.graphics().setDepth(25);
+    // Partículas: una capa normal (trozos de bloque) y otra aditiva (chispas que brillan). Todas se
+    // dibujan en dos gráficos por fotograma, sin crear un objeto por partícula (rinde en móvil).
+    this.parts = [];
+    // Parpadeos y motas de las criaturas del tablero
+    this.time.addEvent({ delay: 450, loop: true, callback: () => this.idleTick() });
+    this.partG = this.add.graphics().setDepth(21);
+    this.glowG = this.add.graphics().setDepth(22).setBlendMode(Phaser.BlendModes.ADD);
     this.launcher = this.add.image(this.launchX, LAUNCH_Y, 'ball_normal').setDepth(6).setScale((BALL_R / BALL_TEXTURE_R) * texScale('ball_normal'));
     this.nextMarker = this.add.image(0, LAUNCH_Y, 'ball_normal').setDepth(6).setAlpha(0.4).setVisible(false).setScale((BALL_R / BALL_TEXTURE_R) * texScale('ball_normal'));
     this.launchText = text(this, this.launchX, LAUNCH_Y - 14, '', 8).setOrigin(0.5).setDepth(6).setStroke('#101828', 3);
@@ -179,6 +189,10 @@ export default class GameScene extends Phaser.Scene {
       this.weatherColor = color;
       this.drawBoardFill(this.boardTint(color));
     });
+    // Escenario temático: losas semitransparentes sobre el color del clima y franja decorativa arriba
+    this.stageTiles = this.add.image(WALL_L, BOARD_TOP, '__DEFAULT').setOrigin(0).setDepth(-2.5).setAlpha(0.2);
+    this.stageBorder = this.add.image(WALL_L, BOARD_TOP, '__DEFAULT').setOrigin(0).setDepth(-1).setAlpha(0.9);
+    this.setStage('griega', false);
     // Cuadrícula opcional (ajuste CUADRICULA en la pausa; oculta por defecto)
     this.gridG = this.add.graphics().setDepth(-1);
     this.gridG.lineStyle(1, 0xffffff, 0.06);
@@ -222,6 +236,26 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Cambia el escenario del tablero (uno por mitología, ver stage.js), con un fundido. */
+  setStage(theme, fade = true) {
+    if (!theme || theme === this.stageTheme) return;
+    this.stageTheme = theme;
+    const keys = stageTextures(this, theme, WALL_R - WALL_L, BOARD_FLOOR_Y - BOARD_TOP, CELL);
+    const apply = () => {
+      this.stageTiles.setTexture(keys.tiles);
+      this.stageBorder.setTexture(keys.border);
+    };
+    if (!fade) return apply();
+    this.tweens.add({
+      targets: [this.stageTiles, this.stageBorder], alpha: 0, duration: 350,
+      onComplete: () => {
+        apply();
+        this.tweens.add({ targets: this.stageTiles, alpha: 0.2, duration: 600 });
+        this.tweens.add({ targets: this.stageBorder, alpha: 0.9, duration: 600 });
+      }
+    });
+  }
+
   drawBoardFill(color) {
     const from = this.boardColor ?? color;
     this.boardColor = color;
@@ -258,13 +292,18 @@ export default class GameScene extends Phaser.Scene {
     const k = HUD_EXTRA;
     const big = k >= 36;
     const hudH = 54 + k;
-    makePanel(this, 4, 4, W - 8, hudH);
+    // Panel dorado con iconos: corona (puntos), reloj de arena (turno) y orbe (capturas)
+    drawGoldPanel(this.add.graphics(), 4, 4, W - 8, hudH);
     const rowY = (f) => 4 + hudH * f;
-    this.scoreText = text(this, 14, rowY(0.25), '', big ? 16 : 8, COLORS.inkHex).setOrigin(0, 0.5);
-    this.bestText = text(this, 14, rowY(big ? 0.55 : 0.52), '', 8, '#56607c').setOrigin(0, 0.5);
-    this.turnText = text(this, 14, rowY(0.78), '', 8, '#56607c').setOrigin(0, 0.5);
-    this.captText = text(this, 112, rowY(0.78), '', 8, '#56607c').setOrigin(0, 0.5);
-    this.lifeText = text(this, 112, rowY(big ? 0.55 : 0.52), '', 8, '#6a4ca8').setOrigin(0, 0.5);
+    const ic = (key, x, y, k = 2) => this.add.image(x, y, key).setScale(k);
+    ic('icon_crown', 18, rowY(0.25), big ? 2.4 : 2);
+    this.scoreText = text(this, 30, rowY(0.25), '', big ? 16 : 8, '#ffe27a').setOrigin(0, 0.5);
+    this.bestText = text(this, 12, rowY(big ? 0.55 : 0.52), '', 8, '#a89c80').setOrigin(0, 0.5);
+    ic('icon_hour', 17, rowY(0.78));
+    this.turnText = text(this, 28, rowY(0.78), '', 8, '#e8dcc0').setOrigin(0, 0.5);
+    ic('icon_orbicon', 79, rowY(0.78));
+    this.captText = text(this, 90, rowY(0.78), '', 8, '#e8dcc0').setOrigin(0, 0.5);
+    this.lifeText = text(this, 112, rowY(big ? 0.55 : 0.52), '', 8, '#b494f0').setOrigin(0, 0.5);
     // Botones: velocidad y pausa, alineados a la derecha. La pausa es más grande y dorada.
     const bh = Math.min(40, 24 + k * 0.35);
     const by = big ? rowY(0.27) : 22;
@@ -278,7 +317,7 @@ export default class GameScene extends Phaser.Scene {
       this.save.data.settings.speed = this.speedMul;
       this.save.write();
       this.refreshHud();
-    }, { size: 16 });
+    }, { size: 16, ...GOLD_UI });
     // Cartel de modo gold a la izquierda de la velocidad: turnos gold que quedan
     const bw2 = 52, bh2 = Math.min(ph, 22 + k * 0.3);
     const gx = sx - sw / 2 - 6 - bw2 / 2, gy = 4 + hudH * (big ? 0.5 : 0.36);
@@ -316,27 +355,43 @@ export default class GameScene extends Phaser.Scene {
     const bx = (i) => 4 + i * (bw + gap) + bw / 2;
     this.slotButtons = [];
     for (let i = 0; i < MAX_POWERS; i++) {
-      const btn = makeButton(this, bx(i), by, bw, bh, '-', () => this.toggleSlot(i), { size: big ? 16 : 8 });
+      const btn = makeButton(this, bx(i), by, bw, bh, '', () => this.toggleSlot(i), { size: big ? 16 : 8, ...GOLD_UI });
+      // Icono del elemento del hechizo guardado en ese hueco
+      btn.icon = this.add.image(0, -1, 'icon_fuego').setScale(big ? 4 : 3).setVisible(false);
+      btn.add(btn.icon);
       this.slotButtons.push(btn);
     }
     // Dos hechizos iguales: un solo botón que ocupa los dos huecos, con el nombre del hechizo MAX
-    this.maxSlotBtn = makeButton(this, (bx(0) + bx(1)) / 2, by, bw * 2 + gap, bh, '', () => this.toggleMaxSlot()).setVisible(false);
+    this.maxSlotBtn = makeButton(this, (bx(0) + bx(1)) / 2, by, bw * 2 + gap, bh, '', () => this.toggleMaxSlot(), GOLD_UI).setVisible(false);
+    this.maxSlotBtn.icon = this.add.image(-(bw * 2 + gap) / 2 + 18, -1, 'icon_fuego').setScale(3);
+    this.maxSlotBtn.add(this.maxSlotBtn.icon);
     this.ballButtons = {};
     BALL_ORDER.filter((id) => id !== 'normal').forEach((id, i) => {
-      const btn = makeButton(this, bx(MAX_POWERS + i), by, bw, bh, '', () => this.selectBall(id), {
-        fill: BALL_TYPES[id].fill
-      });
+      const btn = makeButton(this, bx(MAX_POWERS + i), by, bw, bh, '', () => this.selectBall(id), GOLD_UI);
+      // Dibujo del orbe y cuántos quedan
+      btn.add(this.add.image(-8, -1, `ball_${id}`).setScale(big ? 3 : 2.5));
+      btn.count = text(this, 10, -1, '', 8, id === 'ultra' ? '#ffe27a' : '#e0d0ff').setOrigin(0.5);
+      btn.add(btn.count);
       this.ballButtons[id] = btn;
     });
-    this.recallBtn = makeButton(this, W - 4 - rw / 2, by, rw, bh, '▼', () => this.recallBalls(), { size: 16 });
+    this.recallBtn = makeButton(this, W - 4 - rw / 2, by, rw, bh, '▼', () => this.recallBalls(), { size: 16, ...GOLD_UI });
     this.refreshSpecials();
   }
 
+  /** Medidor con marco y tapas doradas y un reflejo de luz arriba. */
   drawMeter(x, y, w, ratio, color) {
-    this.energyG.fillStyle(0x080a14);
-    this.energyG.fillRect(x, y, w, 8);
-    this.energyG.fillStyle(color);
-    this.energyG.fillRect(x + 1, y + 1, (w - 2) * Math.min(1, ratio), 6);
+    const g = this.energyG;
+    g.fillStyle(0x6a3e0c);
+    g.fillRect(x - 2, y - 1, w + 4, 10);
+    g.fillStyle(0x1e1838);
+    g.fillRect(x - 1, y, w + 2, 8);
+    g.fillStyle(color);
+    g.fillRect(x, y + 1, (w - 1) * Math.min(1, ratio), 6);
+    g.fillStyle(0xffffff, 0.45);
+    g.fillRect(x, y + 1, (w - 1) * Math.min(1, ratio), 1);
+    g.fillStyle(0xd8a030);
+    g.fillRect(x - 4, y - 1, 3, 10);
+    g.fillRect(x + w + 1, y - 1, 3, 10);
   }
 
   /** Velocidad del lanzamiento: la elegida, la automática (turbo) y x2 si se mantiene pulsada la pantalla. */
@@ -347,10 +402,10 @@ export default class GameScene extends Phaser.Scene {
 
   refreshHud() {
     const best = Math.max(this.save.data.bestScore, Math.floor(this.score));
-    this.scoreText.setText(tr('SCORE {0}', Math.floor(this.score)));
+    this.scoreText.setText(String(Math.floor(this.score)));
     this.bestText.setText(tr('BEST {0}', best));
-    this.turnText.setText(tr('TURN {0}', this.turn));
-    this.captText.setText(tr('CAPTURED {0}', this.runCaptures.length));
+    this.turnText.setText(String(this.turn));
+    this.captText.setText(String(this.runCaptures.length));
     this.lifeText.setText(this.extraLife ? tr('+1 LIFE') : '');
     // Modo gold: cartel con los turnos que quedan, fondo dorado y destellos
     this.goldBadge.setVisible(this.shinyBoostTurns > 0);
@@ -383,21 +438,24 @@ export default class GameScene extends Phaser.Scene {
     this.slotButtons.forEach((btn, i) => {
       const sp = specialById(this.powers[i]);
       btn.setVisible(!merged);
-      btn.setLabel(sp ? ELEMENTS[sp.type].short : '-');
-      btn.setFill(sp ? hexToNum(ELEMENTS[sp.type].base) : 0x3a4668, '#ffffff');
+      btn.setLabel(sp ? '' : '-');
+      btn.icon.setVisible(!!sp);
+      if (sp) btn.icon.setTexture(`icon_${sp.type}`);
+      btn.setFill(sp ? hexToNum(ELEMENTS[sp.type].dark) : 0x1e1838, '#ffe27a');
       btn.setEnabled(!!sp && aim);
       btn.setSelected(this.selectedSlots.has(i));
     });
     this.maxSlotBtn.setVisible(merged);
     if (merged) {
       const sp = specialById(this.powers[0]);
-      this.maxSlotBtn.setLabel(`${upper(tr(sp.name))}\nMAX`);
-      this.maxSlotBtn.setFill(hexToNum(ELEMENTS[sp.type].base), '#ffffff');
+      this.maxSlotBtn.setLabel(`   ${upper(tr(sp.name))}\n   MAX`);
+      this.maxSlotBtn.icon.setTexture(`icon_${sp.type}`);
+      this.maxSlotBtn.setFill(hexToNum(ELEMENTS[sp.type].dark), '#ffe27a');
       this.maxSlotBtn.setEnabled(aim).setSelected(this.selectedSlots.size === 2);
     }
     for (const [id, btn] of Object.entries(this.ballButtons)) {
       const n = this.ballInv[id];
-      btn.setLabel(`${upper(tr(BALL_TYPES[id].name))}\n${n}`);
+      btn.count.setText(String(n));
       btn.setEnabled(n > 0 && aim);
       btn.setSelected(this.selectedBall === id);
     }
@@ -554,7 +612,9 @@ export default class GameScene extends Phaser.Scene {
     // Turno del dios (decidido en endTurn, que puede posponerlo): baja él solo, sin más bloques.
     if (this.bossNow) {
       const col = randInt(0, COLS - GOD_W);
-      this.addBlock({ col, row, w: GOD_W, h: GOD_H, kind: 'boss', creature: this.nextLegendary(), hp: BOSS_HP(t) });
+      const god = this.nextLegendary();
+      this.addBlock({ col, row, w: GOD_W, h: GOD_H, kind: 'boss', creature: god, hp: BOSS_HP(t) });
+      this.setStage(STAGE_FOR_ORIGIN[god.type] ?? 'griega'); // el tablero toma el tema de su mitología
       for (let c = col; c < col + GOD_W; c++) taken.add(c);
       this.showToast('A god descends!', '#b07800');
       audio.play('bossAppear');
@@ -642,7 +702,16 @@ export default class GameScene extends Phaser.Scene {
       blk.sprite = spr;
       // La primera vez que sale una criatura se ve como silueta negra (no en las gold)
       if (this.save.markSeen(d.creature.id) && !blk.shiny) spr.setTint(0x000000);
-      this.tweens.add({ targets: spr, y: spr.y - 2, duration: 400 + Math.random() * 300, yoyo: true, repeat: -1 });
+      // Animación de reposo: respira (se estira un poco hacia arriba) y flota un píxel
+      const sy = spr.scaleY;
+      this.tweens.add({ targets: spr, scaleY: sy * 1.04, y: spr.y - 1.5, duration: 900 + Math.random() * 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      blk.blinkKey = creatureBlinkKey(d.creature.id, blk.shiny);
+      blk.openKey = spr.texture.key;
+      if (d.kind === 'boss') this.animateGod(blk, cont, spr, size, height);
+      else {
+        if (d.creature.rarity >= 2) this.rarityAura(blk, cont, size);
+        this.animateFrames(blk, spr);
+      }
       if (blk.shiny) this.decorateShiny(blk, cont, size, height);
       if (!this.save.entry(d.creature.id)) this.addNewMark(blk, cont, size, height);
     }
@@ -669,6 +738,74 @@ export default class GameScene extends Phaser.Scene {
     this.updateBlockText(blk);
     this.blocks.push(blk);
     return blk;
+  }
+
+  /** Aura de las bestias poco comunes (azul) y raras (morada, con motas de luz que suben). */
+  rarityAura(blk, cont, size) {
+    const rare = blk.creature.rarity >= 3;
+    const color = rare ? 0xb070ff : 0x6aa8ff;
+    // Halo alrededor del bloque (detrás de él, para que se vea por los bordes)
+    const glow = this.add.rectangle(0, 0, size + 8, size + 8, color, rare ? 0.5 : 0.38);
+    cont.addAt(glow, 0);
+    this.tweens.add({ targets: glow, alpha: 0.05, scaleX: 1.08, scaleY: 1.06, duration: 1000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    blk.motes = rare;
+  }
+
+  /** Bestia rediseñada a mano (beasts.js): su animación de reposo fotograma a fotograma. */
+  animateFrames(blk, spr) {
+    const frames = godFrameKeys(blk.creature.id, blk.shiny);
+    if (!frames) return;
+    let i = Math.floor(Math.random() * frames.length);
+    blk.godAnim = this.time.addEvent({
+      delay: GOD_FRAME_MS, loop: true, startAt: Math.random() * GOD_FRAME_MS,
+      callback: () => {
+        if (blk.dead || !spr.active) return;
+        spr.setTexture(frames[(i = (i + 1) % frames.length)]);
+      }
+    });
+  }
+
+  /** Cada poco, una criatura del tablero parpadea y las raras sueltan una mota de luz. */
+  idleTick() {
+    const alive = this.blocks.filter((b) => !b.dead && b.sprite);
+    const blinkers = alive.filter((b) => b.blinkKey && b.kind !== 'boss');
+    if (blinkers.length && Math.random() < 0.7) {
+      const b = blinkers[Math.floor(Math.random() * blinkers.length)];
+      b.sprite.setTexture(b.blinkKey);
+      this.time.delayedCall(140, () => b.sprite?.active && !b.dead && b.sprite.setTexture(b.openKey));
+    }
+    for (const b of alive) {
+      if (!b.motes || Math.random() > 0.35) continue;
+      this.addParticle({
+        x: b.cont.x + (Math.random() - 0.5) * CELL * 0.7, y: b.cont.y + CELL * 0.35, vx: 0, vy: -18 - Math.random() * 14,
+        life: 1.3, color: 0xd8b8ff, size: 2, glow: true
+      });
+    }
+  }
+
+  /**
+   * Dios en su bloque: aura que late detrás, motas de luz que suben y, si está rediseñado
+   * (gods.js), su animación de reposo fotograma a fotograma.
+   */
+  animateGod(blk, cont, spr, w, h) {
+    const glow = this.add.ellipse(0, -4, w * 0.62, h * 0.95, blk.shiny ? 0xffd84a : 0xfff0b0, 0.16);
+    cont.addAt(glow, 1);
+    this.tweens.add({ targets: glow, alpha: 0.05, scaleX: 1.08, scaleY: 1.06, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    const frames = godFrameKeys(blk.creature.id, blk.shiny);
+    let i = 0;
+    blk.godAnim = this.time.addEvent({
+      delay: GOD_FRAME_MS, loop: true,
+      callback: () => {
+        if (blk.dead) return;
+        if (frames) spr.setTexture(frames[(i = (i + 1) % frames.length)]);
+        if (Math.random() < 0.6) {
+          this.addParticle({
+            x: cont.x + (Math.random() - 0.5) * w * 0.8, y: cont.y + h * 0.4, vx: 0, vy: -22 - Math.random() * 18,
+            life: 1.6, color: blk.shiny ? 0xffd84a : 0xfff0b0, size: 2, glow: true
+          });
+        }
+      }
+    });
   }
 
   // Shiny: aura dorada que late, borde dorado, destellos en las esquinas y anuncio al aparecer.
@@ -907,7 +1044,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   update(_time, delta) {
-    if (this.paused || this.state === 'over') return;
+    if (this.paused) return;
+    this.updateParticles(Math.min(delta, 50) / 1000);
+    if (this.state === 'over') return;
     let dt = Math.min(delta, 50) / 1000;
     // Pausa de impacto (al derrotar a un legendario): las bolas van a cámara lenta un instante
     if (this.hitStop > 0) {
@@ -1050,8 +1189,13 @@ export default class GameScene extends Phaser.Scene {
         if (!p.ok) break; // al salir del lanzador aún no hay recorrido
         prev = p;
       }
+      // Halo luminoso del orbe (capas concéntricas, mezcla aditiva)
+      g.fillStyle(b.trailColor, 0.05);
+      g.fillCircle(b.img.x, b.img.y, b.r * 2.1);
+      g.fillStyle(b.trailColor, 0.08);
+      g.fillCircle(b.img.x, b.img.y, b.r * 1.6);
       g.fillStyle(b.trailColor, 0.12);
-      g.fillCircle(b.x, b.y, b.r * 1.2);
+      g.fillCircle(b.img.x, b.img.y, b.r * 1.2);
     }
     // Puntos de impacto: destello pequeño que crece y se apaga
     if (this.impacts?.length) {
@@ -1209,8 +1353,18 @@ export default class GameScene extends Phaser.Scene {
 
       b.x += nx * push;
       b.y += ny * push;
-      // Punto de contacto: el borde del orbe que toca el bloque
-      if (hitNow) this.bounced(b, b.x - nx * br, b.y - ny * br);
+      // Punto de contacto: el borde del orbe que toca el bloque (con unas chispas)
+      if (hitNow) {
+        this.bounced(b, b.x - nx * br, b.y - ny * br);
+        if (this.parts.length < 400) {
+          for (let k = 0; k < 3; k++) {
+            this.addParticle({
+              x: b.x - nx * br, y: b.y - ny * br, vx: nx * 60 + (Math.random() - 0.5) * 70, vy: ny * 60 + (Math.random() - 0.5) * 70,
+              g: 120, drag: 3, life: 0.25 + Math.random() * 0.15, color: k ? b.trailColor : 0xffffff, size: 2, glow: true
+            });
+          }
+        }
+      }
       this.hitBlock(blk, b);
       if (b.vx === 0) verticalBounce = true;
       break;
@@ -1408,7 +1562,7 @@ export default class GameScene extends Phaser.Scene {
     const flash = this.add.rectangle(x, y, size, blk.h * CELL - 4, 0xffffff).setDepth(19);
     this.tweens.add({ targets: flash, scale: 1.5, alpha: 0, duration: boss ? 420 : 240, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
     // Onda expansiva: anillo del color del bloque + anillo blanco más rápido + relleno tenue
-    const ring = this.add.circle(x, y, size * 0.35).setStrokeStyle(boss ? 5 : 3, blk.color).setDepth(19);
+    const ring = this.add.circle(x, y, size * 0.35).setStrokeStyle(boss ? 5 : 2, blk.color, boss ? 1 : 0.6).setDepth(19);
     this.tweens.add({ targets: ring, scale: boss ? 5.5 : 3.6, alpha: 0, duration: boss ? 750 : 450, ease: 'Cubic.easeOut', onComplete: () => ring.destroy() });
     const ring2 = this.add.circle(x, y, size * 0.3).setStrokeStyle(2, 0xffffff).setDepth(19);
     this.tweens.add({ targets: ring2, scale: boss ? 4.2 : 2.7, alpha: 0, duration: boss ? 520 : 320, ease: 'Quad.easeOut', onComplete: () => ring2.destroy() });
@@ -1416,27 +1570,13 @@ export default class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: wave, scale: boss ? 4.5 : 3, alpha: 0, duration: boss ? 600 : 380, ease: 'Quad.easeOut', onComplete: () => wave.destroy() });
     // Los bloques cercanos acusan la onda
     for (const n of this.neighbors(blk, boss ? 2 : 1)) this.punch(n);
-    const pieces = boss ? 28 : blk.creature ? 16 : 12;
-    for (let i = 0; i < pieces; i++) {
-      const a = Math.random() * Math.PI * 2;
-      const dist = (boss ? 60 : 26) + Math.random() * (boss ? 60 : 26);
-      const s = 2 + Math.floor(Math.random() * (boss ? 5 : 4));
-      const color = Math.random() < 0.25 ? 0xffffff : blk.color;
-      const p = this.add.rectangle(x + (Math.random() - 0.5) * size * 0.6, y + (Math.random() - 0.5) * size * 0.6, s, s, color).setDepth(20);
-      this.tweens.add({
-        targets: p,
-        x: { value: p.x + Math.cos(a) * dist, ease: 'Quad.easeOut' },
-        y: { value: p.y + Math.sin(a) * dist + 24, ease: 'Quad.easeIn' },
-        angle: (Math.random() - 0.5) * 360,
-        alpha: 0,
-        duration: 420 + Math.random() * 260,
-        onComplete: () => p.destroy()
-      });
-    }
+    // Se parte en trozos de su color que saltan y caen con gravedad, con chispas
+    this.shatter(blk, x, y);
+    blk.godAnim?.remove();
     if (boss) {
       this.celebrateBoss(blk, x, y);
     } else {
-      if (blk.creature) this.cameras.main.shake(70, 0.0025);
+      this.cameras.main.shake(blk.creature ? 80 : 50, blk.creature ? 0.003 : 0.0018);
       audio.play(blk.creature ? 'breakCreature' : 'break');
     }
     const bonus = blk.kind === 'plain' ? 5 : blk.kind === 'creature' ? 20 * blk.creature.rarity : 300;
@@ -1462,19 +1602,88 @@ export default class GameScene extends Phaser.Scene {
   // ---------- Efectos de poderes ----------
 
   /** Fragmentos que salen despedidos. gravity: caída extra en px (negativa = suben). */
+  /** Ráfaga de chispas brillantes (partículas aditivas). gravity > 0 caen; < 0 suben (llamas). */
   fxBurst(x, y, colors, count, dist, dur, gravity = 10) {
+    const life = dur / 1000;
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
-      const d = dist * (0.5 + Math.random() * 0.7);
-      const s = 2 + Math.floor(Math.random() * 3);
-      const p = this.add.rectangle(x, y, s, s, colors[i % colors.length]).setDepth(21);
-      this.tweens.add({
-        targets: p,
-        x: { value: x + Math.cos(a) * d, ease: 'Quad.easeOut' },
-        y: { value: y + Math.sin(a) * d + gravity, ease: 'Quad.easeIn' },
-        alpha: 0,
-        duration: dur * (0.7 + Math.random() * 0.5),
-        onComplete: () => p.destroy()
+      const sp = ((dist * (0.5 + Math.random() * 0.8)) / life) * 1.3;
+      this.addParticle({
+        x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: gravity * 9, drag: 2.2,
+        life: life * (0.7 + Math.random() * 0.5), color: colors[i % colors.length],
+        size: Math.random() < 0.5 ? 3 : 2, glow: true
+      });
+    }
+  }
+
+  /** Añade una partícula (hay un tope para no saturar el móvil). */
+  addParticle(p) {
+    if (this.parts.length >= 700) return;
+    p.max = p.life;
+    this.parts.push(p);
+  }
+
+  /** Mueve y dibuja todas las partículas (trozos con gravedad y chispas que se apagan). */
+  updateParticles(dt) {
+    const pg = this.partG, gg = this.glowG;
+    pg.clear();
+    gg.clear();
+    if (!this.parts.length) return;
+    for (const q of this.parts) {
+      q.life -= dt;
+      if (q.drag) {
+        const k = Math.max(0, 1 - q.drag * dt);
+        q.vx *= k;
+        q.vy *= k;
+      }
+      q.vy += (q.g ?? 0) * dt;
+      q.x += q.vx * dt;
+      q.y += q.vy * dt;
+      if (q.home) {
+        // Partículas que se juntan en un punto (captura)
+        q.x += (q.home.x - q.x) * Math.min(1, dt * 6);
+        q.y += (q.home.y - q.y) * Math.min(1, dt * 6);
+      }
+      const a = Math.max(0, Math.min(1, q.life / (q.max * 0.6)));
+      const g = q.glow ? gg : pg;
+      g.fillStyle(q.color, a);
+      g.fillRect(Math.round(q.x), Math.round(q.y), q.size, q.size);
+      if (q.glow && q.size <= 3) {
+        g.fillStyle(q.color, a * 0.25);
+        g.fillRect(Math.round(q.x) - 1, Math.round(q.y) - 1, q.size + 2, q.size + 2);
+      }
+    }
+    this.parts = this.parts.filter((q) => q.life > 0 && q.y < BOARD_FLOOR_Y + 120);
+  }
+
+  /** Rotura de un bloque: se parte en trozos de su color que saltan y caen, con chispas. */
+  shatter(blk, x, y) {
+    const cw = blk.w * CELL - 4, ch = blk.h * CELL - 4;
+    const nx = blk.w * 4, ny = blk.h * 4;
+    const pw = cw / nx, ph = ch / ny;
+    const dark = Phaser.Display.Color.IntegerToColor(blk.color).darken(25).color;
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) {
+        const px = x - cw / 2 + i * pw, py = y - ch / 2 + j * ph;
+        this.addParticle({
+          x: px, y: py,
+          vx: (i - (nx - 1) / 2) * 34 + (Math.random() - 0.5) * 60,
+          vy: (j - ny / 2) * 26 - 80 - Math.random() * 90,
+          g: 620, life: 0.9 + Math.random() * 0.5,
+          color: (i + j) % 3 ? blk.color : dark, size: Math.max(3, Math.round(pw) - 2)
+        });
+      }
+    }
+    this.fxBurst(x, y, [0xffffff, Phaser.Display.Color.IntegerToColor(blk.color).lighten(40).color], 10, 34, 420, 10);
+  }
+
+  /** Partículas doradas que se juntan en la criatura antes de la captura. */
+  captureGather(x, y) {
+    for (let i = 0; i < 22; i++) {
+      const a = (i / 22) * Math.PI * 2;
+      this.addParticle({
+        x: x + Math.cos(a) * 60, y: y + Math.sin(a) * 60, vx: 0, vy: 0, home: { x, y },
+        life: 0.5, color: i % 2 ? 0xffd84a : 0xfff4c8, size: 2, glow: true
       });
     }
   }
@@ -1906,6 +2115,7 @@ export default class GameScene extends Phaser.Scene {
     this.pendingCaptures++;
     const scale = blk.kind === 'boss' ? 3 : 2;
     const spr = addCreatureImage(this, x, y, c.id, shiny, scale).setDepth(30);
+    this.captureGather(x, y);
     const orb = this.add.image(x, y, 'orb').setScale(2).setDepth(31).setAlpha(0);
     if (BALL_TYPES[this.shotBall].tint) orb.setTint(BALL_TYPES[this.shotBall].tint);
     this.tweens.add({
@@ -2345,6 +2555,7 @@ export default class GameScene extends Phaser.Scene {
       extraLife: this.extraLife,
       launchX: this.launchX,
       weather: this.weather?.index ?? 0,
+      stage: this.stageTheme,
       runCaptures: this.runCaptures.map(({ id, shiny }) => ({ id, shiny })),
       runStats: { ...this.runStats },
       blocks: this.blocks.filter((b) => !b.dead).map((b) => ({
@@ -2384,6 +2595,7 @@ export default class GameScene extends Phaser.Scene {
       this.addBlock({ col: b.col, row: b.row, w: b.w, h: b.h, kind: b.kind, creature, hp: b.hp, maxHp: b.maxHp, shiny: b.shiny });
     }
     for (const p of run.pickups) this.addPickup(p.row, p.col);
+    this.setStage(run.stage, false);
     if (run.weather && this.weather) {
       this.weather.index = run.weather;
       if (!this.weather.current) this.weather.index = 0;

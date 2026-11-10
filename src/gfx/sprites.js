@@ -3,6 +3,11 @@
 import Phaser from 'phaser';
 import { creatureById } from '../data/creatures.js';
 import { drawBeast, goldCanvas } from './beastArt.js';
+import { godFrame, GOD_FRAMES } from './gods.js';
+import { beastFrame } from './beasts.js';
+
+/** Fotograma i del diseño a mano de una criatura (dios o bestia), o null si no tiene. */
+const handFrame = (c, i) => (c.legendary ? godFrame(c.name, i) : beastFrame(c.name, i));
 import { CUSTOM_CREATURE_IMAGES, CUSTOM_BALL_IMAGES } from '../data/pack.js';
 import { AVATARS, AVATAR_STYLES, avatarOrb } from '../data/profile.js';
 
@@ -59,22 +64,103 @@ function buildCreatureTexture(id, shiny, key) {
     TEX_RES.set(key, CUSTOM_RES);
     return;
   }
+  // Dioses y bestias rediseñados a mano (gods.js, beasts.js): primer fotograma de su animación
+  const art = handFrame(c, 0);
+  if (art) {
+    textures.addCanvas(key, fitImage(art, c.legendary ? BOX.legendary : BOX.normal, shiny));
+    TEX_RES.set(key, CUSTOM_RES);
+    return;
+  }
   textures.addCanvas(key, drawCreature(c, shiny));
   TEX_RES.set(key, BEAST_RES);
 }
 
+/** Texturas de los fotogramas de la animación de una criatura rediseñada a mano (o null si no tiene). */
+export function godFrameKeys(id, shiny) {
+  const c = creatureById(id);
+  if (!c || CUSTOM_CREATURE_IMAGES.get(Number(id)) || !handFrame(c, 0)) return null;
+  const box = c.legendary ? BOX.legendary : BOX.normal;
+  const base = creatureKey(id, shiny);
+  const keys = [base];
+  for (let i = 1; i < GOD_FRAMES; i++) {
+    const key = `${base}_f${i}`;
+    if (!textures.exists(key)) {
+      textures.addCanvas(key, fitImage(handFrame(c, i), box, shiny));
+      TEX_RES.set(key, CUSTOM_RES);
+    }
+    keys.push(key);
+  }
+  return keys;
+}
+
 const OUTLINE = '#1a1a24';
 
-// Las bestias se dibujan al doble de resolución que la caja (14x17, legendarias 18x21)
+// Las bestias se dibujan al triple de resolución que la caja (14x17, legendarias 18x21)
 // para tener más detalle; texScale() compensa el tamaño.
-const BEAST_RES = 2;
+const BEAST_RES = 3;
 
 /** Lienzo del sprite generado de una bestia (a partir de su descriptor «art»). */
-export function drawCreature(c, shiny) {
+export function drawCreature(c, shiny, desc = c.art ?? 'wisp') {
   const [bw, bh] = c.legendary ? BOX.legendary : BOX.normal;
-  const canvas = drawBeast(c.art ?? 'wisp', bw * BEAST_RES, bh * BEAST_RES, c.id);
+  const canvas = enhanceSprite(drawBeast(desc, bw * BEAST_RES, bh * BEAST_RES, c.id));
   return shiny ? goldCanvas(canvas) : canvas; // «shiny» = versión dorada
 }
+
+/**
+ * Mejora de luz de los sprites generados: borde de luz arriba (como si la luz viniera de encima),
+ * sombra en la parte de abajo de cada forma y un poco más de saturación. El contorno oscuro no
+ * se toca.
+ */
+function enhanceSprite(src) {
+  const w = src.width, h = src.height;
+  const ctx = src.getContext('2d');
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data, orig = new Uint8ClampedArray(d);
+  const lum = (i) => 0.3 * orig[i] + 0.59 * orig[i + 1] + 0.11 * orig[i + 2];
+  const edge = (x, y) => x < 0 || y < 0 || x >= w || y >= h || orig[(y * w + x) * 4 + 3] === 0 || lum((y * w + x) * 4) < 40;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (orig[i + 3] === 0 || lum(i) < 40) continue;
+      const g = lum(i);
+      let f = 0;
+      if (edge(x, y - 1)) f = 0.22; // luz arriba
+      else if (edge(x, y + 1)) f = -0.18; // sombra abajo
+      for (let k = 0; k < 3; k++) {
+        let v = g + (orig[i + k] - g) * 1.15; // saturación
+        v = f > 0 ? v + (255 - v) * f : v * (1 + f);
+        d[i + k] = v;
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return src;
+}
+
+/** Textura de la criatura con los ojos cerrados (parpadeo), o null si su dibujo no tiene ojos que cerrar. */
+export function creatureBlinkKey(id, shiny) {
+  const c = creatureById(id);
+  if (!c || handFrame(c, 0) || CUSTOM_CREATURE_IMAGES.get(Number(id))) return null;
+  if (/\beyes:/.test(c.art ?? '')) return null;
+  const key = `${creatureKey(id, shiny)}_blink`;
+  if (textures.exists(key)) return key;
+  if (BLINK_NONE.has(key)) return null;
+  const closed = drawCreature(c, shiny, `${c.art ?? 'wisp'} eyes:closed`);
+  const open = textures.get(creatureKey(id, shiny)).getSourceImage();
+  // Si no cambia nada (dibujo sin cara), no hay parpadeo
+  const a = closed.getContext('2d').getImageData(0, 0, closed.width, closed.height).data;
+  const b = open.getContext('2d').getImageData(0, 0, open.width, open.height).data;
+  let same = a.length === b.length;
+  for (let i = 0; same && i < a.length; i++) if (a[i] !== b[i]) same = false;
+  if (same) {
+    BLINK_NONE.add(key);
+    return null;
+  }
+  textures.addCanvas(key, closed);
+  TEX_RES.set(key, BEAST_RES);
+  return key;
+}
+const BLINK_NONE = new Set();
 
 function drawPixels(rows, palette) {
   const canvas = document.createElement('canvas');
@@ -107,6 +193,20 @@ const ORB = [
 const SPARK = ['..W..', '..W..', 'WWYWW', '..W..', '..W..'];
 const PICKUP = ['..GGGG..', '.G....G.', 'G..WW..G', 'G.WWWW.G', 'G.WWWW.G', 'G..WW..G', '.G....G.', '..GGGG..'];
 const ROCK = ['.kkkk.', 'kRRRrk', 'kRRrrk', 'kRrrrk', '.kkkk.'];
+
+// Iconos de la interfaz (puntos, turno, capturas) y de cada elemento de los hechizos
+const ICONS = {
+  crown: [['.x.x.x.', 'xxxxxxx', 'xyyyyyx', 'xxxxxxx'], { x: '#ffd84a', y: '#a8640c' }],
+  hour: [['xxxxx', '.xyx.', '..x..', '.xyx.', 'xxxxx'], { x: '#e8dcc0', y: '#d8a030' }],
+  orbicon: [['.xxx.', 'xyyzx', 'xyyyx', 'xyyyx', '.xxx.'], { x: '#061820', y: '#30d8f0', z: '#ffffff' }],
+  fuego: [['...x...', '..xyx..', '..xyx..', '.xyzyx.', 'xyzzzyx', 'xyzzzyx', '.xxxxx.'], { x: '#a8322a', y: '#ff7a20', z: '#ffe050' }],
+  agua: [['...x...', '..xyx..', '.xyyyx.', 'xyyzyyx', 'xyyyyyx', '.xyyyx.', '..xxx..'], { x: '#24569c', y: '#78c0ff', z: '#ffffff' }],
+  planta: [['....xx.', '..xxyx.', '.xyyyx.', 'xyyzyx.', 'xyzyx..', 'xzxx...', 'z......'], { x: '#2c703c', y: '#8ce070', z: '#e8ffd0' }],
+  electrico: [['...xxx.', '..xyx..', '.xyx...', 'xyyyyx.', '..xyx..', '.xyx...', '.xx....'], { x: '#b08420', y: '#fff07a' }],
+  hielo: [['...x...', '.x.x.x.', '..xyx..', 'xxyzyxx', '..xyx..', '.x.x.x.', '...x...'], { x: '#8cd8f0', y: '#d4f4ff', z: '#ffffff' }],
+  roca: [['..xxx..', '.xyyyx.', 'xyyzyyx', 'xyzyyyx', 'xyyyyzx', '.xyyyx.', '..xxx..'], { x: '#685440', y: '#a08868', z: '#c8b08c' }],
+  oscuridad: [['..xxx..', '.xyyx..', 'xyyx...', 'xyyx...', 'xyyx...', '.xyyx..', '..xxx..'], { x: '#3a2668', y: '#b494f0' }]
+};
 
 // ---------- Bloques del tablero (rendimiento) ----------
 // Antes cada bloque era un rectángulo (forma) + un texto con su propia textura. En WebGL cada cambio
@@ -414,6 +514,7 @@ export function generateTextures(scene) {
     }
   }
   scene.textures.addCanvas('orb', drawPixels(ORB, pal));
+  for (const [key, [rows, colors]] of Object.entries(ICONS)) scene.textures.addCanvas(`icon_${key}`, drawPixels(rows, colors));
   scene.textures.addCanvas('spark', drawPixels(SPARK, pal));
   scene.textures.addCanvas('pickup', drawPixels(PICKUP, pal));
   scene.textures.addCanvas('rock', drawPixels(ROCK, pal));

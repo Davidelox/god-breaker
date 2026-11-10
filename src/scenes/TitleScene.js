@@ -10,7 +10,7 @@ import { TITLES, AVATARS, DEFAULT_TITLE, currentTitle, currentAvatar } from '../
 import { BALL_R, BALL_TEXTURE_R } from '../config.js';
 import { MISSIONS } from '../data/missions.js';
 import { text, makeButton, makePanel, makeAudioToggles, makeLangToggle, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
-import { t as tr, godOf } from '../i18n.js';
+import { t as tr } from '../i18n.js';
 import { pick, shuffle } from '../core/rng.js';
 import { audio } from '../audio/audio.js';
 
@@ -484,9 +484,8 @@ export default class TitleScene extends Phaser.Scene {
       this.showAura.setFillStyle(auraColor, gold ? 0.3 : 0.14).setScale(0.6).setAlpha(1);
       this.tweens.add({ targets: this.showAura, scale: 1.1, alpha: 0.5, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
       this.showName.setText(upper(c.name)).setColor(gold ? '#ffd84a' : '#f8f8f8');
-      const kind = c.legendary ? godOf(c.type, TYPES[c.type].name) : tr(TYPES[c.type].name);
-      this.showInfo.setText(gold ? tr('GOLD  {0}', kind) : kind).setColor(gold ? '#e0b030' : '#a8b4cc');
-      for (const t of [this.showName, this.showInfo]) {
+      this.showInfo.setText('');
+      for (const t of [this.showName]) {
         t.setAlpha(0);
         this.tweens.add({ targets: t, alpha: 1, duration: 300 });
       }

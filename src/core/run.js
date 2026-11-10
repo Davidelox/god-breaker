@@ -58,6 +58,8 @@ export function sanitizeRun(raw, validId = () => true) {
     extraLife: raw.extraLife === true,
     launchX: num(raw.launchX, null),
     weather: int(raw.weather),
+    // Tema del tablero (origen mitológico); las partidas de antes usaban greek / egypt / norse
+    stage: { greek: 'griega', egypt: 'egipcia', norse: 'nordica' }[raw.stage] ?? (typeof raw.stage === 'string' ? raw.stage : 'griega'),
     runStats: Object.fromEntries(['blocks', 'beasts', 'gods', 'spells', 'bestShot'].map((k) => [k, int(raw.runStats?.[k])])),
     runCaptures: (Array.isArray(raw.runCaptures) ? raw.runCaptures : [])
       .filter((c) => c && validId(c.id))

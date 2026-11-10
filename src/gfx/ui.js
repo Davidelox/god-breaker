@@ -85,11 +85,29 @@ export function drawPanel(g, x, y, w, h, { fill = COLORS.paper, border = COLORS.
   return g;
 }
 
+/** Estilo dorado de la partida: fondo oscuro, borde de oro y letras doradas (seleccionado: borde blanco). */
+export const GOLD_UI = { fill: 0x1e1838, border: 0xd8a030, textColor: '#ffe27a', selBorder: 0xffffff };
+
+/** Panel con marco de oro, brillo arriba, fondo oscuro y remaches en las esquinas. */
+export function drawGoldPanel(g, x, y, w, h, fill = 0x1a1430) {
+  g.fillStyle(0x6a3e0c);
+  g.fillRect(x - 1, y - 1, w + 2, h + 2);
+  g.fillStyle(0xd8a030);
+  g.fillRect(x, y, w, h);
+  g.fillStyle(0xffe27a);
+  g.fillRect(x, y, w, 2);
+  g.fillStyle(fill);
+  g.fillRect(x + 3, y + 3, w - 6, h - 6);
+  g.fillStyle(0xffe27a);
+  for (const [a, b] of [[x + 1, y + 1], [x + w - 4, y + 1], [x + 1, y + h - 4], [x + w - 4, y + h - 4]]) g.fillRect(a, b, 3, 3);
+  return g;
+}
+
 export function makePanel(scene, x, y, w, h, opts) {
   return drawPanel(scene.add.graphics(), x, y, w, h, opts);
 }
 
-export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.paper, textColor = COLORS.inkHex, size = 8, border = COLORS.ink } = {}) {
+export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.paper, textColor = COLORS.inkHex, size = 8, border = COLORS.ink, selBorder = COLORS.gold } = {}) {
   const c = scene.add.container(x, y);
   const g = scene.add.graphics();
   const lbl = text(scene, 0, 0, label, size, textColor).setOrigin(0.5);
@@ -100,7 +118,7 @@ export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.pa
     g.clear();
     g.fillStyle(0x080a14);
     g.fillRect(-w / 2, -h / 2 + 2, w, h);
-    g.fillStyle(selected ? COLORS.gold : border);
+    g.fillStyle(selected ? selBorder : border);
     g.fillRect(-w / 2, -h / 2 + oy, w, h - 2);
     g.fillStyle(fill);
     g.fillRect(-w / 2 + 2, -h / 2 + 2 + oy, w - 4, h - 6);
