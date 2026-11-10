@@ -13,14 +13,15 @@ import { BALL_TYPES, BALL_ORDER, captureChance, rollRewardBall, rollPower } from
 import { checkTips } from './tutorial.js';
 import { t as tr } from '../i18n.js';
 import { loadRun, saveRun, clearRun } from '../core/run.js';
-import { creatureKey, addCreatureImage, texScale, blockBgKey, blockBgOrigin, HP_FONT } from '../gfx/sprites.js';
+import { creatureKey, addCreatureImage, texScale, blockBgKey, blockBgOrigin, HP_FONT, setCommonOrb } from '../gfx/sprites.js';
+import { TITLES, currentAvatar, avatarOrb, avatarName } from '../data/profile.js';
 import { text, bodyText, makeButton, makePanel, drawPanel, floatText, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
 import { Weather } from '../gfx/weather.js';
 import { audio } from '../audio/audio.js';
 import { haptics } from '../core/haptics.js';
-import { newlyCompleted, MISSIONS } from '../data/missions.js';
+import { newlyCompleted, MISSIONS, unlockedOrigins } from '../data/missions.js';
 
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
@@ -131,6 +132,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // Orbe común con los colores del avatar elegido (y su estela)
+    this.avatarOrb = avatarOrb(currentAvatar(this.save.data));
+    setCommonOrb(this, this.avatarOrb?.colors);
     fitCamera(this);
     this.drawBoard();
     this.aimG = this.add.graphics().setDepth(5);
@@ -144,8 +148,18 @@ export default class GameScene extends Phaser.Scene {
     this.createHud();
     this.createSpecialBar();
 
+    this.unlocked = unlockedOrigins(this.save.data); // orígenes cuyas criaturas pueden salir
     if (this.resumeRun) this.restoreRun(this.resumeRun);
-    else this.spawnRow(); // primer turno: una sola fila
+    else {
+      this.spawnRow(); // primer turno: una sola fila
+      // Orbes ganados con misiones: se suman al empezar una partida nueva
+      const bank = this.save.takeBank();
+      if (bank.super || bank.ultra) {
+        this.ballInv.super += bank.super;
+        this.ballInv.ultra += bank.ultra;
+        this.time.delayedCall(600, () => this.showToast(tr('Mission rewards: +{0} Runic, +{1} Divine', bank.super, bank.ultra), '#2a6aa8'));
+      }
+    }
 
     this.setupInput();
     this.updateBossWarning();
@@ -573,7 +587,11 @@ export default class GameScene extends Phaser.Scene {
 
   /** Dios al azar sin repetir hasta que hayan salido todos (los no capturados, con más probabilidad). */
   nextLegendary() {
-    if (!this.legendBag.length) this.legendBag = shuffle([...LEGENDARIES]);
+    if (!this.legendBag.length) {
+      const open = this.unlocked ?? unlockedOrigins(this.save.data);
+      this.legendBag = shuffle(LEGENDARIES.filter((c) => open.has(c.type)));
+      if (!this.legendBag.length) this.legendBag = shuffle([...LEGENDARIES]);
+    }
     const god = this.pickCreature(this.legendBag);
     this.legendBag.splice(this.legendBag.indexOf(god), 1);
     return god;
@@ -582,8 +600,12 @@ export default class GameScene extends Phaser.Scene {
   /** Añade un bloque normal o, si se permite, quizá una bestia. Devuelve true si ha salido una bestia. */
   addRandomBlock(row, col, t, beastAllowed = true) {
     if (beastAllowed && t >= CREATURE_FROM_TURN && Math.random() < CREATURE_CHANCE) {
+      // Solo bestias de orígenes desbloqueados (misiones de desbloqueo)
+      const open = this.unlocked ?? unlockedOrigins(this.save.data);
       const rarity = weightedPick(RARITY_WEIGHTS);
-      const creature = this.pickCreature(NORMAL_CREATURES.filter((c) => c.rarity === rarity));
+      let pool = NORMAL_CREATURES.filter((c) => c.rarity === rarity && open.has(c.type));
+      if (!pool.length) pool = NORMAL_CREATURES.filter((c) => open.has(c.type));
+      const creature = this.pickCreature(pool);
       const bonus = CREATURE_HP_BONUS + CREATURE_HP_PER_RARITY * (rarity - 1);
       this.addBlock({ row, col, w: 1, h: 1, kind: 'creature', creature, hp: Math.ceil(this.baseHp(t) * (1 + bonus)) });
       return true;
@@ -835,7 +857,7 @@ export default class GameScene extends Phaser.Scene {
     const powered = extra || others.length > 0;
     const ballKey = powered ? 'ball' : `ball_${this.shotBall}`;
     const img = this.add.image(this.shotX, LAUNCH_Y, ballKey).setDepth(8).setScale((r / BALL_TEXTURE_R) * texScale(ballKey));
-    let trailColor = BALL_TYPES[this.shotBall].trail;
+    let trailColor = this.shotBall === 'normal' && this.avatarOrb ? this.avatarOrb.trail : BALL_TYPES[this.shotBall].trail;
     if (extra) trailColor = PLANT_COLOR;
     else if (others.length) trailColor = hexToNum(ELEMENTS[others[0].type].light);
     if (powered) img.setTint(trailColor);
@@ -970,7 +992,7 @@ export default class GameScene extends Phaser.Scene {
    * el resto del turno va a x5. No cambia la velocidad elegida por el jugador.
    */
   updateTurbo() {
-    if (this.turbo || this.toLaunch > 0) return;
+    if (this.turbo || this.toLaunch > 0 || !this.save.data.settings.autoTurbo) return;
     const live = this.balls.filter((b) => !b.done);
     if (!live.length) return;
     let lowest = -Infinity;
@@ -1826,9 +1848,28 @@ export default class GameScene extends Phaser.Scene {
       for (const id of fresh) {
         this.showToast(tr('Mission complete! {0}', tr(this.missionTitle(id))), '#2a8a40');
         audio.play('mission');
+        this.giveReward(MISSIONS.find((m) => m.id === id)?.reward);
       }
     } catch (err) {
       logError('missions', err);
+    }
+  }
+
+  /** Recompensa de una misión: abrir un origen o guardar un orbe para la siguiente partida. */
+  giveReward(reward) {
+    if (!reward) return;
+    if (reward.unlock) {
+      this.unlocked = unlockedOrigins(this.save.data);
+      this.legendBag = []; // los dioses del nuevo origen entran en la próxima ronda de dioses
+      this.showToast(tr('New origin unlocked: {0}!', tr(TYPES[reward.unlock].name)), TYPES[reward.unlock].dark);
+      audio.play('shiny');
+    } else if (reward.title) {
+      this.showToast(tr('New title: {0}!', tr(TITLES[reward.title])), '#b07800');
+    } else if (reward.avatar) {
+      this.showToast(tr('New avatar: {0}!', tr(avatarName(reward.avatar))), '#7a4ac0');
+    } else if (reward.orb) {
+      this.save.addBank(reward.orb);
+      this.showToast(tr('Reward: +1 {0} orb for your next game', tr(BALL_TYPES[reward.orb].name)), '#2a6aa8');
     }
   }
 
@@ -2238,7 +2279,7 @@ export default class GameScene extends Phaser.Scene {
     this.time.paused = true;
     const layer = this.add.container(0, 0).setDepth(60);
     layer.add(fullRect(this, 0x000000, 0.6).setInteractive());
-    layer.add(makePanel(this, 24, 200, W - 48, 300));
+    layer.add(makePanel(this, 24, 200, W - 48, 336));
     layer.add(makeAudioToggles(this, 390, this.save));
     const vibLabel = () => tr('VIBRATION {0}', tr(this.save.data.settings.haptics ? 'ON' : 'OFF'));
     const vibBtn = makeButton(this, W / 2, 470, 200, 30, vibLabel(), () => {
@@ -2259,6 +2300,16 @@ export default class GameScene extends Phaser.Scene {
       gridBtn.setLabel(gridLabel());
     });
     layer.add(gridBtn);
+    // Velocidad automática (TURBO_SPEED) cuando ningún orbe puede golpear nada más: se puede desactivar
+    const turboLabel = () => tr('AUTO SPEED {0}', tr(this.save.data.settings.autoTurbo ? 'ON' : 'OFF'));
+    const turboBtn = makeButton(this, W / 2, 508, 200, 30, turboLabel(), () => {
+      const st = this.save.data.settings;
+      st.autoTurbo = !st.autoTurbo;
+      this.save.write();
+      if (!st.autoTurbo) this.turbo = false;
+      turboBtn.setLabel(turboLabel());
+    });
+    layer.add(turboBtn);
     layer.add(text(this, W / 2, 228, 'PAUSED', 16, COLORS.inkHex).setOrigin(0.5));
     layer.add(makeButton(this, W / 2, 285, 180, 34, 'RESUME', () => {
       layer.destroy();

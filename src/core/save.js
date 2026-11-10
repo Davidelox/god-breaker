@@ -11,9 +11,11 @@ export function defaultSave() {
     bestScore: 0,
     collection: {}, // id -> { count, shinyCount, firstAt }
     stats: { games: 0, captures: 0, shinies: 0, bossKills: 0, clears: 0, powersUsed: 0, bestTurn: 0 },
+    profile: { title: null, avatar: null }, // título y avatar elegidos (id de su misión)
+    bank: { super: 0, ultra: 0 }, // orbes de recompensa de misiones para la siguiente partida
     seen: [], // ids de las criaturas que ya han salido alguna vez en una partida (vistas)
     missions: {}, // id de misión -> fecha en que se completó (las recompensas llegarán más adelante)
-    settings: { speed: 1, music: true, sfx: true, grid: false, haptics: true, lang: 'en' },
+    settings: { speed: 1, music: true, sfx: true, grid: false, haptics: true, lang: 'en', autoTurbo: true },
     tutorial: { off: false, seen: [] } // consejos de la primera partida ya vistos (o desactivados)
   };
 }
@@ -55,6 +57,9 @@ export function sanitize(s, validIds) {
   for (const [id, at] of Object.entries(missions)) if (typeof at === 'string') out.missions[id] = at;
   const seenIds = Array.isArray(s.seen) ? s.seen.map(Number).filter((id) => Number.isInteger(id) && (!validIds || validIds.has(id))) : [];
   out.seen = [...new Set(seenIds)];
+  out.bank = { super: nonNegInt(s.bank?.super), ultra: nonNegInt(s.bank?.ultra) };
+  const str = (v) => (typeof v === 'string' ? v : null);
+  out.profile = { title: str(s.profile?.title), avatar: str(s.profile?.avatar) };
   const speed = s.settings?.speed;
   out.settings = {
     speed: SPEEDS.includes(speed) ? speed : 1,
@@ -62,7 +67,8 @@ export function sanitize(s, validIds) {
     sfx: s.settings?.sfx !== false,
     grid: s.settings?.grid === true,
     haptics: s.settings?.haptics !== false,
-    lang: s.settings?.lang === 'es' ? 'es' : 'en'
+    lang: s.settings?.lang === 'es' ? 'es' : 'en',
+    autoTurbo: s.settings?.autoTurbo !== false // velocidad automática cuando ningún orbe puede golpear
   };
   const seen = Array.isArray(s.tutorial?.seen) ? s.tutorial.seen.filter((t) => typeof t === 'string') : [];
   out.tutorial = { off: s.tutorial?.off === true, seen: [...new Set(seen)] };
@@ -188,6 +194,26 @@ export class SaveStore {
     this.data.seen.push(Number(id));
     this.write();
     return true;
+  }
+
+  /** Elige título o avatar del perfil (id de su misión, o null para el de por defecto). */
+  setProfile(key, id) {
+    this.data.profile[key] = id;
+    this.write();
+  }
+
+  /** Guarda orbes de recompensa para la siguiente partida. */
+  addBank(orb, n = 1) {
+    this.data.bank[orb] = (this.data.bank[orb] ?? 0) + n;
+    this.write();
+  }
+
+  /** Saca los orbes de recompensa guardados (al empezar una partida nueva). */
+  takeBank() {
+    const bank = { ...this.data.bank };
+    this.data.bank = { super: 0, ultra: 0 };
+    this.write();
+    return bank;
   }
 
   /** ¿Hay que mostrar este consejo del tutorial? */

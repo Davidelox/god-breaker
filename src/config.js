@@ -112,9 +112,9 @@ export const VERTICAL_LOCK_CHANCE = 0.02; // en un golpe de esquina, la bola sal
 
 // Contenido
 export const CREATURE_CHANCE = 0.11; // probabilidad de que un bloque nuevo sea una bestia
-// Las criaturas ya capturadas salen con este peso frente a 1 de las que faltan (la mitad de
+// Las criaturas ya capturadas salen con este peso frente a 1 de las que faltan (el 60 % de su
 // probabilidad): se completa antes la colección, pero sin que deje de salir lo ya capturado.
-export const CAUGHT_WEIGHT = 0.5;
+export const CAUGHT_WEIGHT = 0.6;
 export const CREATURE_FROM_TURN = 5; // en los 4 primeros turnos no salen bestias (los dioses van aparte)
 export const BOSS_EVERY = 8; // un dios cada 8 turnos
 export const GOD_W = 3; // los dioses ocupan 3x2 casillas

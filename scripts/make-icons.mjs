@@ -1,5 +1,6 @@
 // Genera los iconos de la app (pantalla de inicio del iPhone / Android) en public/icons/:
-// un orbe dorado con una corona de rayos sobre fondo nocturno, en pixel art.
+// un orbe dorado agrietado (los bloques que se rompen) con una corona de rayos y trocitos que
+// saltan, sobre fondo nocturno, en pixel art.
 // Uso: node scripts/make-icons.mjs
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
@@ -33,6 +34,17 @@ function drawGrid() {
   }
   // Brillo
   for (const [x, y] of [[12, 11], [13, 11], [12, 12]]) g[y][x] = C.white;
+  // Grieta principal (de arriba a la derecha hacia abajo a la izquierda) con borde de luz y una rama
+  const crack = [[20, 9], [19, 10], [18, 11], [18, 12], [17, 13], [16, 14], [15, 15], [15, 16], [16, 17], [15, 18], [14, 19], [13, 20], [12, 21], [12, 22]];
+  const branch = [[16, 14], [15, 13], [14, 13], [13, 12]];
+  const inOrb = (x, y) => Math.hypot(x + 0.5 - cx, y + 0.5 - cy) <= 8.2;
+  for (const [x, y] of [...crack, ...branch]) {
+    if (!inOrb(x, y)) continue;
+    g[y][x] = C.out;
+    if (inOrb(x + 1, y) && !crack.some(([a, b]) => a === x + 1 && b === y)) g[y][x + 1] = C.light;
+  }
+  // Trocitos de oro que saltan de la grieta
+  for (const [x, y, c] of [[23, 7, C.base], [25, 5, C.dark], [22, 4, C.light], [8, 25, C.base], [6, 27, C.dark]]) g[y][x] = c;
   return g;
 }
 

@@ -17,7 +17,7 @@
       html, body { margin: 0; height: 100%; background: #0c1020; overflow: hidden; }
       /* El juego ocupa toda la pantalla, también la zona de la hora y la barra de inicio;
          el propio juego deja libre la zona segura (ver SAFE_TOP / SAFE_BOTTOM en config.js) */
-      #game { width: 100vw; height: 100dvh; }
+      #game { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; }
       canvas { touch-action: none; image-rendering: pixelated; }
       #error-overlay {
         display: none; position: fixed; inset: 0; z-index: 10;

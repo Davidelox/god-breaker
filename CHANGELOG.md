@@ -5,7 +5,29 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Misiones, desbloqueos y perfil
+- Al empezar solo están abiertos los orígenes griego, nórdico y egipcio: solo salen sus bestias y dioses. El resto se desbloquea con la pestaña de misiones «ORIGINS» / «ORÍGENES»: turno 15 (Celta), 20 capturas (Eslava), turno 25 (Ibérica), 50 capturas (Europea), derrotar 3 dioses (Japonesa), turno 35 (Asia oriental), 100 capturas (Indomalaya), 60 bestias distintas (Oriente Medio), turno 45 (Americana), 200 capturas (Africana) y turno 60 (Oceánica).
+- Las misiones de captura desbloquean títulos (Cazador, Rastreador, Domabestias, Coleccionista, Legendario, Ocultista, Matadioses, Señor de panteones, uno por cada mitología completa…). El título elegido se muestra en una cinta bajo el logo del menú principal; al tocarla se elige otro.
+- Las misiones de progreso desbloquean avatares: retratos enmarcados de dioses rediseñados con una paleta propia (Zeus dorado, Hades obsidiana, Ares sangre, Poseidón espectral…). El avatar elegido se muestra en el menú principal (al tocarlo se elige otro) y su paleta cambia el color del orbe común y de su estela. Datos en src/data/profile.js; se guardan en save.profile.
+- Cada misión muestra su recompensa. Las misiones ya cumplidas se marcan también al abrir el menú, la colección o las misiones, no solo al jugar.
+- En la colección, los orígenes bloqueados salen apagados y, al elegirlos, dicen qué misión los abre.
+- Las criaturas ya capturadas salen con el 60 % de la probabilidad de las que faltan (antes, la mitad).
+
+### Cabecera
+- Letras del título con relieve y doble contorno: «GOD» en oro con aro claro y «BREAKER» en azul lapislázuli con aro de oro. Mármol de la tablilla más cálido y laureles dorados a los lados de «GOD».
+
+### Menú principal
+- Fondo nuevo: ruinas flotantes. Cielo nocturno con estrellas y constelaciones, columnas rotas a los lados, trozos de mármol (algunos de oro) que flotan despacio y una isla de piedra abajo.
+- Cabecera nueva: el título va tallado en una tablilla de mármol con borde de oro, remaches, grietas y una esquina rota (con el número de versión abajo), sobre un resplandor dorado con rayos.
+- Logo agrietado: «GOD» y «BREAKER» se dibujan con grietas sobre las letras, y de vez en cuando se desprenden trocitos.
+- Icono de la app nuevo: el orbe dorado agrietado con trocitos que saltan (scripts/make-icons.mjs).
+- Botones con estilo épico: el principal (Jugar/Continuar) en oro y el resto oscuros con borde dorado; panel de récord a juego. Misiones ocupa su propia fila y la Guía pasa a llamarse «Tutorial», junto a Borrar progreso.
+
+### Partida
+- Opción «AUTO SPEED» / «VELOCIDAD AUTO» en la pausa para activar o desactivar la velocidad automática (x6) cuando ningún orbe puede golpear nada (se guarda en los ajustes).
+
 ### Pantalla
+- iPhone (acceso directo): iOS a veces da a la página el alto de Safari con su barra inferior y abajo quedaba una franja vacía. Ahora el juego ocupa el alto real de la pantalla (src/main.js) y el lienzo queda fijo arriba del todo.
 - iPhone (acceso directo): si iOS coloca la página bajo la barra de estado (más baja que la pantalla), ya no se reservan otra vez los 59 px de la isla. Esa doble reserva estrechaba el alto útil, así que el juego se ensanchaba (franjas a los lados del tablero) y sobraba espacio abajo.
 
 ### Avisos

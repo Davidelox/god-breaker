@@ -207,6 +207,73 @@ export function blockBgKey(scene, fill, border, size, height = size) {
   return key;
 }
 
+/** Recolorea un lienzo con un mapa de degradado (de oscuro a claro) según la luminosidad. */
+function gradientMap(src, stops) {
+  const c = document.createElement('canvas');
+  c.width = src.width;
+  c.height = src.height;
+  const ctx = c.getContext('2d');
+  ctx.drawImage(src, 0, 0);
+  const img = ctx.getImageData(0, 0, c.width, c.height);
+  const cols = stops.map((h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] === 0) continue;
+    const l = Math.min(0.999, (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) / 255) * (cols.length - 1);
+    const k = Math.floor(l), f = l - k;
+    for (let j = 0; j < 3; j++) d[i + j] = Math.round(cols[k][j] + (cols[k + 1][j] - cols[k][j]) * f);
+  }
+  ctx.putImageData(img, 0, 0);
+  return c;
+}
+
+/**
+ * Retrato de avatar: marco de oro, fondo de su paleta y el dios recoloreado con ella.
+ * Devuelve la clave de la textura (48x56 px).
+ */
+export function avatarKey(scene, id, creatureId, stops) {
+  const key = `avatar_${id}`;
+  if (scene.textures.exists(key)) return key;
+  const w = 48, h = 56;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#6a3e0c';
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#d8a030';
+  ctx.fillRect(1, 1, w - 2, h - 2);
+  ctx.fillStyle = '#ffe27a';
+  ctx.fillRect(1, 1, w - 2, 1);
+  ctx.fillStyle = stops[0];
+  ctx.fillRect(4, 4, w - 8, h - 8);
+  // Halo de la paleta detrás del dios
+  ctx.fillStyle = stops[1];
+  ctx.globalAlpha = 0.55;
+  ctx.fillRect(8, 12, w - 16, h - 20);
+  ctx.globalAlpha = 0.35;
+  ctx.fillRect(12, 8, w - 24, h - 12);
+  ctx.globalAlpha = 1;
+  const src = scene.textures.get(creatureKey(creatureId, false)).getSourceImage();
+  const art = gradientMap(src, stops);
+  const s = Math.min((w - 10) / art.width, (h - 10) / art.height);
+  const dw = Math.round(art.width * s), dh = Math.round(art.height * s);
+  ctx.drawImage(art, Math.round((w - dw) / 2), Math.round((h - dh) / 2) + 2, dw, dh);
+  // Remaches
+  ctx.fillStyle = '#ffe27a';
+  for (const [x, y] of [[2, 2], [w - 4, 2], [2, h - 4], [w - 4, h - 4]]) ctx.fillRect(x, y, 2, 2);
+  scene.textures.addCanvas(key, c);
+  return key;
+}
+
+/** Orbe común con los colores del avatar elegido (o los de siempre, si no hay avatar). */
+export function setCommonOrb(scene, colors) {
+  if (CUSTOM_BALL_IMAGES.get('normal')) return; // el pack trae su propia imagen
+  if (scene.textures.exists('ball_normal')) scene.textures.remove('ball_normal');
+  scene.textures.addCanvas('ball_normal', drawPixels(BALL_2, colors ?? BALL_COLORS.normal));
+}
+
 /** Píxel blanco (barras teñidas) y marca roja «!» de bestia sin capturar, como imágenes. */
 function makeUiBits(scene) {
   const px = document.createElement('canvas');

@@ -17,7 +17,7 @@ export function fullRect(scene, color, alpha = 1) {
 import { audio } from '../audio/audio.js';
 
 /** Botones MUSICA / SONIDO que activan o desactivan el audio y lo guardan. */
-export function makeAudioToggles(scene, y, save) {
+export function makeAudioToggles(scene, y, save, style = {}) {
   const s = save.data.settings;
   const label = (name, on) => t(`${name} {0}`, t(on ? 'ON' : 'OFF'));
   const music = makeButton(scene, scene.scale.width / 2 - 72, y, 136, 30, label('MUSIC', s.music), () => {
@@ -25,25 +25,25 @@ export function makeAudioToggles(scene, y, save) {
     audio.setMusic(s.music);
     save.write();
     music.setLabel(label('MUSIC', s.music));
-  });
+  }, style);
   const sfx = makeButton(scene, scene.scale.width / 2 + 72, y, 136, 30, label('SOUND', s.sfx), () => {
     s.sfx = !s.sfx;
     audio.setSfx(s.sfx);
     save.write();
     sfx.setLabel(label('SOUND', s.sfx));
-  });
+  }, style);
   return [music, sfx];
 }
 
 /** Botón de idioma (inglés / español). Guarda el ajuste y llama a onChange para redibujar. */
-export function makeLangToggle(scene, x, y, w, save, onChange) {
+export function makeLangToggle(scene, x, y, w, save, onChange, style = {}) {
   return makeButton(scene, x, y, w, 30, 'LANGUAGE: ENGLISH', () => {
     const next = getLang() === 'es' ? 'en' : 'es';
     setLang(next);
     save.data.settings.lang = next;
     save.write();
     onChange?.();
-  });
+  }, style);
 }
 
 export const COLORS = {
@@ -89,7 +89,7 @@ export function makePanel(scene, x, y, w, h, opts) {
   return drawPanel(scene.add.graphics(), x, y, w, h, opts);
 }
 
-export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.paper, textColor = COLORS.inkHex, size = 8 } = {}) {
+export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.paper, textColor = COLORS.inkHex, size = 8, border = COLORS.ink } = {}) {
   const c = scene.add.container(x, y);
   const g = scene.add.graphics();
   const lbl = text(scene, 0, 0, label, size, textColor).setOrigin(0.5);
@@ -100,7 +100,7 @@ export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.pa
     g.clear();
     g.fillStyle(0x080a14);
     g.fillRect(-w / 2, -h / 2 + 2, w, h);
-    g.fillStyle(selected ? COLORS.gold : COLORS.ink);
+    g.fillStyle(selected ? COLORS.gold : border);
     g.fillRect(-w / 2, -h / 2 + oy, w, h - 2);
     g.fillStyle(fill);
     g.fillRect(-w / 2 + 2, -h / 2 + 2 + oy, w - 4, h - 6);

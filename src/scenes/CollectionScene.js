@@ -6,6 +6,7 @@ import { TYPES, TYPE_ORDER, hexToNum } from '../data/types.js';
 import { addCreatureImage } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { t as tr, godOf } from '../i18n.js';
+import { unlockedOrigins, unlockMissionFor, claimMissions } from '../data/missions.js';
 
 const GRID_COLS = 5;
 const CELL_W = 68;
@@ -63,6 +64,8 @@ export default class CollectionScene extends Phaser.Scene {
 
   create() {
     this.save = this.registry.get('save');
+    claimMissions(this.save);
+    this.open = unlockedOrigins(this.save.data); // orígenes desbloqueados con misiones
     fitCamera(this);
     fullRect(this, COLORS.night);
 
@@ -84,6 +87,8 @@ export default class CollectionScene extends Phaser.Scene {
       this.sectionBtns[s] = makeButton(this, x, y, bw - 3, SECTION_ROW_H - 3, s === 'all' ? 'ALL' : TYPES[s].short, () => this.setSection(s), {
         fill, textColor: '#ffffff'
       });
+      // Orígenes aún bloqueados (se abren con las misiones de desbloqueo): botón apagado
+      if (s !== 'all' && !this.open.has(s)) this.sectionBtns[s].setAlpha(0.4);
     });
     this.sectionText = text(this, W / 2, SECTION_LABEL_Y, '', 8, '#ffffff').setOrigin(0.5).setStroke('#101828', 3);
 
@@ -157,6 +162,12 @@ export default class CollectionScene extends Phaser.Scene {
     for (const [s, btn] of Object.entries(this.sectionBtns)) btn.setSelected(s === this.section);
     const [have, all] = this.sectionCount(this.section);
     const what = this.onlyGods ? (this.section === 'all' ? tr('ALL GODS') : tr('{0} GODS', sectionName(this.section))) : sectionName(this.section);
+    // Origen bloqueado: se dice qué misión lo abre
+    if (this.section !== 'all' && !this.open.has(this.section)) {
+      const m = unlockMissionFor(this.section);
+      this.sectionText.setText(tr('LOCKED: {0}', m ? tr(m.title) : '')).setColor('#a8b4cc');
+      return;
+    }
     this.sectionText.setText(`${what}  ${have}/${all}`);
     this.sectionText.setColor(this.section === 'all' ? '#ffffff' : TYPES[this.section].light);
   }
