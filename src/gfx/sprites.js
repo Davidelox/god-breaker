@@ -10,6 +10,7 @@ import { beastFrame } from './beasts.js';
 const handFrame = (c, i) => (c.legendary ? godFrame(c.name, i) : beastFrame(c.name, i));
 import { CUSTOM_CREATURE_IMAGES, CUSTOM_BALL_IMAGES } from '../data/pack.js';
 import { AVATARS, AVATAR_STYLES, avatarOrb } from '../data/profile.js';
+import { drawPetPortrait } from './petPortraits.js';
 
 // Las imágenes de un pack se guardan a CUSTOM_RES veces la resolución de los sprites generados
 // para no perder detalle; texScale() compensa esa diferencia al dibujarlas.
@@ -308,117 +309,16 @@ export function blockBgKey(scene, fill, border, size, height = size) {
   return key;
 }
 
-/** Recolorea un lienzo con un mapa de degradado (de oscuro a claro) según la luminosidad. */
-function gradientMap(src, stops) {
-  const c = document.createElement('canvas');
-  c.width = src.width;
-  c.height = src.height;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(src, 0, 0);
-  const img = ctx.getImageData(0, 0, c.width, c.height);
-  const cols = stops.map((h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    if (d[i + 3] === 0) continue;
-    const l = Math.min(0.999, (0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2]) / 255) * (cols.length - 1);
-    const k = Math.floor(l), f = l - k;
-    for (let j = 0; j < 3; j++) d[i + j] = Math.round(cols[k][j] + (cols[k + 1][j] - cols[k][j]) * f);
-  }
-  ctx.putImageData(img, 0, 0);
-  return c;
-}
-
-/** Recorta un lienzo a la caja de sus píxeles visibles. */
-function trimCanvas(src) {
-  const ctx = src.getContext('2d');
-  const { data, width, height } = ctx.getImageData(0, 0, src.width, src.height);
-  let x0 = width, y0 = height, x1 = -1, y1 = -1;
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      if (data[(y * width + x) * 4 + 3] === 0) continue;
-      x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y);
-    }
-  }
-  if (x1 < 0) return src;
-  const c = document.createElement('canvas');
-  c.width = x1 - x0 + 1;
-  c.height = y1 - y0 + 1;
-  c.getContext('2d').drawImage(src, -x0, -y0);
-  return c;
-}
-
 /**
- * Retrato de la mascota celestial (48x56): marco de oro, cielo profundo con estrellas y nebulosa,
- * y el animal luminoso (recoloreado con su paleta) con halo y estrellas por el cuerpo.
+ * Retrato de la mascota (54x62): primer plano de perfil, en sombra con luz de contra, halo y marco
+ * de oro (dibujado a mano en petPortraits.js con la paleta de la mascota).
  */
-export function avatarKey(scene, id) {
-  const key = `avatar_${id}`;
+export function avatarKey(scene, id, locked = false) {
+  const key = `avatar_${id}${locked ? '_locked' : ''}`;
   if (scene.textures.exists(key)) return key;
   const a = AVATARS[id];
-  const stops = AVATAR_STYLES[a.style];
-  const w = 48, h = 56;
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  // Marco de oro
-  ctx.fillStyle = '#6a3e0c';
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = '#d8a030';
-  ctx.fillRect(1, 1, w - 2, h - 2);
-  ctx.fillStyle = '#ffe27a';
-  ctx.fillRect(1, 1, w - 2, 1);
-  // Cielo con nebulosa y estrellas
-  ctx.fillStyle = '#05060f';
-  ctx.fillRect(4, 4, w - 8, h - 8);
-  let seed = [...id].reduce((s, ch) => s + ch.charCodeAt(0), 7);
-  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  ctx.fillStyle = stops[1];
-  for (let i = 0; i < 6; i++) {
-    ctx.globalAlpha = 0.18;
-    const r = 6 + rnd() * 8;
-    ctx.fillRect(Math.round(8 + rnd() * (w - 24)), Math.round(8 + rnd() * (h - 24)), r, r * 0.7);
-  }
-  ctx.globalAlpha = 1;
-  for (let i = 0; i < 22; i++) {
-    ctx.fillStyle = rnd() < 0.3 ? stops[3] : '#8890b0';
-    ctx.fillRect(4 + Math.floor(rnd() * (w - 8)), 4 + Math.floor(rnd() * (h - 8)), 1, 1);
-  }
-  // Animal: recortado, recoloreado y escalado a entero para llenar el marco
-  // Se dibuja a doble resolución para que el animal llene el marco con más detalle
-  let art = trimCanvas(gradientMap(drawBeast(a.art, 72, 84, 101), stops));
-  const fit = Math.min((w - 10) / art.width, (h - 12) / art.height);
-  const k = fit >= 1 ? Math.floor(fit) : fit;
-  const dw = art.width * k, dh = art.height * k;
-  const dx = Math.round((w - dw) / 2), dy = Math.round((h - dh) / 2) + 2;
-  // Halo luminoso alrededor de la silueta (como un espíritu)
-  const glow = document.createElement('canvas');
-  glow.width = art.width;
-  glow.height = art.height;
-  const gctx = glow.getContext('2d');
-  gctx.drawImage(art, 0, 0);
-  gctx.globalCompositeOperation = 'source-in';
-  gctx.fillStyle = stops[2];
-  gctx.fillRect(0, 0, glow.width, glow.height);
-  ctx.globalAlpha = 0.45;
-  for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ctx.drawImage(glow, dx + ox * k, dy + oy * k, dw, dh);
-  ctx.globalAlpha = 1;
-  ctx.drawImage(art, dx, dy, dw, dh);
-  // Estrellas sobre el cuerpo (solo encima del animal)
-  const stars = document.createElement('canvas');
-  stars.width = dw;
-  stars.height = dh;
-  const sctx = stars.getContext('2d');
-  sctx.drawImage(art, 0, 0, dw, dh);
-  sctx.globalCompositeOperation = 'source-atop';
-  sctx.fillStyle = '#ffffff';
-  for (let i = 0; i < 7; i++) sctx.fillRect(Math.floor(rnd() * dw), Math.floor(rnd() * dh), 1, 1);
-  ctx.drawImage(stars, dx, dy);
-  // Remaches
-  ctx.fillStyle = '#ffe27a';
-  for (const [x, y] of [[2, 2], [w - 4, 2], [2, h - 4], [w - 4, h - 4]]) ctx.fillRect(x, y, 2, 2);
-  scene.textures.addCanvas(key, c);
+  const seed = [...id].reduce((n, ch) => n + ch.charCodeAt(0), 7);
+  scene.textures.addCanvas(key, drawPetPortrait({ ...a.portrait, stops: AVATAR_STYLES[a.style], seed, locked }));
   return key;
 }
 
@@ -429,7 +329,10 @@ const ORB_MARKS = {
   star: [[4, 2], [3, 4], [4, 3], [4, 4], [5, 4], [4, 5]],
   eye: [[3, 4], [4, 4], [5, 4], [4, 3], [4, 5]],
   wave: [[2, 4], [3, 3], [4, 4], [5, 3]],
-  ring: [[3, 3], [4, 3], [3, 5], [4, 5], [2, 4], [5, 4]]
+  ring: [[3, 3], [4, 3], [3, 5], [4, 5], [2, 4], [5, 4]],
+  web: [[2, 2], [3, 3], [4, 4], [5, 5], [5, 3], [3, 5], [4, 2], [4, 6], [2, 4], [6, 4]],
+  rune: [[3, 2], [3, 3], [3, 4], [3, 5], [4, 2], [5, 3], [4, 4], [5, 5]],
+  crown: [[2, 3], [4, 2], [5, 3], [2, 4], [3, 4], [4, 4], [5, 4], [3, 5], [4, 5]]
 };
 
 /**
@@ -450,8 +353,8 @@ export function petOrbKey(scene, id) {
   ctx.globalAlpha = 0.5;
   ctx.fillRect(2, 2, 4, 4);
   ctx.globalAlpha = 1;
-  // Símbolo de la mascota
-  ctx.fillStyle = '#ffffff';
+  // Símbolo de la mascota, del color de sus ojos
+  ctx.fillStyle = o.eye ?? '#ffffff';
   for (const [x, y] of ORB_MARKS[o.mark] ?? []) ctx.fillRect(x, y, 1, 1);
   // Destellos dentro de la esfera
   ctx.fillStyle = l;

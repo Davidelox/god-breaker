@@ -9,14 +9,18 @@ import { TYPES, TYPE_ORDER } from './types.js';
 import { TITLES, AVATARS } from './profile.js';
 
 const caughtList = (d) => CREATURES.filter((c) => d.collection[c.id]);
+// Las doradas no cuentan en las misiones de capturas generales (solo en las de doradas)
+const normalCaptures = (d) => Math.max(0, d.stats.captures - d.stats.shinies);
+/** Especies que tienes en dorado (cada dorada solo se captura una vez). */
+const goldSpecies = (d) => CREATURES.filter((c) => d.collection[c.id]?.shinyCount > 0).length;
 const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
 function buildCapture() {
   return [
-  ...[25, 75, 150, 300, 600].map((n) => ({
-    id: `cap_${n}`, title: `Capture ${n} beasts`, target: n, progress: (d) => d.stats.captures
+  ...[50, 150, 350, 600, 800].map((n) => ({
+    id: `cap_${n}`, title: `Capture ${n} beasts`, target: n, progress: normalCaptures
   })),
-  ...[20, 40, 80, 150].map((n) => ({
+  ...[50, 125, 300, 500].map((n) => ({
     id: `uniq_${n}`, title: `${n} different beasts`, target: n, progress: (d) => caughtList(d).length
   })),
   { id: 'uniq_all', title: 'Complete the collection', target: CREATURES.length, progress: (d) => caughtList(d).length },
@@ -26,10 +30,11 @@ function buildCapture() {
     target: CREATURES.filter((c) => c.type === t && !c.legendary).length,
     progress: (d) => caughtList(d).filter((c) => c.type === t && !c.legendary).length
   })),
-  { id: 'legend_3', title: 'Capture 3 gods', target: 3, progress: (d) => caughtList(d).filter((c) => c.legendary).length },
+  { id: 'legend_60', title: 'Capture 60 different gods', target: 60, progress: (d) => caughtList(d).filter((c) => c.legendary).length },
   { id: 'legend_all', title: `Capture all ${LEGENDARIES.length} gods`, target: Math.max(1, LEGENDARIES.length), progress: (d) => caughtList(d).filter((c) => c.legendary).length },
-  { id: 'shiny_2', title: 'Capture 2 gold beasts', target: 2, progress: (d) => d.stats.shinies },
-  { id: 'shiny_10', title: 'Capture 10 gold beasts', target: 10, progress: (d) => d.stats.shinies }
+  { id: 'shiny_200', title: 'Capture 200 gold beasts', target: 200, progress: goldSpecies },
+  { id: 'shiny_400', title: 'Capture 400 gold beasts', target: 400, progress: goldSpecies },
+  { id: 'shiny_all', title: `Capture all ${CREATURES.length} gold beasts`, target: CREATURES.length, progress: goldSpecies }
 ].map((m) => ({ ...m, cat: 'captura' }));
 }
 
@@ -37,26 +42,34 @@ function buildCapture() {
 export const BASE_ORIGINS = ['griega', 'nordica', 'egipcia'];
 
 /** Camino de desbloqueo: [origen, tipo de misión, objetivo]. */
+// Se alternan misiones de habilidad (turno en una partida) y de constancia (capturas acumuladas).
 const UNLOCK_PATH = [
-  ['celta', 'turn', 20],
-  ['eslava', 'cap', 30],
-  ['iberica', 'turn', 30],
-  ['europea', 'cap', 75],
-  ['japonesa', 'boss', 5],
-  ['asiatica', 'turn', 40],
-  ['indomalaya', 'cap', 150],
-  ['medioriental', 'uniq', 80],
-  ['americana', 'turn', 55],
-  ['africana', 'cap', 300],
-  ['oceanica', 'turn', 70]
+  ['celta', 'cap', 50],
+  ['eslava', 'turn', 50],
+  ['iberica', 'cap', 200],
+  ['europea', 'turn', 75],
+  ['japonesa', 'godcap', 30],
+  ['asiatica', 'turn', 100],
+  ['indomalaya', 'uniq', 300],
+  ['medioriental', 'turn', 125],
+  ['americana', 'cap', 500],
+  ['africana', 'godcap', 100],
+  ['oceanica', 'turn', 150]
 ];
 
+/** Dioses capturados contando las repeticiones. */
+const godCaptures = (d) => CREATURES.reduce((n, c) => {
+  const e = c.legendary && d.collection[c.id];
+  return n + (e ? Math.max(0, e.count - e.shinyCount) : 0); // sin contar las doradas
+}, 0);
+
 const unlockTitle = (kind, n) =>
-  kind === 'turn' ? `Reach turn ${n}` : kind === 'cap' ? `Capture ${n} beasts` : kind === 'boss' ? (n === 1 ? 'Defeat a god' : `Defeat ${n} gods`) : `${n} different beasts`;
+  kind === 'turn' ? `Reach turn ${n}` : kind === 'cap' ? `Capture ${n} beasts` : kind === 'godcap' ? `Capture ${n} gods` : kind === 'boss' ? (n === 1 ? 'Defeat a god' : `Defeat ${n} gods`) : `${n} different beasts`;
 const unlockProgress = (kind) =>
   kind === 'turn' ? (d, run) => Math.max(d.stats.bestTurn, run?.turn ?? 0)
-    : kind === 'cap' ? (d) => d.stats.captures
+    : kind === 'cap' ? normalCaptures
       : kind === 'boss' ? (d) => d.stats.bossKills
+        : kind === 'godcap' ? godCaptures
         : (d) => caughtList(d).length;
 
 const unlocks = () => UNLOCK_PATH.map(([origin, kind, n]) => ({
@@ -65,31 +78,45 @@ const unlocks = () => UNLOCK_PATH.map(([origin, kind, n]) => ({
 }));
 
 /** Misiones grandes: dan un orbe Divino; el resto, uno Rúnico. */
-const BIG = new Set(['cap_300', 'cap_600', 'uniq_150', 'uniq_all', 'legend_all', 'shiny_10', 'score_100000', 'turn_75', 'boss_30', 'clear_20', 'power_100']);
+const BIG = new Set(['cap_600', 'cap_800', 'uniq_500', 'uniq_all', 'legend_all', 'shiny_10', 'score_100000', 'turn_75', 'boss_30', 'clear_20', 'power_100']);
 const withReward = (m) => ({
   ...m,
   reward: TITLES[m.id] ? { title: m.id } : AVATARS[m.id] ? { avatar: m.id } : { orb: BIG.has(m.id) || m.id.startsWith('type_') ? 'ultra' : 'super' }
 });
 
+// Especiales (la categoría interna sigue siendo «progreso»). Las «en una partida» usan el récord
+// guardado y la partida en curso (run).
 const progress = [
-  ...[10000, 40000, 100000].map((n) => ({
+  ...[75000, 125000, 150000].map((n) => ({
     id: `score_${n}`, title: `${fmt(n)} points in one game`, target: n,
     progress: (d, run) => Math.max(d.bestScore, Math.floor(run?.score ?? 0))
   })),
-  ...[30, 50, 75].map((n) => ({
+  ...[125, 175, 205].map((n) => ({
     id: `turn_${n}`, title: `Reach turn ${n}`, target: n,
     progress: (d, run) => Math.max(d.stats.bestTurn, run?.turn ?? 0)
   })),
-  ...[3, 10, 30].map((n) => ({
-    id: `boss_${n}`, title: n === 1 ? 'Defeat a god' : `Defeat ${n} gods`, target: n,
-    progress: (d) => d.stats.bossKills
+  ...[20, 40, 100].map((n) => ({
+    id: `maxboss_${n}`, title: `Defeat ${n} gods with a MAX spell`, target: n,
+    progress: (d) => d.stats.maxBossKills ?? 0
   })),
-  ...[3, 20].map((n) => ({
-    id: `clear_${n}`, title: n === 1 ? 'Clear the board' : `Clear the board ${n} times`, target: n,
-    progress: (d) => d.stats.clears
+  ...[5, 10].map((n) => ({
+    id: `clearrun_${n}`, title: `Clear the board ${n} times in one game`, target: n,
+    progress: (d, run) => Math.max(d.stats.bestRunClears ?? 0, run?.clears ?? 0)
   })),
-  ...[25, 100].map((n) => ({ id: `power_${n}`, title: `Cast ${n} spells`, target: n, progress: (d) => d.stats.powersUsed })),
-  { id: 'games_25', title: 'Play 25 games', target: 25, progress: (d) => d.stats.games }
+  { id: 'clear_100', title: 'Clear the board 100 times', target: 100, progress: (d) => d.stats.clears },
+  {
+    id: 'combo_15', title: 'Cast 15 different combos in one game', target: 15,
+    progress: (d, run) => Math.max(d.stats.bestRunCombos ?? 0, run?.combos ?? 0)
+  },
+  { id: 'power_300', title: 'Cast 300 spells', target: 300, progress: (d) => d.stats.powersUsed },
+  { id: 'shotcap_3', title: 'Capture 3 beings in one shot', target: 3, progress: (d) => d.stats.bestShotCaptures ?? 0 },
+  { id: 'bestshot_45', title: 'Destroy 45 blocks in one shot', target: 45, progress: (d) => d.stats.bestShotKills ?? 0 },
+  { id: 'vertical_50', title: 'Perform 50 vertical strikes', target: 50, progress: (d) => d.stats.verticalAttacks ?? 0 },
+  {
+    id: 'nomagic_100', title: 'Reach turn 100 without casting spells', target: 100,
+    progress: (d, run) => Math.max(d.stats.bestNoMagicTurn ?? 0, run?.noMagicTurn ?? 0)
+  },
+  { id: 'godstreak_3', title: 'Capture 3 gods in a row with a Runic or Divine orb', target: 3, progress: (d) => d.stats.bestGodStreak ?? 0 }
 ].map((m) => ({ ...m, cat: 'progreso' }));
 
 export const MISSIONS = [];

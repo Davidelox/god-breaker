@@ -7,16 +7,21 @@ import { hasRun } from '../core/run.js';
 import { TYPES, hexToNum } from '../data/types.js';
 import { BALL_TYPES } from '../data/balls.js';
 import { TITLES, avatarName } from '../data/profile.js';
-import { text, makeButton, drawPanel, fitCamera, fullRect, floatText, COLORS } from '../gfx/ui.js';
+import { text, makeButton, drawPanel, fitCamera, fullRect, showTip, COLORS } from '../gfx/ui.js';
 import { audio } from '../audio/audio.js';
 import { t as tr } from '../i18n.js';
 
+/** Número corto para el avance: 950, 3.5K, 75K. */
+const short = (n) => (n < 1000 ? String(n) : n < 10000 ? `${Math.floor(n / 100) / 10}K` : `${Math.floor(n / 1000)}K`);
+
 const PER_PAGE = 6;
+// Largo fijo de la barra de avance: deja sitio a la derecha para «150K/150K»
+const BAR_W = W - 56 - 82;
 const ROW_H = 72;
 const TABS = [
   ['desbloqueo', 'ORIGINS'],
   ['captura', 'CAPTURE'],
-  ['progreso', 'PROGRESS']
+  ['progreso', 'SPECIALS']
 ];
 
 export default class MissionsScene extends Phaser.Scene {
@@ -82,14 +87,14 @@ export default class MissionsScene extends Phaser.Scene {
     if (!done) return;
     audio.play('mission');
     const r = m.reward;
-    const what = r.title ? tr('New title: {0}!', tr(TITLES[r.title])) : r.avatar ? tr('New pet: {0}!', tr(avatarName(r.avatar))) : tr('+1 {0} orb for your next game', tr(BALL_TYPES[r.orb].name));
+    const what = r.title ? tr('New title: {0}!', tr(TITLES[r.title])) : r.avatar ? tr('New companion: {0}!', tr(avatarName(r.avatar))) : tr('+1 {0} orb for your next game', tr(BALL_TYPES[r.orb].name));
     for (let i = 0; i < 8; i++) {
       const sp = this.add.image(x, y, 'spark').setScale(1.8).setTint(0xffd84a).setDepth(20);
       const a = (i / 8) * Math.PI * 2;
       this.tweens.add({ targets: sp, x: x + Math.cos(a) * 46, y: y + Math.sin(a) * 26, alpha: 0, duration: 520, ease: 'Quad.easeOut', onComplete: () => sp.destroy() });
     }
     this.render();
-    floatText(this, W / 2, y - 6, what, '#ffe27a', 8).setDepth(30);
+    showTip(this, W / 2, y - 6, what, { gap: 14 });
   }
 
   render() {
@@ -108,52 +113,61 @@ export default class MissionsScene extends Phaser.Scene {
       const value = missionProgress(m, this.save.data);
       const g = this.add.graphics();
       drawPanel(g, 14, y, W - 28, ROW_H - 8, { fill: claimable ? 0xc8f0b8 : completed ? 0xfff4c8 : COLORS.paper, border: claimable ? 0x2a8a40 : COLORS.ink });
-      // Barra de progreso
-      const bw = W - 120;
-      g.fillStyle(0x283048);
-      g.fillRect(28, y + 38, bw, 10);
-      g.fillStyle(completed ? COLORS.gold : 0x4ce0e8);
-      g.fillRect(29, y + 39, (bw - 2) * (value / m.target), 8);
       this.layer.add(g);
-      this.layer.add(text(this, 28, y + 14, m.title, 8, COLORS.inkHex).setOrigin(0, 0.5));
-      this.layer.add(text(this, W - 28, y + 43, `${value}/${m.target}`, 8, '#56607c').setOrigin(1, 0.5));
+      // Título: si no cabe en una línea, pasa a dos (más juntas)
+      const title = text(this, 28, y + 17, m.title, 8, COLORS.inkHex, { align: 'left', lineSpacing: 3, wordWrap: { width: W - 92 } }).setOrigin(0, 0.5);
+      if (title.height > 14) title.setOrigin(0, 0).setY(y + 6);
+      this.layer.add(title);
+      // Avance a la derecha (en corto: 3.5K/75K); la barra mide siempre lo mismo
+      const by = y + 44;
+      this.layer.add(text(this, W - 28, by, `${short(value)}/${short(m.target)}`, 8, '#56607c').setOrigin(1, 0.5));
+      const bx = 28, bw = BAR_W;
       const r = m.reward;
-      if (claimable) {
-        // Completada y sin cobrar: se pulsa para recibir la recompensa
-        const prize = r.title ? tr('Title: {0}', tr(TITLES[r.title])) : r.avatar ? tr('Pet: {0}', tr(avatarName(r.avatar))) : tr('Reward: +1 {0} orb', tr(BALL_TYPES[r.orb].name));
-        const lbl = text(this, 28, y + 27, tr('Tap to claim! {0}', prize), 8, '#1c6a2c').setOrigin(0, 0.5);
+      const waiting = !completed && r?.unlock && this.running && value >= m.target;
+      // Barra ancha (completada): la recompensa va escrita dentro; si no, barra fina de avance
+      let inside = null, fillCol = 0x4ce0e8, textCol = '#ffffff';
+      if (claimable) { inside = tr('Claim!'); fillCol = 0x2a8a40; }
+      else if (waiting) { inside = tr('When your game ends'); fillCol = 0x56607c; }
+      else if (completed && r?.unlock) { const t = TYPES[r.unlock]; inside = tr(t.name); fillCol = hexToNum(t.base); }
+      else if (completed && r?.title) { inside = tr(TITLES[r.title]); fillCol = COLORS.gold; textCol = '#4a3000'; }
+      else if (completed && r?.avatar) { inside = tr(avatarName(r.avatar)); fillCol = 0x7a4ac0; }
+      else if (completed && r?.orb) { inside = tr('Reward received'); fillCol = COLORS.gold; textCol = '#4a3000'; }
+      if (inside) {
+        g.fillStyle(0x283048);
+        g.fillRect(bx, by - 7, bw, 14);
+        g.fillStyle(fillCol);
+        g.fillRect(bx + 1, by - 6, bw - 2, 12);
+        g.fillStyle(0xffffff, 0.3);
+        g.fillRect(bx + 1, by - 6, bw - 2, 1);
+        const lbl = text(this, bx + bw / 2, by, inside, 8, textCol).setOrigin(0.5);
+        if (lbl.width > bw - 6) lbl.setScale((bw - 6) / lbl.width);
         this.layer.add(lbl);
-        this.tweens.add({ targets: lbl, alpha: 0.35, duration: 520, yoyo: true, repeat: -1 });
+        if (claimable) this.tweens.add({ targets: lbl, alpha: 0.35, duration: 520, yoyo: true, repeat: -1 });
+      } else {
+        g.fillStyle(0x283048);
+        g.fillRect(bx, by - 3, bw, 6);
+        g.fillStyle(0x4ce0e8);
+        g.fillRect(bx + 1, by - 2, Math.max(0, (bw - 2) * (value / m.target)), 4);
+      }
+      if (claimable) {
+        // Completada y sin cobrar: se pulsa para recibir la recompensa (sorpresa hasta entonces)
         const hit = this.add.zone(W / 2, y + (ROW_H - 8) / 2, W - 28, ROW_H - 8).setInteractive({ useHandCursor: true });
         hit.on('pointerup', () => this.claim(m, W / 2, y + 28));
         this.layer.add(hit);
-        const gift = this.add.image(W - 34, y + 18, 'spark').setScale(2.6).setTint(0x2a8a40);
+        const gift = this.add.image(W - 34, y + 16, 'spark').setScale(2.6).setTint(0x2a8a40);
         this.layer.add(gift);
         this.tweens.add({ targets: gift, scale: 3.2, duration: 420, yoyo: true, repeat: -1 });
         return;
       }
-      // Recompensa: origen que se desbloquea (con su color) u orbe para la próxima partida
-      if (r?.unlock) {
-        const t = TYPES[r.unlock];
-        const waiting = !completed && this.running && value >= m.target;
-        const label = text(this, 36, y + 27, waiting ? tr('Unlocks {0} when your game ends', tr(t.name)) : tr(completed ? 'Unlocked: {0}' : 'Unlocks {0}', tr(t.name)), 8, '#ffffff').setOrigin(0, 0.5);
-        const chip = this.add.rectangle(30, y + 27, label.width + 12, 13, hexToNum(completed ? t.base : t.dark)).setOrigin(0, 0.5);
-        this.layer.add([chip, label]);
-      } else if (r?.title || r?.avatar) {
-        const what = r.title ? tr('Title: {0}', tr(TITLES[r.title])) : tr('Pet: {0}', tr(avatarName(r.avatar)));
-        this.layer.add(text(this, 28, y + 27, what, 8, r.title ? '#b07800' : '#7a4ac0').setOrigin(0, 0.5));
-      } else if (r?.orb) {
-        this.layer.add(text(this, 28, y + 27, completed ? tr('Reward received') : tr('Reward: +1 {0} orb', tr(BALL_TYPES[r.orb].name)), 8, r.orb === 'ultra' ? '#b07800' : '#7a4ac0').setOrigin(0, 0.5));
-      }
       if (completed) {
-        const star = this.add.image(W - 34, y + 18, 'spark').setScale(2.4).setTint(0xd08800);
+        const star = this.add.image(W - 34, y + 16, 'spark').setScale(2.4).setTint(0xd08800);
         this.layer.add(star);
         this.tweens.add({ targets: star, angle: 90, duration: 1600, repeat: -1 });
       }
     });
     const hint = this.tab === 'desbloqueo'
       ? 'Origins unlock when the game in which you complete them ends.'
-      : this.tab === 'captura' ? 'Tap completed missions to claim their title.' : 'Tap completed missions to claim their pet.';
+      : this.tab === 'captura' ? 'Tap completed missions to claim their title.' : 'Tap completed missions to claim their companion.';
     this.layer.add(text(this, W / 2, H - 98, hint, 8, '#a8b4cc', { wordWrap: { width: W - 40 } }).setOrigin(0.5));
   }
 }

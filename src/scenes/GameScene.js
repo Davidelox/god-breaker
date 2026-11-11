@@ -17,7 +17,7 @@ import { creatureKey, addCreatureImage, texScale, blockBgKey, blockBgOrigin, HP_
 import { GOD_FRAME_MS } from '../gfx/gods.js';
 import { stageTextures, STAGE_FOR_ORIGIN } from '../gfx/stage.js';
 import { currentAvatar, avatarOrb } from '../data/profile.js';
-import { text, bodyText, makeButton, makePanel, drawPanel, drawGoldPanel, GOLD_UI, floatText, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { text, bodyText, makeButton, makePanel, drawPanel, drawGoldPanel, GOLD_UI, floatText, makeAudioToggles, fitCamera, fullRect, showTip, COLORS } from '../gfx/ui.js';
 import { weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
 import { Weather } from '../gfx/weather.js';
@@ -98,7 +98,9 @@ export default class GameScene extends Phaser.Scene {
     this.shotBall = 'normal';
     this.shotKills = 0;
     // Estadísticas de la partida (para el cartel de fin de partida)
-    this.runStats = { blocks: 0, beasts: 0, gods: 0, spells: 0, bestShot: 0 };
+    this.runStats = { blocks: 0, beasts: 0, gods: 0, spells: 0, bestShot: 0, clears: 0, combos: [] };
+    this.shotId = 0; // número del lanzamiento (para contar capturas del mismo tiro)
+    this.shotCaps = { id: -1, n: 0 };
     this.turbo = false;
     this.holdFast = false; // pantalla pulsada durante el lanzamiento: velocidad x2
     this.clearCelebrated = false;
@@ -367,6 +369,7 @@ export default class GameScene extends Phaser.Scene {
     this.magicLock = text(this, 50 + (W / 2 - 58) / 2, barY + 4, 'FULL', 8, '#ffffff').setOrigin(0.5).setStroke('#101828', 3).setDepth(1).setVisible(false);
     this.goldLock = text(this, W / 2 + 46 + (W / 2 - 52) / 2, barY + 4, 'ACTIVE', 8, '#fff4c8').setOrigin(0.5).setStroke('#5a3c00', 3).setDepth(1).setVisible(false);
     const bh = Math.min(84, 44 + b * 0.55);
+    this.slotH = bh;
     const by = b ? Math.round((barY + 16 + H - 8) / 2) : BOTTOM_BAR_Y;
     // De izquierda a derecha: 2 hechizos, orbes Runic y Divine (se activan de uno en uno; sin
     // ninguno se lanza el común) y la bajada rápida ▼ en la esquina. Ocupan todo el ancho.
@@ -833,9 +836,37 @@ export default class GameScene extends Phaser.Scene {
     return Math.max(1, Math.round(t * this.hpPerTurn + HP_RAMP * ramp * ramp));
   }
 
+  /**
+   * Bloque dorado: la especie se elige entre las que aún no tienes en dorado (ni hay ya doradas en
+   * el tablero), del mismo tipo (bestia o dios) y, si se puede, de la misma rareza. Una dorada
+   * capturada no vuelve a salir. Devuelve null si no queda ninguna.
+   */
+  pickGoldCreature(c) {
+    const open = this.unlocked ?? unlockedOrigins(this.save.data);
+    const onBoard = new Set(this.blocks.filter((b) => b.shiny && !b.dead).map((b) => b.creature?.id));
+    const free = (list) => list.filter((o) => open.has(o.type) && !onBoard.has(o.id) && !(this.save.entry(o.id)?.shinyCount > 0));
+    if (c.legendary) {
+      const gods = free(LEGENDARIES);
+      return gods.length ? gods[Math.floor(Math.random() * gods.length)] : null;
+    }
+    const all = free(NORMAL_CREATURES);
+    const same = all.filter((o) => o.rarity === c.rarity);
+    const pool = same.length ? same : all;
+    return pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+  }
+
   addBlock(d) {
     const shinyRate = this.shinyBoostTurns > 0 ? Math.max(SHINY_BOOST_RATE, SHINY_RATE) : SHINY_RATE;
-    const blk = { ...d, maxHp: d.maxHp ?? d.hp, dead: false, shiny: d.shiny ?? (!!d.creature && Math.random() < shinyRate) };
+    let shiny = d.shiny;
+    if (shiny === undefined && d.creature && Math.random() < shinyRate) {
+      const gold = this.pickGoldCreature(d.creature);
+      if (gold) {
+        if (gold.legendary && this.legendBag?.includes(gold)) this.legendBag.splice(this.legendBag.indexOf(gold), 1);
+        d = { ...d, creature: gold };
+        shiny = true;
+      }
+    }
+    const blk = { ...d, maxHp: d.maxHp ?? d.hp, dead: false, shiny: !!shiny };
     blk.w = d.w ?? 1;
     blk.h = d.h ?? 1;
     const size = blk.w * CELL; // ancho en px
@@ -1064,7 +1095,8 @@ export default class GameScene extends Phaser.Scene {
     else {
       this.selectedSlots = new Set([0, 1]);
       const sp = specialById(this.powers[0]);
-      this.showToast(`${tr(sp.name)} MAX: ${tr(sp.desc)}`);
+      const b = this.maxSlotBtn;
+      showTip(this, b.x, b.y, `${tr(sp.name)} MAX: ${tr(sp.desc)}`, { gap: this.slotH / 2 + 6 });
     }
     this.refreshSpecials();
   }
@@ -1076,11 +1108,11 @@ export default class GameScene extends Phaser.Scene {
       this.selectedSlots.add(i);
       const sp = specialById(this.powers[i]);
       const twin = this.powers.length === 2 && this.powers[0] === this.powers[1];
-      if (twin && this.selectedSlots.size === 2) this.showToast(`${tr(sp.name)} MAX: ${tr(sp.desc)}`);
-      else {
-        this.showToast(`${tr(sp.name)}: ${tr(sp.desc)}`);
-        if (twin) this.showToast('Select the other one too for MAX');
-      }
+      const b = this.slotButtons[i];
+      const bx = twin && this.selectedSlots.size === 2 ? (this.slotButtons[0].x + this.slotButtons[1].x) / 2 : b.x;
+      let msg = twin && this.selectedSlots.size === 2 ? `${tr(sp.name)} MAX: ${tr(sp.desc)}` : `${tr(sp.name)}: ${tr(sp.desc)}`;
+      if (twin && this.selectedSlots.size < 2) msg += '\n' + tr('Select the other one too for MAX');
+      showTip(this, bx, b.y, msg, { gap: this.slotH / 2 + 6 });
     }
     this.refreshSpecials();
   }
@@ -1104,6 +1136,13 @@ export default class GameScene extends Phaser.Scene {
       this.powerIntro(this.activeSpecials);
       this.save.bumpStat('powersUsed', this.activeSpecials.length);
       this.runStats.spells += this.activeSpecials.length;
+      // Combinación: 2 hechizos distintos a la vez (cuenta cada pareja distinta una vez por partida)
+      const ids = this.activeSpecials.map((sp) => sp.id);
+      if (ids.length === 2 && ids[0] !== ids[1]) {
+        const key = [...ids].sort().join('+');
+        if (!this.runStats.combos.includes(key)) this.runStats.combos.push(key);
+        this.save.bestStat('bestRunCombos', this.runStats.combos.length);
+      }
       this.checkMissions();
     }
     // Bola de captura del lanzamiento
@@ -1113,6 +1152,9 @@ export default class GameScene extends Phaser.Scene {
       this.selectedBall = 'normal'; // tras usar una bola especial se vuelve a la normal
     }
     this.state = 'shooting';
+    this.shotId++;
+    // Hechizo MAX en este lanzamiento (los dos huecos con el mismo hechizo)
+    this.shotMax = this.activeSpecials.length === 2 && this.activeSpecials[0].id === this.activeSpecials[1].id;
     this.shotTime = 0;
     this.shotKills = 0;
     this.shotMagic = this.activeSpecials.length > 0; // con hechizo, el medidor gold suma la mitad
@@ -1644,6 +1686,7 @@ export default class GameScene extends Phaser.Scene {
     const targets = this.blocks.filter((o) => !o.dead && o.col <= col && o.col + o.w - 1 >= col);
     if (!targets.length) return;
     b.verticalDone = true;
+    this.save.bumpStat('verticalAttacks');
     const before = this.score;
     targets.forEach((o) => this.damage(o, o.hp + 0.01));
     this.addScore(VERTICAL_ATTACK_BONUS + 50 * targets.length);
@@ -1760,10 +1803,12 @@ export default class GameScene extends Phaser.Scene {
     if (blk.kind === 'creature') this.runStats.beasts++;
     if (blk.kind === 'boss') this.runStats.gods++;
     this.runStats.bestShot = Math.max(this.runStats.bestShot, this.shotKills);
+    this.save.bestStat('bestShotKills', this.shotKills);
     if (blk.kind === 'boss') {
       this.awardBall();
       this.addShiny(SHINY_GAIN.legendary, x, y);
       this.save.bumpStat('bossKills');
+      if (this.shotMax) this.save.bumpStat('maxBossKills');
       this.checkMissions();
       this.time.delayedCall(600, () => this.changeWeather());
       this.time.delayedCall(120, () => this.riseUnder(blk));
@@ -2294,7 +2339,10 @@ export default class GameScene extends Phaser.Scene {
    */
   checkMissions(final = false) {
     try {
-      const list = newlyCompleted(this.save.data, { score: this.score, turn: this.turn }, { origins: final });
+      // Partida sin magia: récord del turno alcanzado sin lanzar ningún hechizo
+      const noMagicTurn = this.runStats.spells ? 0 : this.turn;
+      if (noMagicTurn) this.save.bestStat('bestNoMagicTurn', noMagicTurn);
+      const list = newlyCompleted(this.save.data, { score: this.score, turn: this.turn, clears: this.runStats.clears ?? 0, combos: this.runStats.combos?.length ?? 0, noMagicTurn }, { origins: final });
       this.save.completeMissions(list.map((m) => m.id));
       for (const m of list) {
         if (isOriginMission(m)) {
@@ -2334,9 +2382,20 @@ export default class GameScene extends Phaser.Scene {
   }
 
   tryCapture(blk, x, y) {
+    const sid = this.shotId;
     const c = blk.creature;
     const shiny = blk.shiny;
     const success = Math.random() < captureChance(this.shotBall, c, shiny);
+    // Racha de dioses: cada dios derrotado y capturado con un orbe rúnico o divino suma; uno que
+    // escapa o se captura con el común la corta (la racha sigue entre partidas)
+    if (c.legendary) {
+      const st = this.save.data.stats;
+      if (success && this.shotBall !== 'normal') {
+        st.godStreak = (st.godStreak ?? 0) + 1;
+        this.save.bestStat('bestGodStreak', st.godStreak);
+      } else st.godStreak = 0;
+      this.save.write();
+    }
     this.pendingCaptures++;
     const scale = blk.kind === 'boss' ? 3 : 2;
     const spr = addCreatureImage(this, x, y, c.id, shiny, scale).setDepth(30);
@@ -2353,7 +2412,7 @@ export default class GameScene extends Phaser.Scene {
           onComplete: () => {
             orb.setAngle(0);
             try {
-              if (success) this.captureSuccess(c, shiny, orb, x, y);
+              if (success) this.captureSuccess(c, shiny, orb, x, y, sid);
               else this.captureFail(c, spr, orb, scale);
             } catch (err) {
               logError('capture', err, { id: c.id });
@@ -2379,8 +2438,12 @@ export default class GameScene extends Phaser.Scene {
     this.tweens.add({ targets: badge, y: -2, duration: 380, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
-  captureSuccess(c, shiny, orb, x, y) {
+  captureSuccess(c, shiny, orb, x, y, sid = this.shotId) {
     const res = this.save.recordCapture(c.id, shiny);
+    // Seres capturados en un mismo lanzamiento (récord para «Captura 3 seres en un lanzamiento»)
+    if (this.shotCaps.id !== sid) this.shotCaps = { id: sid, n: 0 };
+    this.shotCaps.n++;
+    this.save.bestStat('bestShotCaptures', this.shotCaps.n);
     // Ya capturada: quitar la exclamación al resto de bloques de esa criatura
     for (const o of this.blocks) {
       if (o.creature?.id === c.id && o.newMark) {
@@ -2616,6 +2679,8 @@ export default class GameScene extends Phaser.Scene {
       this.awardBall();
       this.addShiny(SHINY_GAIN.clear, W / 2, (BOARD_TOP + BOARD_FLOOR_Y) / 2);
       this.save.bumpStat('clears');
+      this.runStats.clears = (this.runStats.clears ?? 0) + 1;
+      this.save.bestStat('bestRunClears', this.runStats.clears);
     }
 
     if (this.pickupCooldown > 0) this.pickupCooldown--;
@@ -2817,6 +2882,7 @@ export default class GameScene extends Phaser.Scene {
     if (run.launchX != null) this.launchX = Phaser.Math.Clamp(run.launchX, WALL_L + BALL_R, WALL_R - BALL_R);
     this.runCaptures = run.runCaptures;
     this.runStats = { ...this.runStats, ...run.runStats };
+    if (!Array.isArray(this.runStats.combos)) this.runStats.combos = [];
     for (const b of run.blocks) {
       const creature = b.id != null ? creatureById(b.id) : null;
       if (b.kind !== 'plain' && !creature) continue;

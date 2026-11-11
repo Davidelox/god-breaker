@@ -10,7 +10,18 @@ export function defaultSave() {
     version: SAVE_VERSION,
     bestScore: 0,
     collection: {}, // id -> { count, shinyCount, firstAt }
-    stats: { games: 0, captures: 0, shinies: 0, bossKills: 0, clears: 0, powersUsed: 0, bestTurn: 0 },
+    stats: {
+      games: 0, captures: 0, shinies: 0, bossKills: 0, clears: 0, powersUsed: 0, bestTurn: 0,
+      maxBossKills: 0, // dioses derrotados en un lanzamiento con un hechizo MAX
+      bestRunClears: 0, // más tableros limpiados en una partida
+      bestRunCombos: 0, // más combinaciones distintas de 2 hechizos en una partida
+      bestShotCaptures: 0, // más seres capturados en un mismo lanzamiento
+      godStreak: 0, // dioses seguidos capturados con un orbe rúnico o divino (se corta al fallar)
+      bestGodStreak: 0,
+      bestShotKills: 0, // más bloques destruidos en un lanzamiento
+      verticalAttacks: 0, // ataques verticales en total
+      bestNoMagicTurn: 0 // turno más alto alcanzado en una partida sin lanzar hechizos
+    },
     profile: { title: null, avatar: null }, // título y avatar elegidos (id de su misión)
     bank: { super: 0, ultra: 0 }, // orbes de recompensa de misiones para la siguiente partida
     seen: [], // ids de las criaturas que ya han salido alguna vez en una partida (vistas)
@@ -245,6 +256,13 @@ export class SaveStore {
     this.data.settings = settings;
     this.data.tutorial = tutorial;
     return this.write();
+  }
+
+  /** Guarda un récord (solo si mejora el anterior). */
+  bestStat(key, v) {
+    if (!(v > (this.data.stats[key] ?? 0))) return;
+    this.data.stats[key] = v;
+    this.write();
   }
 
   bumpStat(key, n = 1) {

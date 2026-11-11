@@ -6,10 +6,10 @@ import { loadRun, clearRun, hasRun } from '../core/run.js';
 import { claimMissions, claimableMissions } from '../data/missions.js';
 import { TYPES } from '../data/types.js';
 import { addCreatureImage, avatarKey, setCommonOrb, petOrbKey } from '../gfx/sprites.js';
-import { TITLES, AVATARS, DEFAULT_TITLE, currentTitle, currentAvatar } from '../data/profile.js';
+import { TITLES, AVATARS, DEFAULT_TITLE, currentTitle, currentAvatar, unlockedAvatars } from '../data/profile.js';
 import { BALL_R, BALL_TEXTURE_R } from '../config.js';
 import { MISSIONS } from '../data/missions.js';
-import { text, makeButton, makePanel, makeAudioToggles, makeLangToggle, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, makeAudioToggles, makeLangToggle, fitCamera, fullRect, showTip, hideTip, COLORS } from '../gfx/ui.js';
 import { t as tr } from '../i18n.js';
 import { pick, shuffle } from '../core/rng.js';
 import { audio } from '../audio/audio.js';
@@ -315,6 +315,8 @@ export default class TitleScene extends Phaser.Scene {
     const ax = W / 2 - 100 + INFO_AVATAR_W / 2;
     makeButton(this, ax, 347, INFO_AVATAR_W + 4, 58, '', () => this.openAvatarPicker(save), DARK_BTN);
     this.avatarImg = this.add.image(ax, 345, '__DEFAULT').setDepth(3);
+    // Interrogación del recuadro mientras no haya ningún acompañante (se crea con cada menú)
+    this.avatarQ = text(this, ax, 346, '?', 16, '#ffe27a').setOrigin(0.5).setDepth(3).setVisible(false);
     this.drawAvatar(save);
   }
 
@@ -324,8 +326,12 @@ export default class TitleScene extends Phaser.Scene {
 
   drawAvatar(save) {
     const id = currentAvatar(save.data);
+    // Sin ningún acompañante desbloqueado: una interrogación en su recuadro
+    const none = !unlockedAvatars(save.data).length;
+    this.avatarQ.setVisible(none);
+    this.avatarImg.setVisible(!none);
     if (id) {
-      this.avatarImg.setTexture(avatarKey(this, id)).setScale(0.85);
+      this.avatarImg.setTexture(avatarKey(this, id)).setScale(0.76);
     } else {
       this.avatarImg.setTexture('ball').setScale(4.5).setTint(0x30d8f0);
     }
@@ -344,6 +350,8 @@ export default class TitleScene extends Phaser.Scene {
     layer.add(makePanel(this, 12, 40, W - 24, H - 80, EPIC_PANEL));
     layer.add(text(this, W / 2, 60, title, 16, '#ffe27a').setOrigin(0.5));
     layer.add(makeButton(this, W / 2, H - 62, 140, 30, 'CLOSE', () => layer.destroy(), DARK_BTN));
+    // Al cerrar el selector (o elegir algo) se va también su bocadillo
+    layer.once('destroy', () => hideTip(this));
     return layer;
   }
 
@@ -366,7 +374,7 @@ export default class TitleScene extends Phaser.Scene {
         const btn = makeButton(this, x, y, 146, 26, open ? tr(name).toUpperCase() : '???', () => {
           if (!open) {
             const m = MISSIONS.find((mm) => mm.id === id);
-            this.toast(save.data.missions[id] ? tr('Claim it in MISSIONS') : tr('Mission: {0}', tr(m?.title ?? '')));
+            showTip(this, x, y, save.data.missions[id] ? tr('Claim it in MISSIONS') : tr('Mission: {0}', tr(m?.title ?? '')), { gap: 18 });
             return;
           }
           save.setProfile('title', id);
@@ -394,7 +402,7 @@ export default class TitleScene extends Phaser.Scene {
 
   /** Selector de avatar: retratos desbloqueados (los demás, en silueta). Cambia el orbe común. */
   openAvatarPicker(save) {
-    const layer = this.pickerLayer('PETS');
+    const layer = this.pickerLayer('COMPANIONS');
     const ids = [null, ...Object.keys(AVATARS)];
     const cols = 4, cw = (W - 40) / cols, ch = 84;
     ids.forEach((id, i) => {
@@ -402,18 +410,17 @@ export default class TitleScene extends Phaser.Scene {
       const open = !id || save.data.claimed[id];
       let img;
       if (id) {
-        img = this.add.image(x, y, avatarKey(this, id)).setScale(1.15);
-        if (!open) img.setTint(0x2a2440); // bloqueada: retrato en sombra
+        img = this.add.image(x, y, avatarKey(this, id, !open)); // bloqueado: silueta negra
       } else {
         img = this.add.image(x, y, 'ball').setScale(5).setTint(0x30d8f0); // orbe común de siempre
       }
       const selected = (currentAvatar(save.data) ?? null) === id;
-      const ring = this.add.rectangle(x, y, 60, 70).setStrokeStyle(2, selected ? 0xffe27a : 0x000000, selected ? 1 : 0);
+      const ring = this.add.rectangle(x, y, 58, 66).setStrokeStyle(2, selected ? 0xffe27a : 0x000000, selected ? 1 : 0);
       const label = text(this, x, y + 40, id ? (open ? tr(AVATARS[id].pet) : '???') : tr('Default'), 8, open ? '#e8dcc0' : '#56607c').setOrigin(0.5);
       img.setInteractive({ useHandCursor: true }).on('pointerup', () => {
         if (!open) {
           const m = MISSIONS.find((mm) => mm.id === id);
-          this.toast(save.data.missions[id] ? tr('Claim it in MISSIONS') : tr('Mission: {0}', tr(m?.title ?? '')));
+          showTip(this, x, y, save.data.missions[id] ? tr('Claim it in MISSIONS') : tr('Mission: {0}', tr(m?.title ?? '')), { gap: 36 });
           return;
         }
         save.setProfile('avatar', id);
@@ -423,17 +430,18 @@ export default class TitleScene extends Phaser.Scene {
       });
       layer.add([ring, img, label]);
       // Su orbe, a tamaño real, en la esquina del retrato
-      if (id && open) layer.add(this.add.image(x + 20, y + 24, petOrbKey(this, id)).setScale(BALL_R / BALL_TEXTURE_R));
+      // Muestra de su orbe flotando en la esquina inferior derecha del retrato
+      if (id) {
+        const orb = this.add.image(x + 22, y + 26, petOrbKey(this, id)).setScale((BALL_R / BALL_TEXTURE_R) * 1.25);
+        if (!open) orb.setTint(0x101018);
+        layer.add(orb);
+        this.tweens.add({ targets: orb, y: y + 22, duration: 900 + (i % 4) * 120, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+      }
     });
-    layer.add(text(this, W / 2, H - 100, 'Your pet also changes your common orb.', 8, '#a8b4cc', { wordWrap: { width: W - 60 } }).setOrigin(0.5));
+    layer.add(text(this, W / 2, H - 100, 'Your companion also changes your common orb.', 8, '#a8b4cc', { wordWrap: { width: W - 60 } }).setOrigin(0.5));
   }
 
   /** Aviso breve encima de todo (en los selectores del perfil). */
-  toast(msg) {
-    const t = text(this, W / 2, H - 120, msg, 8, '#ffe27a', { wordWrap: { width: W - 60 } }).setOrigin(0.5).setDepth(80).setStroke('#0c1020', 4);
-    this.tweens.add({ targets: t, alpha: 0, delay: 1600, duration: 500, onComplete: () => t.destroy() });
-  }
-
   // ---------- Escaparate ----------
 
   /**

@@ -5,6 +5,47 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Interfaz
+- En el selector de acompañantes, cada retrato lleva una muestra de su orbe flotando en la esquina inferior derecha (en sombra si aún está bloqueado).
+- Corregido: la interrogación del recuadro de acompañantes desaparecía al volver al menú principal desde otra pantalla.
+- Las mascotas pasan a llamarse «acompañantes». Las bloqueadas se ven como una silueta negra y, mientras no tengas ninguno, su recuadro del menú principal muestra una interrogación.
+- Los bocadillos se cierran al tocarlos y también al salir del menú en el que se abrieron.
+- Botones más claros al pulsarlos y al marcarlos (hechizos, tipo de orbe…): el pulsado se hunde y se oscurece, y el marcado se aclara, gana un borde dorado grueso con esquinas brillantes y un aura que late.
+- Las explicaciones salen en un bocadillo junto a la opción pulsada (encima, o debajo si no cabe), con un pico que la señala. Solo hay uno a la vez, así que ya no se superponen. Se usa en los selectores de título y de mascota, al marcar un hechizo y al recoger una misión.
+- Los títulos de misión que no caben en una línea pasan a dos sin salirse del recuadro. Todas las barras de avance miden lo mismo, son finas y llevan el avance a su derecha en corto (3.5K/75K). Ya no se muestra «Recompensa: ???»: al completar la misión la barra se ensancha y la recompensa aparece escrita dentro, con su color (título en dorado, acompañante en violeta, origen con el color de su mitología). Las que faltan por recoger muestran «¡Recoger!» en una barra verde.
+- Ratón con nariz rosa y delfín rediseñado: más robusto y arqueado, con aletas.
+
+### Misiones de orígenes
+- Nuevo camino, que alterna habilidad (turno en una partida) y constancia (capturas acumuladas): Celta (captura 50 bestias), Eslava (turno 50), Ibérica (200 bestias), Europea (turno 75), Japonesa (captura 30 dioses), Asia oriental (turno 100), Indomalaya (300 bestias distintas), Oriente Medio (turno 125), Americana (500 bestias), Africana (captura 100 dioses) y Oceánica (turno 150).
+- Nuevo tipo de misión, «Captura N dioses»: cuenta todas las capturas de dioses, también las repetidas.
+
+### Misiones especiales (antes «Progreso»)
+- Cada mascota tiene su propio color (mono blanco marfil, dragón naranja brillante, conejo rosa, caballo carmesí, tortuga lima…) y el símbolo de su orbe va del color de sus ojos.
+- Nuevas mascotas: Serpiente rúnica, por hacer 50 ataques verticales, y Dios ratón, por llegar al turno 100 en una partida sin lanzar hechizos (nuevas estadísticas: ataques verticales y récord de turno sin magia).
+- Nueva mascota: Araña inmortal, por destruir 45 bloques en un lanzamiento (nueva estadística: récord de bloques en un tiro).
+- Retratos nuevos de las 16 mascotas, como en una pantalla de selección de personaje: primer plano de perfil con la cabeza alta, en sombra con luz de contra, halo detrás de la cabeza y los ojos brillando. Cada una tiene su paleta, su color de ojos y su detalle propio: crin de fuego del caballo, astas espectrales del ciervo, corona de la ballena, cuernos y púas del dragón, diadema del mono, medallón del perro, la Osa Mayor en el pecho del oso, concha de galaxia de la tortuga…
+- Puntos en una partida: 75.000 (Perro solar), 125.000 (Gato lunar) y 150.000 (Conejo estelar).
+- Turno: 125 (Zorro celestial), 175 (Lobo de escarcha) y 205 (Elefante cósmico).
+- Derrota dioses en un lanzamiento con un hechizo MAX: 20 (Mono divino), 40 (Búho sagrado) y 100 (Ciervo espectral).
+- Limpia el tablero en una partida: 5 veces (Ballena imperial) y 10 veces (Delfín de cristal). En total: 100 veces (Tiburón fantasmal).
+- Lanza 15 combinaciones distintas (2 hechizos diferentes a la vez) en una partida (Tortuga galáctica) y lanza 300 hechizos (Caballo ígneo).
+- Captura 3 seres en un mismo lanzamiento (Osa Mayor).
+- Captura 3 dioses seguidos con un orbe rúnico o divino (Dragón áureo). Un dios que escapa o se captura con el orbe común corta la racha, que se mantiene entre partidas.
+- 16 mascotas, con nombres y colores nuevos.
+- Nuevas estadísticas guardadas para estas misiones: dioses derrotados con MAX, racha de dioses y los récords de limpiezas y combinaciones por partida y de capturas en un mismo tiro.
+
+### Misiones de captura
+- Las recompensas de las misiones están ocultas («Recompensa: ???») hasta que las recoges: es sorpresa. Los orígenes se ven al abrirse.
+- La pestaña «Progreso» pasa a llamarse «Especiales».
+- Capturas: 50 (Cazador novato), 150 (Mercenario blasfemo), 350 (Domador de bestias), 600 (Terror mitológico) y 800 (El Coleccionista).
+- Bestias distintas: 50 (Explorador), 125 (Erudito), 300 (Ocultista), 500 (Mitólogo) y la colección completa (Guardián de mitos).
+- Dioses: 60 dioses distintos (Traidor sin templo) y los 119 (Destructor de dioses).
+- Doradas: 200 (Duende), 400 (Tesorero) y las 600 (Millonario).
+- Títulos renombrados: Dios dragón (Asia oriental) y Dueño de genios (Oriente Medio).
+- Las doradas solo cuentan en sus misiones: no suman en las de capturas totales, ni en las de orígenes «Captura N bestias» y «Captura N dioses».
+- Cada dorada es nueva: cuando un bloque sale dorado, la especie se elige entre las que aún no tienes en dorado (del mismo tipo y, si se puede, de la misma rareza). Una dorada capturada no vuelve a salir.
+- Misiones por recoger: el premio va en la segunda línea y «¡Recoger!» junto a la barra, para que los títulos largos quepan en la fila.
+
 ### Equilibrio
 - Chain Lightning: cada golpe salta a 2 bloques al azar (MAX: 4). Al golpear a un dios solo salta a 1.
 - Nueva velocidad x8, que aparece en el botón a partir de 200 orbes. Si estaba elegida y faltan orbes, se juega a la mayor velocidad permitida.

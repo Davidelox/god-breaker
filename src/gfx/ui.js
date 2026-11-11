@@ -113,16 +113,45 @@ export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.pa
   const lbl = text(scene, 0, 0, label, size, textColor).setOrigin(0.5);
   let enabled = true;
   let selected = false;
+  // Aura dorada que late alrededor del botón marcado
+  const glow = scene.add.graphics().setVisible(false);
+  glow.lineStyle(2, selBorder, 1);
+  glow.strokeRect(-w / 2 - 3, -h / 2 - 3, w + 6, h + 5);
+  glow.lineStyle(1, 0xfff4c8, 0.8);
+  glow.strokeRect(-w / 2 - 5, -h / 2 - 5, w + 10, h + 9);
+  let glowTween = null;
   const draw = (pressed) => {
-    const oy = pressed ? 2 : 0;
+    // Pulsado: el botón se hunde (baja 2 px y se oscurece); marcado: más claro, borde dorado
+    // grueso con brillo interior y aura que late
+    const oy = pressed || selected ? 2 : 0;
+    const base = selected ? mixHex(fill, 0xffffff, 0.22) : fill;
+    const face = pressed ? mixHex(base, 0x000000, 0.28) : base;
     g.clear();
     g.fillStyle(0x080a14);
     g.fillRect(-w / 2, -h / 2 + 2, w, h);
     g.fillStyle(selected ? selBorder : border);
     g.fillRect(-w / 2, -h / 2 + oy, w, h - 2);
-    g.fillStyle(fill);
-    g.fillRect(-w / 2 + 2, -h / 2 + 2 + oy, w - 4, h - 6);
+    const inset = selected ? 3 : 2;
+    g.fillStyle(face);
+    g.fillRect(-w / 2 + inset, -h / 2 + inset + oy, w - inset * 2, h - 2 - inset * 2);
+    if (pressed) {
+      // Sombra interior arriba: se ve hundido
+      g.fillStyle(0x000000, 0.35);
+      g.fillRect(-w / 2 + inset, -h / 2 + inset + oy, w - inset * 2, 2);
+    } else {
+      g.fillStyle(0xffffff, selected ? 0.5 : 0.18);
+      g.fillRect(-w / 2 + inset, -h / 2 + inset + oy, w - inset * 2, 1);
+    }
+    if (selected) {
+      // Esquinas brillantes
+      g.fillStyle(0xfff4c8);
+      for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) g.fillRect(sx * (w / 2 - 2) - 1, sy * (h / 2 - 3) + oy - 1, 2, 2);
+    }
     lbl.setY(oy - 1);
+    glow.setY(oy);
+    glow.setVisible(selected && enabled);
+    if (selected && enabled && !glowTween) glowTween = scene.tweens.add({ targets: glow, alpha: { from: 1, to: 0.25 }, duration: 520, yoyo: true, repeat: -1 });
+    if (!(selected && enabled) && glowTween) { glowTween.stop(); glowTween = null; glow.setAlpha(1); }
   };
   const hit = scene.add.zone(0, 0, w, h).setInteractive({ useHandCursor: true });
   hit.on('pointerdown', (_p, _x, _y, ev) => {
@@ -138,10 +167,11 @@ export function makeButton(scene, x, y, w, h, label, onClick, { fill = COLORS.pa
     }
   });
   hit.on('pointerout', () => draw(false));
-  c.add([g, lbl, hit]);
+  c.add([glow, g, lbl, hit]);
   c.setEnabled = (v) => {
     enabled = v;
     c.setAlpha(v ? 1 : 0.4);
+    draw(false);
     return c;
   };
   c.setSelected = (v) => {
@@ -168,4 +198,63 @@ export function floatText(scene, x, y, str, color = '#ffffff', size = 8) {
   const ft = text(scene, x, y, str, size, color).setOrigin(0.5).setDepth(40).setStroke('#101828', 3);
   scene.tweens.add({ targets: ft, y: y - 22, alpha: 0, duration: 700, ease: 'Cubic.easeOut', onComplete: () => ft.destroy() });
   return ft;
+}
+
+/**
+ * Bocadillo de texto junto a una opción (encima, o debajo si no cabe arriba), con un pico que
+ * señala el punto (x, y). Solo hay uno por escena: al abrir otro, el anterior se cierra, así
+ * que nunca se superponen. Se cierra solo tras un rato.
+ * opts: { color: color del texto, border: color del borde, below: forzar debajo, gap: separación }
+ */
+export function showTip(scene, x, y, msg, opts = {}) {
+  scene._tip?.destroy();
+  const pad = 6, maxW = Math.min(220, W - 24);
+  const label = text(scene, 0, 0, msg, 8, opts.color ?? '#ffe27a', { wordWrap: { width: maxW - pad * 2 } }).setOrigin(0.5);
+  const bw = Math.ceil(label.width) + pad * 2, bh = Math.ceil(label.height) + pad * 2;
+  const gap = opts.gap ?? 26;
+  const top = scene.cameras.main.worldView?.y ?? 0;
+  const below = opts.below ?? y - gap - bh < top + 8;
+  const cy = below ? y + gap + bh / 2 : y - gap - bh / 2;
+  const cx = Math.max(8 + bw / 2, Math.min(W - 8 - bw / 2, x));
+  const g = scene.add.graphics();
+  const border = opts.border ?? 0xd8a030;
+  g.fillStyle(border);
+  g.fillRect(-bw / 2 - 2, -bh / 2 - 2, bw + 4, bh + 4);
+  g.fillStyle(0x101828, 0.96);
+  g.fillRect(-bw / 2, -bh / 2, bw, bh);
+  // Pico hacia la opción
+  const px = Math.max(-bw / 2 + 8, Math.min(bw / 2 - 8, x - cx));
+  const tipY = below ? -bh / 2 : bh / 2, dir = below ? -1 : 1;
+  g.fillStyle(border);
+  g.fillTriangle(px - 6, tipY, px + 6, tipY, px, tipY + dir * 8);
+  g.fillStyle(0x101828, 0.96);
+  g.fillTriangle(px - 4, tipY - dir, px + 4, tipY - dir, px, tipY + dir * 5);
+  // Tocar el bocadillo lo cierra (sin que el toque llegue a lo de debajo, p. ej. apuntar)
+  const hit = scene.add.zone(0, 0, bw + 4, bh + 4).setInteractive({ useHandCursor: true });
+  hit.on('pointerdown', (_p, _x, _y, ev) => ev?.stopPropagation?.());
+  hit.on('pointerup', (_p, _x, _y, ev) => { ev?.stopPropagation?.(); hideTip(scene); });
+  const tip = scene.add.container(cx, cy, [g, label, hit]).setDepth(opts.depth ?? 95).setScale(0.6).setAlpha(0);
+  scene.tweens.add({ targets: tip, scale: 1, alpha: 1, duration: 140, ease: 'Back.easeOut' });
+  const life = 1800 + Math.min(2200, String(msg).length * 35);
+  scene.tweens.add({
+    targets: tip, alpha: 0, delay: life, duration: 300,
+    onComplete: () => { if (scene._tip === tip) scene._tip = null; tip.destroy(); }
+  });
+  scene._tip = tip;
+  return tip;
+}
+
+/** Cierra el bocadillo abierto de la escena (si hay). */
+export function hideTip(scene) {
+  const tip = scene._tip;
+  if (!tip) return;
+  scene._tip = null;
+  scene.tweens.killTweensOf(tip);
+  scene.tweens.add({ targets: tip, alpha: 0, scale: 0.85, duration: 110, onComplete: () => tip.destroy() });
+}
+
+/** Mezcla dos colores 0xRRGGBB (f = 0 da a, f = 1 da b). */
+function mixHex(a, b, f) {
+  const m = (sh) => Math.round(((a >> sh) & 255) * (1 - f) + ((b >> sh) & 255) * f) << sh;
+  return m(16) | m(8) | m(0);
 }
