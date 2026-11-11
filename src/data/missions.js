@@ -120,18 +120,33 @@ export function unlockedOrigins(data) {
 /** Misión que desbloquea un origen (o null si está abierto desde el principio). */
 export const unlockMissionFor = (origin) => MISSIONS.find((m) => m.reward?.unlock === origin) ?? null;
 
+/** Misión de orígenes: su recompensa (abrir un origen) se cobra sola, pero solo al acabar la partida. */
+export const isOriginMission = (m) => m.cat === 'desbloqueo';
+
 /**
- * Marca como completadas las misiones ya cumplidas (fuera de la partida) y guarda los orbes
- * de recompensa. Devuelve las misiones nuevas.
+ * Marca como completadas las misiones ya cumplidas (fuera de la partida). Las de orígenes solo
+ * cuentan si `origins` (no hay partida en curso) y abren su origen al momento; las demás quedan
+ * pendientes de cobrar en el menú de misiones. Devuelve las misiones nuevas.
  */
-export function claimMissions(save) {
-  const fresh = save.completeMissions(newlyCompleted(save.data).map((m) => m.id));
-  const list = fresh.map((id) => MISSIONS.find((m) => m.id === id)).filter(Boolean);
-  for (const m of list) if (m.reward?.orb) save.addBank(m.reward.orb);
+export function claimMissions(save, { origins = true } = {}) {
+  const list = newlyCompleted(save.data, null, { origins });
+  save.completeMissions(list.map((m) => m.id));
+  for (const m of list) if (isOriginMission(m)) save.claimMission(m.id);
   return list;
 }
 
 /** Misiones cumplidas que aún no estaban marcadas como completadas. */
-export function newlyCompleted(data, run) {
-  return MISSIONS.filter((m) => !data.missions[m.id] && missionProgress(m, data, run) >= m.target);
+export function newlyCompleted(data, run, { origins = true } = {}) {
+  return MISSIONS.filter((m) => (origins || !isOriginMission(m)) && !data.missions[m.id] && missionProgress(m, data, run) >= m.target);
+}
+
+/** Misiones completadas cuya recompensa aún no se ha cobrado en el menú de misiones. */
+export const claimableMissions = (data) => MISSIONS.filter((m) => !isOriginMission(m) && data.missions[m.id] && !data.claimed?.[m.id]);
+
+/** Cobra la recompensa de una misión completada (el orbe va al banco). Devuelve la misión o null. */
+export function claimReward(save, id) {
+  const m = MISSIONS.find((x) => x.id === id);
+  if (!m || isOriginMission(m) || !save.claimMission(id)) return null;
+  if (m.reward?.orb) save.addBank(m.reward.orb);
+  return m;
 }

@@ -14,7 +14,8 @@ export function defaultSave() {
     profile: { title: null, avatar: null }, // título y avatar elegidos (id de su misión)
     bank: { super: 0, ultra: 0 }, // orbes de recompensa de misiones para la siguiente partida
     seen: [], // ids de las criaturas que ya han salido alguna vez en una partida (vistas)
-    missions: {}, // id de misión -> fecha en que se completó (las recompensas llegarán más adelante)
+    missions: {}, // id de misión -> fecha en que se completó
+    claimed: {}, // id de misión -> fecha en que se cobró su recompensa (en el menú de misiones)
     settings: { speed: 1, music: true, sfx: true, grid: false, haptics: true, lang: 'en', autoTurbo: true },
     tutorial: { off: false, seen: [] } // consejos de la primera partida ya vistos (o desactivados)
   };
@@ -55,6 +56,9 @@ export function sanitize(s, validIds) {
   for (const key of Object.keys(defaultSave().stats)) out.stats[key] = nonNegInt(stats[key]);
   const missions = s.missions && typeof s.missions === 'object' ? s.missions : {};
   for (const [id, at] of Object.entries(missions)) if (typeof at === 'string') out.missions[id] = at;
+  // Guardados anteriores a las recompensas manuales: lo ya completado ya había dado su premio
+  const claimed = s.claimed && typeof s.claimed === 'object' ? s.claimed : out.missions;
+  for (const [id, at] of Object.entries(claimed)) if (typeof at === 'string' && out.missions[id]) out.claimed[id] = at;
   const seenIds = Array.isArray(s.seen) ? s.seen.map(Number).filter((id) => Number.isInteger(id) && (!validIds || validIds.has(id))) : [];
   out.seen = [...new Set(seenIds)];
   out.bank = { super: nonNegInt(s.bank?.super), ultra: nonNegInt(s.bank?.ultra) };
@@ -255,6 +259,14 @@ export class SaveStore {
     for (const id of fresh) this.data.missions[id] = now;
     if (fresh.length) this.write();
     return fresh;
+  }
+
+  /** Cobra la recompensa de una misión completada; false si no estaba completada o ya se cobró. */
+  claimMission(id) {
+    if (!this.data.missions[id] || this.data.claimed[id]) return false;
+    this.data.claimed[id] = new Date().toISOString();
+    this.write();
+    return true;
   }
 
   counts() {

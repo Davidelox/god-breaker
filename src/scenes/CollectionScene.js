@@ -7,6 +7,7 @@ import { addCreatureImage } from '../gfx/sprites.js';
 import { text, makeButton, makePanel, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { t as tr, godOf } from '../i18n.js';
 import { unlockedOrigins, unlockMissionFor, claimMissions } from '../data/missions.js';
+import { hasRun } from '../core/run.js';
 
 const GRID_COLS = 5;
 const CELL_W = 68;
@@ -64,7 +65,7 @@ export default class CollectionScene extends Phaser.Scene {
 
   create() {
     this.save = this.registry.get('save');
-    claimMissions(this.save);
+    claimMissions(this.save, { origins: !hasRun() });
     this.open = unlockedOrigins(this.save.data); // orígenes desbloqueados con misiones
     fitCamera(this);
     fullRect(this, COLORS.night);

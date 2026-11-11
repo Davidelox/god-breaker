@@ -35,7 +35,7 @@ describe('misiones', () => {
   });
 });
 
-import { unlockedOrigins, BASE_ORIGINS, unlockMissionFor } from '../src/data/missions.js';
+import { unlockedOrigins, BASE_ORIGINS, unlockMissionFor, claimMissions, claimableMissions, claimReward } from '../src/data/missions.js';
 import { TYPE_ORDER } from '../src/data/types.js';
 
 describe('desbloqueos y recompensas', () => {
@@ -70,13 +70,16 @@ import { currentTitle, currentAvatar, avatarOrb, DEFAULT_TITLE, AVATARS, AVATAR_
 import { LEGENDARIES } from '../src/data/creatures.js';
 
 describe('perfil', () => {
-  it('título y avatar solo cuentan si su misión está completada', () => {
+  it('título y avatar solo cuentan si se ha recogido la recompensa de su misión', () => {
     const d = defaultSave();
     d.profile = { title: 'cap_25', avatar: 'boss_3' };
     expect(currentTitle(d)).toBe(DEFAULT_TITLE);
     expect(currentAvatar(d)).toBeNull();
     d.missions.cap_25 = 'x';
     d.missions.boss_3 = 'x';
+    expect(currentTitle(d)).toBe(DEFAULT_TITLE); // completadas pero sin recoger
+    d.claimed.cap_25 = 'x';
+    d.claimed.boss_3 = 'x';
     expect(currentTitle(d)).toBe('Hunter');
     expect(currentAvatar(d)).toBe('boss_3');
     expect(avatarOrb('boss_3').stops[2]).toBe('#ffc820');
@@ -88,5 +91,43 @@ describe('perfil', () => {
       expect(AVATAR_STYLES[a.style], a.style).toBeTruthy();
       expect(a.mark, a.pet).toBeTruthy();
     }
+  });
+});
+
+describe('recompensas: orígenes al acabar la partida, el resto a mano', () => {
+  const store = () => {
+    const s = new SaveStore(memoryStorage(), CREATURE_IDS);
+    s.load();
+    return s;
+  };
+  it('las misiones de orígenes no se completan mientras hay una partida en curso', () => {
+    const s = store();
+    s.data.stats.bestTurn = 21;
+    expect(newlyCompleted(s.data, null, { origins: false }).map((m) => m.id)).not.toContain('unlock_celta');
+    claimMissions(s, { origins: false });
+    expect(unlockedOrigins(s.data).has('celta')).toBe(false);
+    claimMissions(s, { origins: true });
+    expect(unlockedOrigins(s.data).has('celta')).toBe(true);
+    expect(s.data.claimed.unlock_celta).toBeTruthy(); // los orígenes se abren solos
+  });
+  it('el resto se completa pero su recompensa hay que recogerla', () => {
+    const s = store();
+    s.data.stats.captures = 30;
+    s.data.profile.title = 'cap_25';
+    claimMissions(s, { origins: false });
+    expect(s.data.missions.cap_25).toBeTruthy();
+    expect(claimableMissions(s.data).map((m) => m.id)).toContain('cap_25');
+    expect(currentTitle(s.data)).toBe(DEFAULT_TITLE);
+    expect(claimReward(s, 'cap_25')?.id).toBe('cap_25');
+    expect(claimReward(s, 'cap_25')).toBeNull(); // no se cobra dos veces
+    expect(currentTitle(s.data)).toBe('Hunter');
+    expect(claimableMissions(s.data).map((m) => m.id)).not.toContain('cap_25');
+  });
+  it('los guardados antiguos dan por recogido lo que ya estaba completado', () => {
+    const mem = memoryStorage();
+    mem.setItem('beastbreaker.save', JSON.stringify({ version: 1, missions: { cap_25: '2026-01-01' } }));
+    const s = new SaveStore(mem, CREATURE_IDS);
+    s.load();
+    expect(s.data.claimed.cap_25).toBe('2026-01-01');
   });
 });

@@ -16,14 +16,14 @@ import { loadRun, saveRun, clearRun } from '../core/run.js';
 import { creatureKey, addCreatureImage, texScale, blockBgKey, blockBgOrigin, HP_FONT, setCommonOrb, godFrameKeys, creatureBlinkKey } from '../gfx/sprites.js';
 import { GOD_FRAME_MS } from '../gfx/gods.js';
 import { stageTextures, STAGE_FOR_ORIGIN } from '../gfx/stage.js';
-import { TITLES, currentAvatar, avatarOrb, avatarName } from '../data/profile.js';
+import { currentAvatar, avatarOrb } from '../data/profile.js';
 import { text, bodyText, makeButton, makePanel, drawPanel, drawGoldPanel, GOLD_UI, floatText, makeAudioToggles, fitCamera, fullRect, COLORS } from '../gfx/ui.js';
 import { weightedPick, randInt, shuffle } from '../core/rng.js';
 import { logError } from '../core/errors.js';
 import { Weather } from '../gfx/weather.js';
 import { audio } from '../audio/audio.js';
 import { haptics } from '../core/haptics.js';
-import { newlyCompleted, MISSIONS, unlockedOrigins } from '../data/missions.js';
+import { newlyCompleted, unlockedOrigins, claimMissions, claimableMissions, isOriginMission } from '../data/missions.js';
 
 const PLAIN_COLORS = [0x5ab0e8, 0x58c878, 0xe8c040, 0xe88a40, 0xe05858, 0xb860d8, 0x8860e8];
 const MIN_ANGLE = Phaser.Math.DegToRad(8);
@@ -65,6 +65,7 @@ export default class GameScene extends Phaser.Scene {
     this.resumeRun = data?.resume ? loadRun(undefined, (id) => !!creatureById(id)) : null;
     if (!this.resumeRun) clearRun();
     this.restoring = false;
+    this.endUnlocks = []; // misiones de orígenes cumplidas en esta partida (se enseñan al perder)
     this.turn = 1;
     this.score = 0;
     this.ballCount = START_BALLS;
@@ -158,6 +159,8 @@ export default class GameScene extends Phaser.Scene {
     this.createHud();
     this.createSpecialBar();
 
+    // Partida nueva: si la anterior se abandonó sin perder, sus misiones de orígenes cuentan ahora
+    const opened = this.resumeRun ? [] : claimMissions(this.save, { origins: true }).filter(isOriginMission);
     this.unlocked = unlockedOrigins(this.save.data); // orígenes cuyas criaturas pueden salir
     if (this.resumeRun) this.restoreRun(this.resumeRun);
     else {
@@ -169,6 +172,7 @@ export default class GameScene extends Phaser.Scene {
         this.ballInv.ultra += bank.ultra;
         this.time.delayedCall(600, () => this.showToast(tr('Mission rewards: +{0} Runic, +{1} Divine', bank.super, bank.ultra), '#2a6aa8'));
       }
+      for (const m of opened) this.time.delayedCall(900, () => this.showToast(tr('New origin unlocked: {0}!', tr(TYPES[m.reward.unlock].name)), TYPES[m.reward.unlock].dark));
     }
 
     this.setupInput();
@@ -2050,40 +2054,27 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(250, () => audio.play('shiny'));
   }
 
-  /** Comprueba misiones recién cumplidas (contando la partida en curso) y las anuncia. */
-  checkMissions() {
+  /**
+   * Comprueba misiones recién cumplidas (contando la partida en curso). Durante la partida solo
+   * se anuncian (la recompensa se cobra en el menú de misiones); las de orígenes esperan a que la
+   * partida termine (final) y entonces abren su origen y se enseñan tras el cartel de derrota.
+   */
+  checkMissions(final = false) {
     try {
-      const fresh = this.save.completeMissions(newlyCompleted(this.save.data, { score: this.score, turn: this.turn }).map((m) => m.id));
-      for (const id of fresh) {
-        this.showToast(tr('Mission complete! {0}', tr(this.missionTitle(id))), '#2a8a40');
-        audio.play('mission');
-        this.giveReward(MISSIONS.find((m) => m.id === id)?.reward);
+      const list = newlyCompleted(this.save.data, { score: this.score, turn: this.turn }, { origins: final });
+      this.save.completeMissions(list.map((m) => m.id));
+      for (const m of list) {
+        if (isOriginMission(m)) {
+          this.save.claimMission(m.id);
+          this.endUnlocks.push(m);
+        } else if (!final) {
+          this.showToast(tr('Mission complete! {0}', tr(m.title)), '#2a8a40');
+          audio.play('mission');
+        }
       }
     } catch (err) {
       logError('missions', err);
     }
-  }
-
-  /** Recompensa de una misión: abrir un origen o guardar un orbe para la siguiente partida. */
-  giveReward(reward) {
-    if (!reward) return;
-    if (reward.unlock) {
-      this.unlocked = unlockedOrigins(this.save.data);
-      this.legendBag = []; // los dioses del nuevo origen entran en la próxima ronda de dioses
-      this.showToast(tr('New origin unlocked: {0}!', tr(TYPES[reward.unlock].name)), TYPES[reward.unlock].dark);
-      audio.play('shiny');
-    } else if (reward.title) {
-      this.showToast(tr('New title: {0}!', tr(TITLES[reward.title])), '#b07800');
-    } else if (reward.avatar) {
-      this.showToast(tr('New pet: {0}!', tr(avatarName(reward.avatar))), '#7a4ac0');
-    } else if (reward.orb) {
-      this.save.addBank(reward.orb);
-      this.showToast(tr('Reward: +1 {0} orb for your next game', tr(BALL_TYPES[reward.orb].name)), '#2a6aa8');
-    }
-  }
-
-  missionTitle(id) {
-    return MISSIONS.find((m) => m.id === id)?.title ?? id;
   }
 
   addShiny(n) {
@@ -2618,7 +2609,7 @@ export default class GameScene extends Phaser.Scene {
     this.launchTimer?.remove();
     const score = Math.floor(this.score);
     const isBest = this.save.recordGame(score, this.turn);
-    this.checkMissions();
+    this.checkMissions(true);
     audio.play('gameover');
     this.defeatEffect();
     this.time.delayedCall(900, () => audio.setTrack('defeat'));
@@ -2732,5 +2723,33 @@ export default class GameScene extends Phaser.Scene {
     // Entrada del cartel desde arriba
     card.y = -FULL_H;
     this.tweens.add({ targets: card, y: 0, duration: 520, ease: 'Back.easeOut' });
+    this.time.delayedCall(1100, () => this.showEndMissions());
+  }
+
+  /** Tras la derrota: orígenes desbloqueados en esta partida y misiones pendientes de cobrar. */
+  showEndMissions() {
+    const unlocks = this.endUnlocks, pending = claimableMissions(this.save.data).length;
+    if (!unlocks.length && !pending) return;
+    const layer = this.add.container(0, 0).setDepth(70);
+    const dim = fullRect(this, 0x000000, 0.45).setInteractive();
+    const h = 92 + unlocks.length * 42 + (pending ? 30 : 0), y0 = Math.round((H - h) / 2);
+    const g = this.add.graphics();
+    drawPanel(g, 28, y0, W - 56, h);
+    const card = this.add.container(0, 0);
+    card.add([g, text(this, W / 2, y0 + 22, unlocks.length ? 'NEW ORIGINS!' : 'MISSIONS', 16, '#b07800').setOrigin(0.5)]);
+    unlocks.forEach((m, i) => {
+      const y = y0 + 50 + i * 42, t = TYPES[m.reward.unlock];
+      card.add(text(this, W / 2, y, tr('Mission complete! {0}', tr(m.title)), 8, COLORS.inkHex).setOrigin(0.5));
+      const label = text(this, W / 2, y + 17, tr('Unlocked: {0}', tr(t.name)), 8, '#ffffff').setOrigin(0.5);
+      card.add([this.add.rectangle(W / 2, y + 17, label.width + 14, 14, hexToNum(t.base)), label]);
+    });
+    if (pending) card.add(text(this, W / 2, y0 + 48 + unlocks.length * 42, tr('{0} rewards to claim in MISSIONS', pending), 8, '#2a8a40', { wordWrap: { width: W - 80 } }).setOrigin(0.5));
+    const ok = makeButton(this, W / 2, y0 + h - 24, 110, 30, 'OK', () => layer.destroy(), { fill: 0x8cdc7c });
+    card.add(ok);
+    layer.add([dim, card]);
+    card.setScale(0.6).setAlpha(0);
+    card.x = (W / 2) * 0.4; card.y = (H / 2) * 0.4;
+    this.tweens.add({ targets: card, scale: 1, alpha: 1, x: 0, y: 0, duration: 320, ease: 'Back.easeOut' });
+    if (unlocks.length) audio.play('shiny'); else audio.play('mission');
   }
 }

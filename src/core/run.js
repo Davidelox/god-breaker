@@ -106,3 +106,6 @@ export function clearRun(storage = globalThis.localStorage) {
     /* ignorado */
   }
 }
+
+/** ¿Hay una partida guardada a medias? (mientras la haya, las misiones de orígenes esperan) */
+export const hasRun = (storage = globalThis.localStorage) => loadRun(storage) !== null;

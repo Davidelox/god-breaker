@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import { W, H, FULL_H, SAFE_TOP, SAFE_BOTTOM } from '../config.js';
 import { VERSION } from '../version.js';
 import { CREATURES, LEGENDARIES, creatureById } from '../data/creatures.js';
-import { loadRun, clearRun } from '../core/run.js';
-import { claimMissions } from '../data/missions.js';
+import { loadRun, clearRun, hasRun } from '../core/run.js';
+import { claimMissions, claimableMissions } from '../data/missions.js';
 import { TYPES } from '../data/types.js';
 import { addCreatureImage, avatarKey, setCommonOrb, petOrbKey } from '../gfx/sprites.js';
 import { TITLES, AVATARS, DEFAULT_TITLE, currentTitle, currentAvatar } from '../data/profile.js';
@@ -120,7 +120,7 @@ export default class TitleScene extends Phaser.Scene {
 
   create() {
     const save = this.registry.get('save');
-    claimMissions(save); // misiones ya cumplidas: se marcan y dan su recompensa
+    claimMissions(save, { origins: !hasRun() }); // las de orígenes esperan a que acabe la partida en curso
     fitCamera(this);
     this.drawBackdrop();
     audio.setTrack('ambient');
@@ -148,6 +148,7 @@ export default class TitleScene extends Phaser.Scene {
       makeButton(this, W / 2, 452, 200, 34, 'COLLECTION', () => this.scene.start('collection'), DARK_BTN);
     }
     makeButton(this, W / 2, 494, 200, 34, 'MISSIONS', () => this.scene.start('missions'), DARK_BTN);
+    this.claimBadge(W / 2 + 100, 478, claimableMissions(save.data).length);
     makeAudioToggles(this, 542, save, SOFT_BTN);
     // Idioma: inglés / español (se redibuja el menú con el nuevo idioma)
     makeLangToggle(this, W / 2, 581, 280, save, () => this.scene.restart(), SOFT_BTN);
@@ -360,12 +361,12 @@ export default class TitleScene extends Phaser.Scene {
       list.removeAll(true);
       ids.slice(page * perPage, (page + 1) * perPage).forEach((id, i) => {
         const x = W / 2 + (i % 2 ? 76 : -76), y = 92 + Math.floor(i / 2) * 30;
-        const open = !id || save.data.missions[id];
+        const open = !id || save.data.claimed[id];
         const name = id ? TITLES[id] : DEFAULT_TITLE;
         const btn = makeButton(this, x, y, 146, 26, open ? tr(name).toUpperCase() : '???', () => {
           if (!open) {
             const m = MISSIONS.find((mm) => mm.id === id);
-            this.toast(tr('Mission: {0}', tr(m?.title ?? '')));
+            this.toast(save.data.missions[id] ? tr('Claim it in MISSIONS') : tr('Mission: {0}', tr(m?.title ?? '')));
             return;
           }
           save.setProfile('title', id);
@@ -383,6 +384,14 @@ export default class TitleScene extends Phaser.Scene {
     draw();
   }
 
+  /** Globo con el número de recompensas de misiones por cobrar (sobre el botón MISIONES). */
+  claimBadge(x, y, n) {
+    if (!n) return;
+    const dot = this.add.circle(x, y, 10, 0xd83030).setStrokeStyle(2, 0x101828).setDepth(5);
+    const num = text(this, x, y, String(n), 8, '#ffffff').setOrigin(0.5).setDepth(6);
+    this.tweens.add({ targets: [dot, num], scale: 1.15, duration: 520, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+
   /** Selector de avatar: retratos desbloqueados (los demás, en silueta). Cambia el orbe común. */
   openAvatarPicker(save) {
     const layer = this.pickerLayer('PETS');
@@ -390,7 +399,7 @@ export default class TitleScene extends Phaser.Scene {
     const cols = 4, cw = (W - 40) / cols, ch = 84;
     ids.forEach((id, i) => {
       const x = 20 + cw * (i % cols) + cw / 2, y = 112 + Math.floor(i / cols) * ch;
-      const open = !id || save.data.missions[id];
+      const open = !id || save.data.claimed[id];
       let img;
       if (id) {
         img = this.add.image(x, y, avatarKey(this, id)).setScale(1.15);
@@ -404,7 +413,7 @@ export default class TitleScene extends Phaser.Scene {
       img.setInteractive({ useHandCursor: true }).on('pointerup', () => {
         if (!open) {
           const m = MISSIONS.find((mm) => mm.id === id);
-          this.toast(tr('Mission: {0}', tr(m?.title ?? '')));
+          this.toast(save.data.missions[id] ? tr('Claim it in MISSIONS') : tr('Mission: {0}', tr(m?.title ?? '')));
           return;
         }
         save.setProfile('avatar', id);

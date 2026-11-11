@@ -79,21 +79,21 @@ export const AVATARS = {
 export const avatarName = (id) => AVATARS[id]?.name ?? '';
 
 /** Títulos desbloqueados (ids de misión), en el orden de la lista. */
-export const unlockedTitles = (data) => Object.keys(TITLES).filter((id) => data.missions[id]);
+export const unlockedTitles = (data) => Object.keys(TITLES).filter((id) => data.claimed?.[id]);
 
 /** Avatares desbloqueados (ids de misión), en el orden de la lista. */
-export const unlockedAvatars = (data) => Object.keys(AVATARS).filter((id) => data.missions[id]);
+export const unlockedAvatars = (data) => Object.keys(AVATARS).filter((id) => data.claimed?.[id]);
 
 /** Título que se muestra: el elegido si está desbloqueado; si no, el de por defecto. */
 export function currentTitle(data) {
   const id = data.profile?.title;
-  return id && TITLES[id] && data.missions[id] ? TITLES[id] : DEFAULT_TITLE;
+  return id && TITLES[id] && data.claimed?.[id] ? TITLES[id] : DEFAULT_TITLE;
 }
 
 /** Avatar elegido (id) si está desbloqueado; si no, null. */
 export function currentAvatar(data) {
   const id = data.profile?.avatar;
-  return id && AVATARS[id] && data.missions[id] ? id : null;
+  return id && AVATARS[id] && data.claimed?.[id] ? id : null;
 }
 
 /** Diseño del orbe de una mascota: paleta, símbolo interior y color de la estela. */
