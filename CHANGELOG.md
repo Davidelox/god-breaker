@@ -5,6 +5,11 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Equilibrio
+- Chain Lightning: cada golpe salta a 2 bloques al azar (MAX: 4). Al golpear a un dios solo salta a 1.
+- Nueva velocidad x8, que aparece en el botón a partir de 200 orbes. Si estaba elegida y faltan orbes, se juega a la mayor velocidad permitida.
+- Desde el 4.º dios (turno 32), la vida de las filas nuevas crece poco a poco y cada vez algo más rápido: +4 % en el turno 50, +13 % en el 70 y +28 % en el 100. Los dioses no cambian.
+
 ### Equilibrio de hechizos
 - Chain Lightning: cada golpe salta a 3 bloques al azar (antes 4); MAX: 5 (antes 6).
 - Fireball: solo daña los bloques de los lados (arriba, abajo, izquierda y derecha), sin diagonales. MAX: el cuadrado de 3x3 con diagonales y una casilla más en vertical y horizontal.

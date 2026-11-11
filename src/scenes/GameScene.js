@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {
   W, H, FULL_H, SAFE_TOP, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, WALL_L, WALL_R, LAUNCH_Y, BOARD_FLOOR_Y, HUD_EXTRA, BOTTOM_EXTRA,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, CREATURE_FROM_TURN, CAUGHT_WEIGHT, BOSS_EVERY, GOD_W, GOD_H, SHINY_RATE,
-  BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, BIG_VOLLEY, BIG_VOLLEY_SPEED, BIG_VOLLEY_SPACING, WATER_BALL_R, SPAWN_ROW, BOUNCE_SLOW, BOUNCE_RECOVER, CORNER_JITTER,
+  BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, SPEED_UNLOCKS, BIG_VOLLEY, BIG_VOLLEY_SPACING, HP_RAMP_FROM_TURN, HP_RAMP, WATER_BALL_R, SPAWN_ROW, BOUNCE_SLOW, BOUNCE_RECOVER, CORNER_JITTER,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
   HP_PER_TURN, CREATURE_HP_BONUS, CREATURE_HP_PER_RARITY, BALLS_PER_TURN, PICKUP_CHANCE, PICKUP_COOLDOWN, rowBlocksFor, MAGIC_GAIN, RARITY_WEIGHTS, SHINY_MAGIC_FACTOR, BOSS_HP
 } from '../config.js';
@@ -330,8 +330,8 @@ export default class GameScene extends Phaser.Scene {
     this.menuBtn = makeButton(this, px, 4 + hudH / 2, pw, ph, 'II', () => this.openPause(), { size: 16, fill: COLORS.gold });
     // Velocidad x1/x2/x3: se mantiene entre turnos y entre partidas.
     this.speedBtn = makeButton(this, sx, 4 + hudH / 2, sw, ph, `x${this.speedMul}`, () => {
-      // x6 solo aparece en el ciclo con BIG_VOLLEY orbes o más
-      const list = SPEEDS.filter((v) => v < BIG_VOLLEY_SPEED || this.ballCount >= BIG_VOLLEY);
+      // x6 y x8 solo aparecen en el ciclo con suficientes orbes (SPEED_UNLOCKS)
+      const list = SPEEDS.filter((v) => this.speedAllowed(v));
       const cur = list.indexOf(this.chosenSpeed());
       this.speedMul = list[(cur + 1) % list.length];
       this.save.data.settings.speed = this.speedMul;
@@ -538,10 +538,17 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /** Velocidad del lanzamiento: la elegida, la automática (turbo) y x2 si se mantiene pulsada la pantalla. */
-  /** Velocidad elegida en el botón; x6 cuenta como x4 mientras haya menos de BIG_VOLLEY orbes. */
+  /** ¿Se puede usar la velocidad v con los orbes actuales? (x6 desde 100, x8 desde 200) */
+  speedAllowed(v) {
+    const need = SPEED_UNLOCKS.find(([s]) => s === v)?.[1] ?? 0;
+    return this.ballCount >= need;
+  }
+
+  /** Velocidad elegida en el botón, bajada a la mayor permitida si faltan orbes. */
   chosenSpeed() {
-    if (this.speedMul >= BIG_VOLLEY_SPEED && this.ballCount < BIG_VOLLEY) return SPEEDS[SPEEDS.indexOf(BIG_VOLLEY_SPEED) - 1];
-    return this.speedMul;
+    let v = this.speedMul;
+    while (!this.speedAllowed(v) && SPEEDS.indexOf(v) > 0) v = SPEEDS[SPEEDS.indexOf(v) - 1];
+    return v;
   }
 
   currentSpeed() {
@@ -822,7 +829,8 @@ export default class GameScene extends Phaser.Scene {
   /** Vida base de un bloque en el turno t (con algo de variación). */
   /** Vida de los bloques nuevos del turno t: progresiva y la misma para todos. */
   baseHp(t) {
-    return Math.max(1, Math.round(t * this.hpPerTurn));
+    const ramp = Math.max(0, t - HP_RAMP_FROM_TURN);
+    return Math.max(1, Math.round(t * this.hpPerTurn + HP_RAMP * ramp * ramp));
   }
 
   addBlock(d) {
@@ -1586,9 +1594,9 @@ export default class GameScene extends Phaser.Scene {
     }
     const elec = this.powerLevel('arco');
     if (elec) {
-      // Cada golpe salta a 3 bloques al azar de todo el tablero (MAX: 5)
+      // Cada golpe salta a 2 bloques al azar de todo el tablero (MAX: 4); al golpear a un dios, solo a 1
       const near = shuffle(this.blocks.filter((o) => !o.dead && o !== blk))
-        .slice(0, elec === 2 ? 5 : 3)
+        .slice(0, blk.kind === 'boss' ? 1 : elec === 2 ? 4 : 2)
         .map((o) => ({ o }));
       for (const { o } of near) {
         const big = elec === 2;

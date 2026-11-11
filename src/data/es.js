@@ -332,7 +332,7 @@ export const ES = {
   'Hits the blocks beside it. MAX: diagonals and 2 blocks in line': 'Daña los bloques de los lados. MAX: diagonales y 2 casillas en línea',
   'Big orbs pierce 2 blocks. MAX: 3 blocks': 'Orbes grandes que atraviesan 2 bloques. MAX: 3',
   '+50% orbs. MAX: twice as many orbs': '+50% de orbes. MAX: el doble de orbes',
-  'Each hit zaps 3 random blocks. MAX: 5': 'Cada golpe salta a 3 bloques al azar. MAX: 5',
+  'Each hit zaps 2 random blocks (1 when hitting a god). MAX: 4': 'Cada golpe salta a 2 bloques al azar (1 si golpeas a un dios). MAX: 4',
   'Orbs deal double damage. MAX: triple': 'Los orbes hacen doble daño. MAX: triple',
   'Breaks 2 toughest blocks, god -50%. MAX: 3, god -80%': 'Rompe los 2 más fuertes, dios -50%. MAX: 3, dios -80%',
   'Orbs bounce once off the floor. MAX: +1 extra life (costs 20% of your orbs when used)': 'Los orbes rebotan una vez en el suelo. MAX: +1 vida (al usarla pierdes el 20% de tus orbes)'

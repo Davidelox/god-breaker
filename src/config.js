@@ -102,10 +102,11 @@ export const SPAWN_ROW = 1; // la fila 0 (arriba del todo) siempre queda vacía
 export const BALL_SPEED = 470; // px/s a x1 (antes 620: se sentía demasiado rápido)
 export const START_BALLS = 1;
 export const LAUNCH_DELAY = 150; // ms entre orbes a x1: separación de ~70 px (crece con la velocidad, ver SPACING_GROWTH)
-export const SPEEDS = [1, 1.5, 2, 3, 4, 6]; // velocidades del botón de velocidad
-// x6 solo con muchos orbes: a partir de BIG_VOLLEY orbes se puede elegir y además salen más juntos
+export const SPEEDS = [1, 1.5, 2, 3, 4, 6, 8]; // velocidades del botón de velocidad
+// Velocidades que necesitan muchos orbes: [velocidad, orbes mínimos]
+export const SPEED_UNLOCKS = [[6, 100], [8, 200]];
+// A partir de BIG_VOLLEY orbes además salen más juntos
 export const BIG_VOLLEY = 100;
-export const BIG_VOLLEY_SPEED = 6;
 export const BIG_VOLLEY_SPACING = 0.6; // separación entre orbes con BIG_VOLLEY o más (fracción de la normal)
 // Rebotes: tras cada rebote el orbe sale más lento y acelera hasta su velocidad (BOUNCE_SLOW / BOUNCE_RECOVER).
 export const BOUNCE_SLOW = 0.55; // velocidad justo después del rebote (fracción de la normal)
@@ -133,6 +134,10 @@ export const MAX_POWERS = 2; // poderes que se pueden guardar
 
 // Dificultad (ajustable)
 export const HP_PER_TURN = 1.3; // vida de los bloques nuevos = turno x esto (todos iguales)
+// Desde el 4.º dios (turno 32) la vida de las filas nuevas crece cada vez más rápido:
+// + HP_RAMP x (turnos desde entonces)². Turno 50: +4 %; turno 70: +13 %; turno 100: +28 %.
+export const HP_RAMP_FROM_TURN = 32;
+export const HP_RAMP = 0.008;
 export const CREATURE_HP_BONUS = 0.12; // criaturas: +12 % de vida...
 export const CREATURE_HP_PER_RARITY = 0.02; // ...y +2 % por cada nivel de rareza por encima de común
 export const BALLS_PER_TURN = 1; // munición que se gana automáticamente cada ronda

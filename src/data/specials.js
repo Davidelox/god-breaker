@@ -17,7 +17,7 @@ export const SPECIALS = [
   { id: 'estallido', name: 'Fireball', type: 'fuego', desc: 'Hits the blocks beside it. MAX: diagonals and 2 blocks in line' },
   { id: 'torrente', name: 'Tidal Wave', type: 'agua', desc: 'Big orbs pierce 2 blocks. MAX: 3 blocks' },
   { id: 'enredadera', name: 'Overgrowth', type: 'planta', desc: '+50% orbs. MAX: twice as many orbs' },
-  { id: 'arco', name: 'Chain Lightning', type: 'electrico', desc: 'Each hit zaps 3 random blocks. MAX: 5' },
+  { id: 'arco', name: 'Chain Lightning', type: 'electrico', desc: 'Each hit zaps 2 random blocks (1 when hitting a god). MAX: 4' },
   { id: 'escarcha', name: 'Ice Lance', type: 'hielo', desc: 'Orbs deal double damage. MAX: triple' },
   { id: 'derrumbe', name: 'Stone Rain', type: 'roca', desc: 'Breaks 2 toughest blocks, god -50%. MAX: 3, god -80%' },
   { id: 'sombra', name: 'Shadow Bounce', type: 'oscuridad', desc: 'Orbs bounce once off the floor. MAX: +1 extra life (costs 20% of your orbs when used)' }
