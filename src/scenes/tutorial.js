@@ -13,7 +13,7 @@ export const TIPS = [
   { id: 'escape', title: 'IT ESCAPED', body: 'Captures can fail. Better orbs (bottom right) capture more often.', when: (s) => s.tipFlags.escaped },
   { id: 'spell', title: 'NEW SPELL', body: 'Tap a spell at the bottom before launching to use it. Two at once make a COMBO.', when: (s) => s.powers.length > 0 },
   { id: 'speed', title: 'SPEED', body: 'Tap the speed button at the top to make the orbs faster. When no orb can hit anything, they speed up on their own.', when: (s) => s.turn >= 4 },
-  { id: 'god', title: 'A GOD!', body: 'Gods have a lot of HP. Defeat one to try to capture it: it also changes the weather.', when: (s) => s.blocks.some((b) => b.kind === 'boss') },
+  { id: 'god', title: 'A GOD!', body: 'Gods have a lot of HP. Defeat one to try to capture it.', when: (s) => s.blocks.some((b) => b.kind === 'boss') },
   { id: 'gold', title: 'GOLD BEAST!', body: 'Gold beasts are rare, shiny versions. They are always captured!', when: (s) => s.blocks.some((b) => b.shiny) },
   { id: 'danger', title: 'DANGER!', body: 'If a block reaches the red line, the game is over.', when: (s) => s.blocks.some((b) => !b.dead && b.row + b.h - 1 >= ROWS - 3) }
 ];

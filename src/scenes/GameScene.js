@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import {
   W, H, FULL_H, SAFE_TOP, COLS, ROWS, CELL, BOARD_X, BOARD_TOP, BOARD_BOTTOM, BOARD_RIGHT, WALL_L, WALL_R, LAUNCH_Y, BOARD_FLOOR_Y, HUD_EXTRA, BOTTOM_EXTRA,
   BALL_R, BALL_SPEED, START_BALLS, LAUNCH_DELAY, CREATURE_CHANCE, CREATURE_FROM_TURN, CAUGHT_WEIGHT, BOSS_EVERY, GOD_W, GOD_H, SHINY_RATE,
-  BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, WATER_BALL_R, SPAWN_ROW, BOUNCE_SLOW, BOUNCE_RECOVER, CORNER_JITTER,
+  BALL_TEXTURE_R, VERTICAL_LOCK_CHANCE, SPEEDS, BIG_VOLLEY, BIG_VOLLEY_SPEED, BIG_VOLLEY_SPACING, WATER_BALL_R, SPAWN_ROW, BOUNCE_SLOW, BOUNCE_RECOVER, CORNER_JITTER,
   SHINY_BOOST_RATE, SHINY_BOOST_TURNS, SHINY_METER_MAX, SHINY_GAIN, MAX_POWERS,
   HP_PER_TURN, CREATURE_HP_BONUS, CREATURE_HP_PER_RARITY, BALLS_PER_TURN, PICKUP_CHANCE, PICKUP_COOLDOWN, rowBlocksFor, MAGIC_GAIN, RARITY_WEIGHTS, SHINY_MAGIC_FACTOR, BOSS_HP
 } from '../config.js';
@@ -47,6 +47,11 @@ const PLANT_COLOR = 0x8ce070;
 const SHADOW_COLOR = 0xb494f0;
 // Sin tildes en mayúsculas: la fuente pixel no tiene esos glifos.
 const upper = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+/** Mezcla dos colores 0xRRGGBB: f = 0 da a, f = 1 da b. */
+const mixColor = (a, b, f) => {
+  const m = (sh) => Math.round(((a >> sh) & 255) * (1 - f) + ((b >> sh) & 255) * f) << sh;
+  return m(16) | m(8) | m(0);
+};
 const ROCK_GOD = 0.5; // Stone Rain: parte de la vida total que quita a un dios (los demás bloques se destruyen)
 const ROCK_GOD_MAX = 0.8;
 const TURBO_SPEED = 6; // velocidad automática cuando ningún orbe puede golpear nada más
@@ -76,6 +81,15 @@ export default class GameScene extends Phaser.Scene {
     this.legendBag = []; // legendarios pendientes de salir, en orden aleatorio
     this.pendingBalls = 0;
     this.energy = 0;
+    // Lo que enseñan las barras: sube cuando llegan las partículas que vuelan hacia ellas
+    this.meterShown = { magic: 0, gold: 0 };
+    this.meterFlying = { magic: 0, gold: 0 };
+    this.meterHold = { magic: false, gold: false };
+    // Relleno dibujado (persigue a meterShown con suavidad), latido al llegar cada partícula y reloj del brillo
+    this.meterDraw = { magic: 0, gold: 0 };
+    this.meterPulse = { magic: 0, gold: 0 };
+    this.meterClock = 0;
+    this.spellPending = new Set(); // huecos con un hechizo nuevo que aún vuela desde la barra
     this.powers = []; // ids de poderes guardados (máx. MAX_POWERS)
     this.selectedSlots = new Set(); // huecos de poder marcados para el próximo lanzamiento
     this.activeSpecials = []; // poderes activos en el lanzamiento en curso
@@ -284,10 +298,9 @@ export default class GameScene extends Phaser.Scene {
   }
 
   changeWeather() {
-    const w = this.weather.next();
+    this.weather.next();
     audio.setMood(this.weather.index);
-    audio.play('weather');
-    this.showToast(tr('The weather changes: {0}', tr(w.name)), '#3a5a8a');
+    audio.play('weather'); // solo es ambiente: no se anuncia con un aviso
   }
 
   // Menú superior. En pantallas alargadas (iPhone) crece con HUD_EXTRA: panel más alto,
@@ -317,7 +330,10 @@ export default class GameScene extends Phaser.Scene {
     this.menuBtn = makeButton(this, px, 4 + hudH / 2, pw, ph, 'II', () => this.openPause(), { size: 16, fill: COLORS.gold });
     // Velocidad x1/x2/x3: se mantiene entre turnos y entre partidas.
     this.speedBtn = makeButton(this, sx, 4 + hudH / 2, sw, ph, `x${this.speedMul}`, () => {
-      this.speedMul = SPEEDS[(SPEEDS.indexOf(this.speedMul) + 1) % SPEEDS.length];
+      // x6 solo aparece en el ciclo con BIG_VOLLEY orbes o más
+      const list = SPEEDS.filter((v) => v < BIG_VOLLEY_SPEED || this.ballCount >= BIG_VOLLEY);
+      const cur = list.indexOf(this.chosenSpeed());
+      this.speedMul = list[(cur + 1) % list.length];
       this.save.data.settings.speed = this.speedMul;
       this.save.write();
       this.refreshHud();
@@ -383,24 +399,154 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /** Medidor con marco y tapas doradas y un reflejo de luz arriba. */
-  drawMeter(x, y, w, ratio, color) {
+  drawMeter(x, y, w, ratio, color, fx = null) {
     const g = this.energyG;
+    const lead = Math.min(1, Math.max(ratio, fx?.lead ?? ratio));
+    const pulse = fx?.pulse ?? 0;
+    const e = pulse > 0.5 ? 1 : 0; // la barra «salta» un píxel al recibir una partícula
     g.fillStyle(0x6a3e0c);
-    g.fillRect(x - 2, y - 1, w + 4, 10);
+    g.fillRect(x - 2, y - 1 - e, w + 4, 10 + 2 * e);
     g.fillStyle(0x1e1838);
-    g.fillRect(x - 1, y, w + 2, 8);
-    g.fillStyle(color);
-    g.fillRect(x, y + 1, (w - 1) * Math.min(1, ratio), 6);
+    g.fillRect(x - 1, y - e, w + 2, 8 + 2 * e);
+    const fw = (w - 1) * Math.min(1, ratio);
+    // Lo que ya ha llegado pero el relleno aún no alcanza: tramo blanco
+    if (lead > ratio) {
+      g.fillStyle(0xffffff, 0.75);
+      g.fillRect(x + fw, y + 1 - e, (w - 1) * lead - fw, 6 + 2 * e);
+    }
+    // Casi llena: el color late hacia el blanco
+    let c = color;
+    if (fx && ratio >= 0.8 && ratio < 1) c = mixColor(color, 0xffffff, 0.18 + 0.18 * Math.sin(this.meterClock * 9));
+    if (pulse > 0) c = mixColor(c, 0xffffff, pulse * 0.45);
+    g.fillStyle(c);
+    g.fillRect(x, y + 1 - e, fw, 6 + 2 * e);
     g.fillStyle(0xffffff, 0.45);
-    g.fillRect(x, y + 1, (w - 1) * Math.min(1, ratio), 1);
+    g.fillRect(x, y + 1 - e, fw, 1);
+    g.fillStyle(0x000000, 0.18);
+    g.fillRect(x, y + 6 + e, fw, 1);
+    if (fx && fw > 6) {
+      // Brillo que recorre el relleno
+      const sx = x - 8 + ((this.meterClock * 0.7 + fx.phase) % 1) * (fw + 16);
+      const a = Math.max(x, sx), b = Math.min(x + fw, sx + 6);
+      if (b > a) {
+        g.fillStyle(0xffffff, 0.4);
+        g.fillRect(a, y + 1 - e, b - a, 6 + 2 * e);
+      }
+      // Punta luminosa
+      g.fillStyle(0xffffff, 0.55 + 0.45 * pulse);
+      g.fillRect(x + fw - 2, y - e, 2, 8 + 2 * e);
+    }
     g.fillStyle(0xd8a030);
-    g.fillRect(x - 4, y - 1, 3, 10);
-    g.fillRect(x + w + 1, y - 1, 3, 10);
+    g.fillRect(x - 4, y - 1 - e, 3, 10 + 2 * e);
+    g.fillRect(x + w + 1, y - 1 - e, 3, 10 + 2 * e);
+  }
+
+  /** Cada fotograma: el relleno sube suave hacia lo llegado y se vacía rápido tras llenarse. */
+  animateMeters(dt) {
+    if (!this.energyG?.active || this.restoring) return;
+    this.meterClock += dt;
+    for (const k of ['magic', 'gold']) {
+      const max = this.meterGeom(k).max;
+      const to = this.meterShown[k], d = this.meterDraw[k];
+      if (d < to) this.meterDraw[k] = Math.min(to, d + (to - d) * Math.min(1, dt * 9) + max * 0.15 * dt);
+      else this.meterDraw[k] = Math.max(to, d - max * 2.2 * dt);
+      this.meterPulse[k] = Math.max(0, this.meterPulse[k] - dt * 4);
+    }
+    this.drawMeters();
+  }
+
+  /** Posición y tamaño de cada barra (magia a la izquierda, gold a la derecha). */
+  meterGeom(kind) {
+    const y = this.barY ?? BOARD_FLOOR_Y + 10;
+    return kind === 'magic' ? { x: 50, y, w: W / 2 - 58, max: SPECIAL_COST, color: 0x4ce0e8 } : { x: W / 2 + 46, y, w: W / 2 - 52, max: SHINY_METER_MAX, color: 0xffd84a };
+  }
+
+  /**
+   * Dibuja las barras con lo que ya ha llegado volando (meterShown). Sin partículas en vuelo,
+   * lo enseñado se iguala al valor real (energía y medidor gold).
+   */
+  drawMeters() {
+    this.energyG.clear();
+    // Barras bloqueadas: magia con los 2 huecos llenos y gold durante los turnos de oro
+    const locked = this.powers.length >= MAX_POWERS && !this.meterFlying.magic;
+    const goldOn = this.shinyBoostTurns > 0 && !this.meterFlying.gold;
+    const real = { magic: this.energy, gold: this.shinyMeter };
+    for (const k of ['magic', 'gold']) if (!this.meterFlying[k] && !this.meterHold[k]) this.meterShown[k] = real[k];
+    const m = this.meterGeom('magic'), g = this.meterGeom('gold');
+    const color = (k, base) => (this.meterHold[k] ? 0xffffff : base);
+    const fx = (k, phase) => ({ lead: this.meterShown[k] / this.meterGeom(k).max, pulse: this.meterPulse[k], phase });
+    this.drawMeter(m.x, m.y, m.w, locked ? 1 : this.meterDraw.magic / m.max, locked ? 0x56607c : color('magic', m.color), locked ? null : fx('magic', 0));
+    this.drawMeter(g.x, g.y, g.w, goldOn ? 1 : this.meterDraw.gold / g.max, goldOn ? 0xa07c28 : color('gold', g.color), goldOn ? null : fx('gold', 0.5));
+    this.magicLock.setVisible(locked);
+    this.goldLock.setVisible(goldOn);
+  }
+
+  /**
+   * Partículas que salen de (x,y), dan una curva y vuelan hasta la punta de la barra; cada una
+   * suma su parte al llegar, así la barra se llena poco a poco.
+   */
+  sendToMeter(kind, units, x, y) {
+    if (!(units > 0) || this.restoring || !this.energyG) return;
+    const geo = this.meterGeom(kind);
+    // Muchas en vuelo (lanzamientos enormes): menos partículas, cada una lleva más
+    const count = this.meterFlying[kind] > 36 ? 1 : Phaser.Math.Clamp(Math.round(units / 8), 1, 6);
+    for (let i = 0; i < count; i++) {
+      this.meterFlying[kind]++;
+      const sx = x + (Math.random() - 0.5) * 14, sy = y + (Math.random() - 0.5) * 14;
+      const a = Math.random() * Math.PI * 2, r = 26 + Math.random() * 30;
+      const cx = sx + Math.cos(a) * r, cy = sy + Math.sin(a) * r - 20;
+      const img = this.add.image(sx, sy, 'spark').setDepth(30).setTint(geo.color).setBlendMode(Phaser.BlendModes.ADD).setScale(1.8);
+      const trail = this.add.image(sx, sy, 'spark').setDepth(29).setTint(geo.color).setBlendMode(Phaser.BlendModes.ADD).setScale(1.2).setAlpha(0.45);
+      this.tweens.addCounter({
+        from: 0, to: 1, duration: 480 + Math.random() * 280, delay: i * 45, ease: 'Sine.easeIn',
+        onUpdate: (tw) => {
+          // La punta de la barra se va moviendo según se llena
+          const tx = geo.x + (geo.w - 1) * Math.min(1, this.meterShown[kind] / geo.max), ty = geo.y + 4;
+          const u = tw.getValue(), v = 1 - u, w = Math.max(0, u - 0.08), wv = 1 - w;
+          img.setPosition(v * v * sx + 2 * v * u * cx + u * u * tx, v * v * sy + 2 * v * u * cy + u * u * ty).setScale(1.8 - u * 0.8);
+          trail.setPosition(wv * wv * sx + 2 * wv * w * cx + w * w * tx, wv * wv * sy + 2 * wv * w * cy + w * w * ty);
+        },
+        onComplete: () => {
+          img.destroy();
+          trail.destroy();
+          this.meterArrive(kind, units / count);
+        }
+      });
+    }
+    this.drawMeters();
+  }
+
+  /** Llega una partícula: la barra sube; si se llena, destella en blanco antes de vaciarse. */
+  meterArrive(kind, units) {
+    if (!this.energyG?.active) return;
+    const geo = this.meterGeom(kind);
+    this.meterFlying[kind] = Math.max(0, this.meterFlying[kind] - 1);
+    this.meterShown[kind] = Math.min(geo.max, this.meterShown[kind] + units);
+    this.meterPulse[kind] = 1;
+    if (kind === 'magic' && this.meterShown.magic >= geo.max) this.releaseSpells();
+    const tx = geo.x + (geo.w - 1) * (this.meterShown[kind] / geo.max);
+    const spark = this.add.image(tx, geo.y + 4, 'spark').setDepth(30).setTint(0xffffff).setBlendMode(Phaser.BlendModes.ADD).setScale(2.2);
+    this.tweens.add({ targets: spark, scale: 0.4, alpha: 0, duration: 220, onComplete: () => spark.destroy() });
+    if (!this.meterFlying[kind] && this.meterShown[kind] >= geo.max && !this.meterHold[kind]) {
+      this.meterHold[kind] = true;
+      this.time.delayedCall(240, () => {
+        this.meterHold[kind] = false;
+        this.drawMeters();
+      });
+    }
+    this.drawMeters();
   }
 
   /** Velocidad del lanzamiento: la elegida, la automática (turbo) y x2 si se mantiene pulsada la pantalla. */
+  /** Velocidad elegida en el botón; x6 cuenta como x4 mientras haya menos de BIG_VOLLEY orbes. */
+  chosenSpeed() {
+    if (this.speedMul >= BIG_VOLLEY_SPEED && this.ballCount < BIG_VOLLEY) return SPEEDS[SPEEDS.indexOf(BIG_VOLLEY_SPEED) - 1];
+    return this.speedMul;
+  }
+
   currentSpeed() {
-    const base = this.turbo ? Math.max(TURBO_SPEED, this.speedMul) : this.speedMul;
+    const chosen = this.chosenSpeed();
+    const base = this.turbo ? Math.max(TURBO_SPEED, chosen) : chosen;
     return base * (this.holdFast ? 2 : 1);
   }
 
@@ -417,7 +563,7 @@ export default class GameScene extends Phaser.Scene {
     this.updateGoldMode();
     const shooting = this.state === 'shooting';
     const fast = shooting && (this.turbo || this.holdFast);
-    this.speedBtn.setLabel(fast ? `x${this.currentSpeed()}` : `x${this.speedMul}`).setSelected(fast || this.speedMul > 1);
+    this.speedBtn.setLabel(fast ? `x${this.currentSpeed()}` : `x${this.chosenSpeed()}`).setSelected(fast || this.chosenSpeed() > 1);
     this.recallBtn.setEnabled(shooting);
     const n = shooting ? this.toLaunch : this.ballCount;
     this.launchText.setText(n > 0 ? `x${n}` : '').setX(this.launchX);
@@ -427,20 +573,15 @@ export default class GameScene extends Phaser.Scene {
   refreshSpecials() {
     const ballKey = `ball_${this.selectedBall}`;
     this.launcher?.setTexture(ballKey).setScale((BALL_R / BALL_TEXTURE_R) * texScale(ballKey));
-    const barY = this.barY ?? BOARD_FLOOR_Y + 10;
-    this.energyG.clear();
-    // Barras bloqueadas: magia con los 2 huecos llenos y gold durante los turnos de oro
-    const locked = this.powers.length >= MAX_POWERS;
-    const goldOn = this.shinyBoostTurns > 0;
-    this.drawMeter(50, barY, W / 2 - 58, locked ? 1 : this.energy / SPECIAL_COST, locked ? 0x56607c : 0x4ce0e8);
-    this.drawMeter(W / 2 + 46, barY, W / 2 - 52, goldOn ? 1 : this.shinyMeter / SHINY_METER_MAX, goldOn ? 0xa07c28 : 0xffd84a);
-    this.magicLock.setVisible(locked);
-    this.goldLock.setVisible(goldOn);
+    this.drawMeters();
     const aim = this.state === 'aim';
-    // Dos hechizos iguales: un único botón con el hechizo MAX en lugar de los dos huecos
-    const merged = this.powers.length === 2 && this.powers[0] === this.powers[1];
+    // Dos hechizos iguales: se pueden lanzar por separado; al marcar los dos se juntan en un
+    // único botón con el hechizo MAX
+    const twin = this.powers.length === 2 && this.powers[0] === this.powers[1];
+    const merged = twin && this.selectedSlots.size === 2;
     this.slotButtons.forEach((btn, i) => {
-      const sp = specialById(this.powers[i]);
+      // Un hechizo que aún vuela desde la barra no se enseña hasta que llega
+      const sp = this.spellPending?.has(i) ? null : specialById(this.powers[i]);
       btn.setVisible(!merged);
       btn.setLabel(sp ? '' : '-');
       btn.icon.setVisible(!!sp);
@@ -926,7 +1067,12 @@ export default class GameScene extends Phaser.Scene {
     else {
       this.selectedSlots.add(i);
       const sp = specialById(this.powers[i]);
-      this.showToast(`${tr(sp.name)}: ${tr(sp.desc)}`);
+      const twin = this.powers.length === 2 && this.powers[0] === this.powers[1];
+      if (twin && this.selectedSlots.size === 2) this.showToast(`${tr(sp.name)} MAX: ${tr(sp.desc)}`);
+      else {
+        this.showToast(`${tr(sp.name)}: ${tr(sp.desc)}`);
+        if (twin) this.showToast('Select the other one too for MAX');
+      }
     }
     this.refreshSpecials();
   }
@@ -945,6 +1091,7 @@ export default class GameScene extends Phaser.Scene {
     this.activeSpecials = slots.map((i) => specialById(this.powers[i])).filter(Boolean);
     this.powers = this.powers.filter((_, i) => !this.selectedSlots.has(i));
     this.selectedSlots.clear();
+    this.spellPending.clear();
     if (this.activeSpecials.length) {
       this.powerIntro(this.activeSpecials);
       this.save.bumpStat('powersUsed', this.activeSpecials.length);
@@ -1050,6 +1197,7 @@ export default class GameScene extends Phaser.Scene {
   update(_time, delta) {
     if (this.paused) return;
     this.updateParticles(Math.min(delta, 50) / 1000);
+    this.animateMeters(Math.min(delta, 50) / 1000);
     if (this.state === 'over') return;
     let dt = Math.min(delta, 50) / 1000;
     // Pausa de impacto (al derrotar a un legendario): las bolas van a cámara lenta un instante
@@ -1083,7 +1231,9 @@ export default class GameScene extends Phaser.Scene {
     }
     const speed = this.currentSpeed();
     // A más velocidad los orbes salen algo más espaciados (en distancia) para no saturar la pantalla
-    if (this.launchTimer) this.launchTimer.timeScale = speed / (1 + SPACING_GROWTH * (speed - 1));
+    // Con BIG_VOLLEY orbes o más salen más juntos, para que el turno no se haga largo
+    const packed = this.shotBase >= BIG_VOLLEY ? 1 / BIG_VOLLEY_SPACING : 1;
+    if (this.launchTimer) this.launchTimer.timeScale = (packed * speed) / (1 + SPACING_GROWTH * (speed - 1));
 
     const total = dt * speed;
     const steps = Math.max(1, Math.ceil((total * BALL_SPEED) / 3));
@@ -1430,14 +1580,15 @@ export default class GameScene extends Phaser.Scene {
     this.damage(blk, dmg);
     const fire = this.powerLevel('estallido');
     if (fire) {
-      // Daño a los bloques de alrededor (las 8 casillas); MAX: hasta 2 casillas de distancia
-      for (const n of this.neighbors(blk, fire)) this.damage(n, 1);
+      // Daño a los bloques de los lados (arriba, abajo, izquierda, derecha); MAX: también las
+      // diagonales y una casilla más en vertical y horizontal
+      for (const n of this.fireTargets(blk, fire === 2)) this.damage(n, 1);
     }
     const elec = this.powerLevel('arco');
     if (elec) {
-      // Cada golpe salta a 4 bloques al azar de todo el tablero (MAX: 6)
+      // Cada golpe salta a 3 bloques al azar de todo el tablero (MAX: 5)
       const near = shuffle(this.blocks.filter((o) => !o.dead && o !== blk))
-        .slice(0, elec === 2 ? 6 : 4)
+        .slice(0, elec === 2 ? 5 : 3)
         .map((o) => ({ o }));
       for (const { o } of near) {
         const big = elec === 2;
@@ -1451,6 +1602,17 @@ export default class GameScene extends Phaser.Scene {
         this.damage(o, 1);
       }
     }
+  }
+
+  /** Bloques que quema Fireball: en cruz a 1 casilla; MAX: el cuadrado de 3x3 y la cruz a 2 casillas. */
+  fireTargets(blk, max) {
+    return this.blocks.filter((o) => {
+      if (o.dead || o === blk) return false;
+      const dx = Math.max(0, o.col - (blk.col + blk.w - 1), blk.col - (o.col + o.w - 1));
+      const dy = Math.max(0, o.row - (blk.row + blk.h - 1), blk.row - (o.row + o.h - 1));
+      if (!max) return dx + dy === 1;
+      return (dx <= 1 && dy <= 1) || (dx === 0 && dy <= 2) || (dy === 0 && dx <= 2);
+    });
   }
 
   neighbors(blk, range = 1) {
@@ -1592,13 +1754,13 @@ export default class GameScene extends Phaser.Scene {
     this.runStats.bestShot = Math.max(this.runStats.bestShot, this.shotKills);
     if (blk.kind === 'boss') {
       this.awardBall();
-      this.addShiny(SHINY_GAIN.legendary);
+      this.addShiny(SHINY_GAIN.legendary, x, y);
       this.save.bumpStat('bossKills');
       this.checkMissions();
       this.time.delayedCall(600, () => this.changeWeather());
       this.time.delayedCall(120, () => this.riseUnder(blk));
     }
-    this.addEnergy(MAGIC_GAIN[blk.kind] ?? MAGIC_GAIN.plain);
+    this.addEnergy(MAGIC_GAIN[blk.kind] ?? MAGIC_GAIN.plain, x, y);
     if (blk.creature) this.tryCapture(blk, x, y);
     blk.cont.destroy();
   }
@@ -1925,22 +2087,85 @@ export default class GameScene extends Phaser.Scene {
     this.hudDirty = true; // el marcador se redibuja como mucho una vez por fotograma (ver update)
   }
 
-  addEnergy(n) {
+  addEnergy(n, x = this.launchX, y = LAUNCH_Y) {
     // Un lanzamiento con poder no carga la barra, y con los 2 huecos llenos tampoco.
     if (this.activeSpecials.length) return;
     if (this.powers.length >= MAX_POWERS) {
       this.energy = 0;
       return;
     }
+    this.sendToMeter('magic', n, x, y);
     this.energy += n;
     if (this.energy >= SPECIAL_COST) {
       this.energy = 0;
       const sp = specialById(rollPower());
       this.powers.push(sp.id);
-      audio.play('power');
-      this.showToast(tr('New spell: {0}!', tr(sp.name)), ELEMENTS[sp.type].dark);
+      const slot = this.powers.length - 1;
+      this.spellPending.add(slot);
+      // Sin partículas en vuelo (o si algo se retrasa) el hechizo sale igualmente
+      if (!this.meterFlying.magic) this.time.delayedCall(0, () => this.releaseSpells());
+      else this.time.delayedCall(1400, () => this.releaseSpells());
     }
     this.refreshSpecials();
+  }
+
+  /** Lanza hacia su hueco los hechizos nuevos que esperan en la barra de magia. */
+  releaseSpells() {
+    for (const i of [...this.spellPending]) {
+      this.spellPending.delete(i);
+      this.spellFlight(i);
+    }
+  }
+
+  /**
+   * Efecto de hechizo nuevo: un orbe del color del elemento sale de la barra de magia con su
+   * icono, describe un arco hasta el hueco y lo hace estallar al llegar.
+   */
+  spellFlight(i) {
+    const sp = specialById(this.powers[i]);
+    const btn = this.slotButtons[i];
+    if (!sp || !btn || !this.energyG?.active) return this.refreshSpecials();
+    const color = hexToNum(ELEMENTS[sp.type].light);
+    const geo = this.meterGeom('magic');
+    const sx = geo.x + geo.w, sy = geo.y + 4;
+    const tx = btn.x, ty = btn.y;
+    const cx = (sx + tx) / 2 + 30, cy = Math.min(sy, ty) - 70;
+    this.fxRing(sx, sy, color, 22, 320, 3);
+    this.fxBurst(sx, sy, [color, 0xffffff], 10, 28, 380, -10);
+    const glow = this.add.image(sx, sy, 'spark').setDepth(31).setTint(color).setBlendMode(Phaser.BlendModes.ADD).setScale(4);
+    const icon = this.add.image(sx, sy, `icon_${sp.type}`).setDepth(32).setScale(2);
+    let trailAt = 0;
+    this.tweens.addCounter({
+      from: 0, to: 1, duration: 560, ease: 'Sine.easeInOut',
+      onUpdate: (tw) => {
+        const u = tw.getValue(), v = 1 - u;
+        const px = v * v * sx + 2 * v * u * cx + u * u * tx, py = v * v * sy + 2 * v * u * cy + u * u * ty;
+        glow.setPosition(px, py).setScale(4 + Math.sin(u * Math.PI) * 2.5);
+        icon.setPosition(px, py).setScale(2 + Math.sin(u * Math.PI) * 1.5).setAngle(Math.sin(u * Math.PI * 2) * 12);
+        if (this.time.now - trailAt > 30) {
+          trailAt = this.time.now;
+          const t = this.add.image(px, py, 'spark').setDepth(30).setTint(color).setBlendMode(Phaser.BlendModes.ADD).setScale(2.2);
+          this.tweens.add({ targets: t, alpha: 0, scale: 0.4, duration: 300, onComplete: () => t.destroy() });
+        }
+      },
+      onComplete: () => {
+        glow.destroy();
+        icon.destroy();
+        this.refreshSpecials();
+        this.tweens.add({ targets: btn, scale: { from: 1.35, to: 1 }, duration: 420, ease: 'Back.easeOut' });
+        this.fxRing(tx, ty, color, 46, 460, 5);
+        this.time.delayedCall(90, () => this.fxRing(tx, ty, 0xffffff, 30, 320, 2));
+        this.fxBurst(tx, ty, [color, 0xffffff, COLORS.gold], 16, 48, 560, -12);
+        floatText(this, tx, ty - 44, tr('New spell: {0}!', tr(sp.name)), ELEMENTS[sp.type].light, 8);
+        audio.play('power');
+        haptics.pulse('break');
+        // Dos iguales: aviso de que juntos hacen el hechizo MAX
+        if (this.powers.length === 2 && this.powers[0] === this.powers[1]) {
+          const mx = (this.slotButtons[0].x + this.slotButtons[1].x) / 2;
+          this.time.delayedCall(380, () => floatText(this, mx, ty - 26, tr('MAX READY!'), COLORS.goldHex, 8));
+        }
+      }
+    });
   }
 
   /** Legendario derrotado: cámara lenta, cadena de explosiones, ondas, fuente de estrellas y cartel. */
@@ -2077,9 +2302,10 @@ export default class GameScene extends Phaser.Scene {
     }
   }
 
-  addShiny(n) {
+  addShiny(n, x = this.launchX, y = LAUNCH_Y) {
     if (this.shinyBoostTurns > 0) return; // durante los turnos de oro el medidor no se llena
     if (this.shotMagic) n *= SHINY_MAGIC_FACTOR; // lanzamiento con hechizo: la mitad
+    this.sendToMeter('gold', n, x, y);
     this.shinyMeter += n;
     if (this.shinyMeter >= SHINY_METER_MAX) {
       this.shinyMeter = 0;
@@ -2157,7 +2383,7 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(600, () => this.checkMissions());
     audio.play(shiny ? 'shiny' : 'capture');
     this.runCaptures.push({ id: c.id, shiny });
-    this.addShiny(c.legendary ? SHINY_GAIN.captureGod : SHINY_GAIN.capture);
+    this.addShiny(c.legendary ? SHINY_GAIN.captureGod : SHINY_GAIN.capture, x, y);
     this.addScore(shiny ? 1000 : 100);
     floatText(this, x, y - 12, shiny ? '+1000' : '+100', COLORS.goldHex);
     for (let i = 0; i < 6; i++) {
@@ -2380,7 +2606,7 @@ export default class GameScene extends Phaser.Scene {
       if (!this.clearCelebrated) this.celebrateClear();
       this.addScore(500);
       this.awardBall();
-      this.addShiny(SHINY_GAIN.clear);
+      this.addShiny(SHINY_GAIN.clear, W / 2, (BOARD_TOP + BOARD_FLOOR_Y) / 2);
       this.save.bumpStat('clears');
     }
 
@@ -2448,6 +2674,9 @@ export default class GameScene extends Phaser.Scene {
    */
   useExtraLife() {
     this.extraLife = false;
+    // Precio de la vida: el 20 % de los orbes (redondeando hacia arriba, mínimo queda 1)
+    const lost = Math.min(this.ballCount - 1, Math.ceil(this.ballCount * 0.2));
+    this.ballCount -= Math.max(0, lost);
     const lastRow = ROWS - 2;
     const blocked = new Set();
     for (const b of this.blocks) {
@@ -2466,7 +2695,7 @@ export default class GameScene extends Phaser.Scene {
     this.fxRing(this.launchX, LAUNCH_Y, SHADOW_COLOR, 50, 600, 5);
     this.fxBurst(this.launchX, LAUNCH_Y, [SHADOW_COLOR, 0x6a4ca8, 0xffffff], 18, 60, 700, -20);
     floatText(this, W / 2, LAUNCH_Y - 60, 'EXTRA LIFE USED!', '#b494f0');
-    this.showToast('Saved! The rows hold this turn', '#3a2668');
+    this.showToast(lost > 0 ? tr('Saved! The rows hold, but you lose {0} orbs', lost) : 'Saved! The rows hold this turn', '#3a2668');
     audio.play('shiny');
   }
 

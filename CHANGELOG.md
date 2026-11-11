@@ -5,7 +5,23 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Equilibrio de hechizos
+- Chain Lightning: cada golpe salta a 3 bloques al azar (antes 4); MAX: 5 (antes 6).
+- Fireball: solo daña los bloques de los lados (arriba, abajo, izquierda y derecha), sin diagonales. MAX: el cuadrado de 3x3 con diagonales y una casilla más en vertical y horizontal.
+- Shadow Bounce MAX: al gastar la vida extra se pierde el 20 % de los orbes (redondeando hacia arriba; siempre queda al menos 1).
+
+### Velocidad
+- Nueva velocidad x6, que solo aparece en el botón a partir de 100 orbes. Si estaba elegida y se tienen menos, se juega a x4.
+- Con 100 orbes o más salen más juntos (a un 60 % de la separación normal), para que los turnos no se alarguen.
+
+### Hechizos y barras
+- Las barras de magia y oro suben con suavidad. Lo que acaba de llegar se marca en blanco hasta que el relleno lo alcanza, un brillo recorre la barra y la punta se ilumina. La barra da un pequeño salto con cada partícula, late cuando está casi llena y se vacía con rapidez tras llenarse.
+- Hechizo nuevo: el hueco espera vacío hasta que la barra se llena. Entonces sale un orbe del color del elemento con su icono, vuela en arco hasta el hueco y, al llegar, el botón da un salto con una onda y una explosión de chispas, y aparece el nombre del hechizo. Con dos hechizos iguales aparece «¡MAX LISTO!».
+- Dos hechizos iguales ya no se juntan solos: cada uno se puede lanzar por separado. El botón MAX aparece solo al marcar los dos.
+
 ### Efectos
+- Las barras de magia y oro se llenan con partículas: al romper bloques, capturar o derrotar dioses salen chispas (azules o doradas) que dan una curva y vuelan hasta la punta de su barra, que sube según van llegando. Al llenarse, la barra destella en blanco antes de vaciarse.
+- Los cambios de clima ya no se anuncian con un aviso (ni en el tutorial ni en la guía): son solo ambiente y no afectan al juego.
 - Sistema de partículas propio (dos capas, una normal y otra con brillo aditivo, dibujadas de una vez por fotograma; tope de 700 partículas).
 - Los bloques se rompen en trozos de su color que saltan y caen con gravedad, con chispas brillantes y un pequeño temblor.
 - Todas las ráfagas de los hechizos (fuego que sube, agua, hielo, rayos, rocas…) usan partículas brillantes.

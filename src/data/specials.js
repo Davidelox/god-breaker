@@ -14,13 +14,13 @@ export const ELEMENTS = {
 // Los id se mantienen de la versión con «poderes» (los usa la lógica del juego).
 // Cada hechizo tiene nivel 1 (un hueco) y MAX (los dos huecos con el mismo hechizo).
 export const SPECIALS = [
-  { id: 'estallido', name: 'Fireball', type: 'fuego', desc: 'Hits all blocks around. MAX: 2 blocks around' },
+  { id: 'estallido', name: 'Fireball', type: 'fuego', desc: 'Hits the blocks beside it. MAX: diagonals and 2 blocks in line' },
   { id: 'torrente', name: 'Tidal Wave', type: 'agua', desc: 'Big orbs pierce 2 blocks. MAX: 3 blocks' },
   { id: 'enredadera', name: 'Overgrowth', type: 'planta', desc: '+50% orbs. MAX: twice as many orbs' },
-  { id: 'arco', name: 'Chain Lightning', type: 'electrico', desc: 'Each hit zaps 4 random blocks. MAX: 6' },
+  { id: 'arco', name: 'Chain Lightning', type: 'electrico', desc: 'Each hit zaps 3 random blocks. MAX: 5' },
   { id: 'escarcha', name: 'Ice Lance', type: 'hielo', desc: 'Orbs deal double damage. MAX: triple' },
   { id: 'derrumbe', name: 'Stone Rain', type: 'roca', desc: 'Breaks 2 toughest blocks, god -50%. MAX: 3, god -80%' },
-  { id: 'sombra', name: 'Shadow Bounce', type: 'oscuridad', desc: 'Orbs bounce once off the floor. MAX: +1 extra life' }
+  { id: 'sombra', name: 'Shadow Bounce', type: 'oscuridad', desc: 'Orbs bounce once off the floor. MAX: +1 extra life (costs 20% of your orbs when used)' }
 ];
 
 export const specialById = (id) => SPECIALS.find((s) => s.id === id) ?? null;

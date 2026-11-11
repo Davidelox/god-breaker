@@ -145,7 +145,7 @@ export default class GuideScene extends Phaser.Scene {
     this.add2(warn);
     this.tweens.add({ targets: warn, alpha: 0.1, duration: 600, yoyo: true, repeat: -1 });
     this.label(W / 2, 480, 'A GOD IN 2 TURNS', '#a03030');
-    this.label(W / 2, 524, 'Defeating it changes the\nweather and gives a special orb.', SOFT);
+    this.label(W / 2, 524, 'Defeating it gives you\na special orb.', SOFT);
   }
 
   pageCapture() {

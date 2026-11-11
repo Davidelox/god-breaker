@@ -46,7 +46,6 @@ export const ES = {
   'CAPTURED {0}': 'CAPTURAS {0}',
   '+1 LIFE': '+1 VIDA',
   'GOLD {0} x{1}': 'ORO {0} x{1}',
-  'The weather changes: {0}': 'El clima cambia: {0}',
   'A god descends!': '¡Desciende un dios!',
   'A GOLD {0} appeared!': '¡Ha aparecido {0} DORADO!',
   'A GOD WAITS FOR ROOM': 'UN DIOS ESPERA HUECO',
@@ -74,6 +73,9 @@ export const ES = {
   '+1 EXTRA LIFE for this run!': '¡+1 VIDA EXTRA para esta partida!',
   'EXTRA LIFE USED!': '¡VIDA EXTRA USADA!',
   'Saved! The rows hold this turn': '¡Salvado! Las filas no bajan este turno',
+  'Saved! The rows hold, but you lose {0} orbs': '¡Salvado! Las filas no bajan, pero pierdes {0} orbes',
+  'Select the other one too for MAX': 'Marca también el otro para el MAX',
+  'MAX READY!': '¡MAX LISTO!',
   PAUSED: 'PAUSA',
   RESUME: 'SEGUIR',
   'QUIT TO MENU': 'SALIR AL MENÚ',
@@ -122,8 +124,8 @@ export const ES = {
   'Tap the speed button at the top to make the orbs faster. When no orb can hit anything, they speed up on their own.':
     'Toca el botón de velocidad de arriba para que los orbes vayan más rápido. Si ningún orbe puede dar en nada, aceleran solos.',
   'A GOD!': '¡UN DIOS!',
-  'Gods have a lot of HP. Defeat one to try to capture it: it also changes the weather.':
-    'Los dioses tienen mucha vida. Derrota a uno para intentar capturarlo: además cambia el clima.',
+  'Gods have a lot of HP. Defeat one to try to capture it.':
+    'Los dioses tienen mucha vida. Derrota a uno para intentar capturarlo.',
   'GOLD BEAST!': '¡BESTIA DORADA!',
   'Gold beasts are rare, shiny versions. They are always captured!':
     'Las bestias doradas son versiones raras y brillantes. ¡Siempre se capturan!',
@@ -149,7 +151,7 @@ export const ES = {
   'Extra orb +1\nfor the next turn': 'Orbe extra +1\npara el siguiente turno',
   'Legendary god: every {0} turns.': 'Dios legendario: cada {0} turnos.',
   'Warned 2 turns ahead. When it\narrives, all drops 2 rows.': 'Se avisa 2 turnos antes. Al\nllegar, todo baja 2 filas.',
-  'Defeating it changes the\nweather and gives a special orb.': 'Derrotarlo cambia el clima\ny da un orbe especial.',
+  'Defeating it gives you\na special orb.': 'Derrotarlo te da\nun orbe especial.',
   'When you defeat a beast,\nthe orb tries to capture it.': 'Al derrotar a una bestia,\nel orbe intenta capturarla.',
   'beast    god': 'bestia    dios',
   'Pick an orb at the bottom\nright before launching.': 'Elige un orbe abajo a la\nderecha antes de lanzar.',
@@ -327,13 +329,13 @@ export const ES = {
   'Ice Lance': 'Lanza de hielo',
   'Stone Rain': 'Lluvia de rocas',
   'Shadow Bounce': 'Rebote sombrío',
-  'Hits all blocks around. MAX: 2 blocks around': 'Daña los bloques de alrededor. MAX: hasta 2 casillas',
+  'Hits the blocks beside it. MAX: diagonals and 2 blocks in line': 'Daña los bloques de los lados. MAX: diagonales y 2 casillas en línea',
   'Big orbs pierce 2 blocks. MAX: 3 blocks': 'Orbes grandes que atraviesan 2 bloques. MAX: 3',
   '+50% orbs. MAX: twice as many orbs': '+50% de orbes. MAX: el doble de orbes',
-  'Each hit zaps 4 random blocks. MAX: 6': 'Cada golpe salta a 4 bloques al azar. MAX: 6',
+  'Each hit zaps 3 random blocks. MAX: 5': 'Cada golpe salta a 3 bloques al azar. MAX: 5',
   'Orbs deal double damage. MAX: triple': 'Los orbes hacen doble daño. MAX: triple',
   'Breaks 2 toughest blocks, god -50%. MAX: 3, god -80%': 'Rompe los 2 más fuertes, dios -50%. MAX: 3, dios -80%',
-  'Orbs bounce once off the floor. MAX: +1 extra life': 'Los orbes rebotan una vez en el suelo. MAX: +1 vida'
+  'Orbs bounce once off the floor. MAX: +1 extra life (costs 20% of your orbs when used)': 'Los orbes rebotan una vez en el suelo. MAX: +1 vida (al usarla pierdes el 20% de tus orbes)'
 };
 
 /** Dios de cada mitología («Norse god» → «Dios nórdico»), por id de origen. */
