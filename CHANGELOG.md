@@ -5,6 +5,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Menú principal
+- Música y sonido son botones con su símbolo (nota y altavoz): apagados se ven oscuros, con el icono atenuado y una raya roja. También en la pausa de la partida.
+- Nuevo botón de ajustes (tuerca) con lo que se puede cambiar en la partida: vibración, cuadrícula y velocidad automática.
+- La última fila reúne música, sonido, ajustes e idioma; donde estaban música y sonido va el nuevo botón ESTADÍSTICAS.
+- Pantalla de estadísticas con dos pestañas: récords (puntuación más alta, turno más alto y sin hechizos, bloques destruidos y capturas en un solo lanzamiento, y en una partida: bloques y criaturas destruidos, capturas, dioses destruidos y capturados, hechizos lanzados, limpiezas y combinaciones) y totales (partidas, capturas, bestias distintas, capturas doradas (x/600), dioses distintos, dioses derrotados y con MAX, tableros limpiados, hechizos, ataques verticales, misiones, orígenes, títulos y acompañantes).
+
 ### Interfaz
 - En el selector de acompañantes, cada retrato lleva una muestra de su orbe flotando en la esquina inferior derecha (en sombra si aún está bloqueado).
 - Corregido: la interrogación del recuadro de acompañantes desaparecía al volver al menú principal desde otra pantalla.

@@ -20,7 +20,9 @@ export function defaultSave() {
       bestGodStreak: 0,
       bestShotKills: 0, // más bloques destruidos en un lanzamiento
       verticalAttacks: 0, // ataques verticales en total
-      bestNoMagicTurn: 0 // turno más alto alcanzado en una partida sin lanzar hechizos
+      bestNoMagicTurn: 0, // turno más alto alcanzado en una partida sin lanzar hechizos
+      // Récords de una sola partida
+      bestRunBlocks: 0, bestRunBeasts: 0, bestRunCaptures: 0, bestRunGodKills: 0, bestRunGodCaptures: 0, bestRunSpells: 0
     },
     profile: { title: null, avatar: null }, // título y avatar elegidos (id de su misión)
     bank: { super: 0, ultra: 0 }, // orbes de recompensa de misiones para la siguiente partida

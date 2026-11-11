@@ -9,10 +9,11 @@ import { addCreatureImage, avatarKey, setCommonOrb, petOrbKey } from '../gfx/spr
 import { TITLES, AVATARS, DEFAULT_TITLE, currentTitle, currentAvatar, unlockedAvatars } from '../data/profile.js';
 import { BALL_R, BALL_TEXTURE_R } from '../config.js';
 import { MISSIONS } from '../data/missions.js';
-import { text, makeButton, makePanel, makeAudioToggles, makeLangToggle, fitCamera, fullRect, showTip, hideTip, COLORS } from '../gfx/ui.js';
+import { text, makeButton, makePanel, makeAudioToggles, makeIconButton, makeLangToggle, fitCamera, fullRect, showTip, hideTip, COLORS } from '../gfx/ui.js';
 import { t as tr } from '../i18n.js';
 import { pick, shuffle } from '../core/rng.js';
 import { audio } from '../audio/audio.js';
+import { haptics } from '../core/haptics.js';
 
 // Estilo épico del menú principal: botón principal de oro y el resto oscuros con borde dorado
 const GOLD_BTN = { fill: 0xffd84a, border: 0x6a3e0c, textColor: '#3a1c04' };
@@ -149,9 +150,13 @@ export default class TitleScene extends Phaser.Scene {
     }
     makeButton(this, W / 2, 494, 200, 34, 'MISSIONS', () => this.scene.start('missions'), DARK_BTN);
     this.claimBadge(W / 2 + 100, 478, claimableMissions(save.data).length);
-    makeAudioToggles(this, 542, save, SOFT_BTN);
+    makeButton(this, W / 2, 542, 280, 30, 'STATISTICS', () => this.scene.start('stats'), SOFT_BTN);
+    // Última fila: música, sonido, ajustes (tuerca) e idioma
+    const x0 = W / 2 - 140;
+    makeAudioToggles(this, 581, save, SOFT_BTN, { x: x0 + 20, gap: 44, size: 40 });
+    makeIconButton(this, x0 + 108, 581, 40, 30, 'gear', () => this.openSettings(save), SOFT_BTN);
     // Idioma: inglés / español (se redibuja el menú con el nuevo idioma)
-    makeLangToggle(this, W / 2, 581, 280, save, () => this.scene.restart(), SOFT_BTN);
+    makeLangToggle(this, x0 + 132 + 74, 581, 148, save, () => this.scene.restart(), SOFT_BTN);
 
     // Abajo: el tutorial (antes «Guía») junto a borrar progreso
     makeButton(this, 8 + 64, H - 22, 128, 26, 'TUTORIAL', () => this.scene.start('guide'), DARK_BTN);
@@ -163,6 +168,30 @@ export default class TitleScene extends Phaser.Scene {
       makePanel(this, 16, 566, W - 32, 40, { fill: 0xffe0e0 });
       text(this, W / 2, 586, 'Your save was damaged\nand has been reset.', 8, '#a03030').setOrigin(0.5);
     }
+  }
+
+  /** Ajustes de la partida (los mismos que en la pausa): vibración, cuadrícula y velocidad automática. */
+  openSettings(save) {
+    const st = save.data.settings;
+    const layer = this.add.container(0, 0).setDepth(50);
+    layer.add(fullRect(this, 0x000000, 0.75).setInteractive());
+    layer.add(makePanel(this, 24, 190, W - 48, 290, EPIC_PANEL));
+    layer.add(text(this, W / 2, 218, 'SETTINGS', 16, '#ffe27a').setOrigin(0.5));
+    const toggle = (y, name, key, after) => {
+      const label = () => tr(`${name} {0}`, tr(st[key] ? 'ON' : 'OFF'));
+      const b = makeButton(this, W / 2, y, 220, 32, label(), () => {
+        st[key] = !st[key];
+        save.write();
+        b.setLabel(label()).setSelected(st[key]);
+        after?.(st[key]);
+      }, DARK_BTN).setSelected(st[key]);
+      layer.add(b);
+    };
+    toggle(264, 'VIBRATION', 'haptics', (on) => { haptics.setEnabled(on); if (on) haptics.pulse('break'); });
+    toggle(304, 'GRID', 'grid');
+    toggle(344, 'AUTO SPEED', 'autoTurbo');
+    layer.add(text(this, W / 2, 396, 'Auto speed: when no orb can hit anything, they speed up on their own.', 8, '#a8b4cc', { wordWrap: { width: W - 84 } }).setOrigin(0.5));
+    layer.add(makeButton(this, W / 2, 448, 140, 30, 'CLOSE', () => layer.destroy(), DARK_BTN));
   }
 
   /** Empezar de cero con una partida guardada: se da por terminada (cuenta para el récord). */

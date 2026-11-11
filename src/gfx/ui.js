@@ -17,21 +17,46 @@ export function fullRect(scene, color, alpha = 1) {
 import { audio } from '../audio/audio.js';
 
 /** Botones MUSICA / SONIDO que activan o desactivan el audio y lo guardan. */
-export function makeAudioToggles(scene, y, save, style = {}) {
+/**
+ * Botón con un icono. Con toggle, se ve encendido (icono brillante) o apagado (icono apagado,
+ * botón oscuro y una raya roja en diagonal). setOn(v) cambia el estado.
+ */
+export function makeIconButton(scene, x, y, w, h, icon, onClick, style = {}, toggle = null) {
+  let on = toggle?.on ?? true;
+  const btn = makeButton(scene, x, y, w, h, '', () => {
+    if (toggle) btn.setOn(!on);
+    onClick?.(on);
+  }, style);
+  const img = scene.add.image(0, -1, `icon_${icon}`).setScale(2);
+  const slash = scene.add.graphics();
+  slash.lineStyle(3, 0xe04040, 1);
+  slash.lineBetween(-9, 8, 9, -10);
+  slash.setVisible(false);
+  btn.add([img, slash]);
+  btn.setOn = (v) => {
+    on = v;
+    img.setAlpha(on ? 1 : 0.35);
+    slash.setVisible(!on);
+    if (toggle) btn.setFill(on ? style.fill ?? COLORS.paper : 0x0a0c16);
+    return btn;
+  };
+  if (toggle) btn.setOn(on);
+  return btn;
+}
+
+/** Música y sonido: dos botones con su símbolo, que se ven encendidos o apagados. */
+export function makeAudioToggles(scene, y, save, style = {}, { x = scene.scale.width / 2 - 24, gap = 48, size = 42 } = {}) {
   const s = save.data.settings;
-  const label = (name, on) => t(`${name} {0}`, t(on ? 'ON' : 'OFF'));
-  const music = makeButton(scene, scene.scale.width / 2 - 72, y, 136, 30, label('MUSIC', s.music), () => {
-    s.music = !s.music;
-    audio.setMusic(s.music);
+  const music = makeIconButton(scene, x, y, size, 30, 'music', (on) => {
+    s.music = on;
+    audio.setMusic(on);
     save.write();
-    music.setLabel(label('MUSIC', s.music));
-  }, style);
-  const sfx = makeButton(scene, scene.scale.width / 2 + 72, y, 136, 30, label('SOUND', s.sfx), () => {
-    s.sfx = !s.sfx;
-    audio.setSfx(s.sfx);
+  }, style, { on: s.music });
+  const sfx = makeIconButton(scene, x + gap, y, size, 30, 'sound', (on) => {
+    s.sfx = on;
+    audio.setSfx(on);
     save.write();
-    sfx.setLabel(label('SOUND', s.sfx));
-  }, style);
+  }, style, { on: s.sfx });
   return [music, sfx];
 }
 

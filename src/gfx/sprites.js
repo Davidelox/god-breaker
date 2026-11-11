@@ -199,6 +199,10 @@ const ROCK = ['.kkkk.', 'kRRRrk', 'kRRrrk', 'kRrrrk', '.kkkk.'];
 const ICONS = {
   crown: [['.x.x.x.', 'xxxxxxx', 'xyyyyyx', 'xxxxxxx'], { x: '#ffd84a', y: '#a8640c' }],
   hour: [['xxxxx', '.xyx.', '..x..', '.xyx.', 'xxxxx'], { x: '#e8dcc0', y: '#d8a030' }],
+  music: [['...xxxxxx', '...xyyyyx', '...x....x', '...x....x', '...x....x', '.xxx..xxx', 'xyyx.xyyx', 'xyyx.xyyx', '.xx...xx.'], { x: '#ffe27a', y: '#d8a030' }],
+  sound: [['....x....', '...xx..x.', 'xxxyx...x', 'xyyyx.x.x', 'xyyyx.x.x', 'xxxyx...x', '...xx..x.', '....x....'], { x: '#ffe27a', y: '#d8a030' }],
+  gear: [['...x.x...', '.x.xxx.x.', '..xyyyx..', 'xxy...yxx', '.xy...yx.', 'xxy...yxx', '..xyyyx..', '.x.xxx.x.', '...x.x...'], { x: '#ffe27a', y: '#d8a030' }],
+  stats: [['.......x.', '.......x.', '....x..x.', '....x..x.', '.x..x..x.', '.x..x..x.', '.x..x..x.', 'xxxxxxxxx'], { x: '#ffe27a' }],
   orbicon: [['.xxx.', 'xyyzx', 'xyyyx', 'xyyyx', '.xxx.'], { x: '#061820', y: '#30d8f0', z: '#ffffff' }],
   fuego: [['...x...', '..xyx..', '..xyx..', '.xyzyx.', 'xyzzzyx', 'xyzzzyx', '.xxxxx.'], { x: '#a8322a', y: '#ff7a20', z: '#ffe050' }],
   agua: [['...x...', '..xyx..', '.xyyyx.', 'xyyzyyx', 'xyyyyyx', '.xyyyx.', '..xxx..'], { x: '#24569c', y: '#78c0ff', z: '#ffffff' }],

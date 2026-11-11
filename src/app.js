@@ -11,6 +11,7 @@ import GameScene from './scenes/GameScene.js';
 import CollectionScene from './scenes/CollectionScene.js';
 import GuideScene from './scenes/GuideScene.js';
 import MissionsScene from './scenes/MissionsScene.js';
+import StatsScene from './scenes/StatsScene.js';
 
 // Los navegadores solo permiten audio después de una interacción del usuario.
 const unlockAudio = () => audio.unlock();
@@ -29,7 +30,7 @@ export function start() {
     // en escritorio se encaja (FIT).
     scale: { mode: MOBILE ? Phaser.Scale.ENVELOP : Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     input: { activePointers: 2 },
-    scene: [BootScene, TitleScene, GameScene, CollectionScene, GuideScene, MissionsScene]
+    scene: [BootScene, TitleScene, GameScene, CollectionScene, GuideScene, MissionsScene, StatsScene]
   });
   if (DEBUG || import.meta.env.DEV) window.__game = game;
 }

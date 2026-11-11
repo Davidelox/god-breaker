@@ -1136,6 +1136,7 @@ export default class GameScene extends Phaser.Scene {
       this.powerIntro(this.activeSpecials);
       this.save.bumpStat('powersUsed', this.activeSpecials.length);
       this.runStats.spells += this.activeSpecials.length;
+      this.save.bestStat('bestRunSpells', this.runStats.spells);
       // Combinación: 2 hechizos distintos a la vez (cuenta cada pareja distinta una vez por partida)
       const ids = this.activeSpecials.map((sp) => sp.id);
       if (ids.length === 2 && ids[0] !== ids[1]) {
@@ -1802,6 +1803,9 @@ export default class GameScene extends Phaser.Scene {
     this.runStats.blocks++;
     if (blk.kind === 'creature') this.runStats.beasts++;
     if (blk.kind === 'boss') this.runStats.gods++;
+    this.save.bestStat('bestRunBlocks', this.runStats.blocks);
+    this.save.bestStat('bestRunBeasts', this.runStats.beasts);
+    this.save.bestStat('bestRunGodKills', this.runStats.gods);
     this.runStats.bestShot = Math.max(this.runStats.bestShot, this.shotKills);
     this.save.bestStat('bestShotKills', this.shotKills);
     if (blk.kind === 'boss') {
@@ -2454,6 +2458,8 @@ export default class GameScene extends Phaser.Scene {
     this.time.delayedCall(600, () => this.checkMissions());
     audio.play(shiny ? 'shiny' : 'capture');
     this.runCaptures.push({ id: c.id, shiny });
+    this.save.bestStat('bestRunCaptures', this.runCaptures.length);
+    if (c.legendary) this.save.bestStat('bestRunGodCaptures', this.runCaptures.filter((r) => creatureById(r.id)?.legendary).length);
     this.addShiny(c.legendary ? SHINY_GAIN.captureGod : SHINY_GAIN.capture, x, y);
     this.addScore(shiny ? 1000 : 100);
     floatText(this, x, y - 12, shiny ? '+1000' : '+100', COLORS.goldHex);
@@ -2783,7 +2789,7 @@ export default class GameScene extends Phaser.Scene {
     const layer = this.add.container(0, 0).setDepth(60);
     layer.add(fullRect(this, 0x000000, 0.6).setInteractive());
     layer.add(makePanel(this, 24, 200, W - 48, 336));
-    layer.add(makeAudioToggles(this, 390, this.save));
+    layer.add(makeAudioToggles(this, 390, this.save, {}, { x: W / 2 - 24, gap: 48, size: 44 }));
     const vibLabel = () => tr('VIBRATION {0}', tr(this.save.data.settings.haptics ? 'ON' : 'OFF'));
     const vibBtn = makeButton(this, W / 2, 470, 200, 30, vibLabel(), () => {
       const st = this.save.data.settings;
