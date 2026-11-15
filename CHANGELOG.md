@@ -7,6 +7,8 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ### App móvil
 - El juego ya se puede instalar como app en iPhone y Android con Capacitor (`npm run ios`, `npm run android`). Solo en vertical.
+- En la app, el progreso se guarda también en el almacenamiento del sistema: no se pierde aunque iOS borre los datos de la vista web.
+- En la app, la vibración usa el motor háptico del móvil (toques suaves, medios y fuertes), también en iPhone.
 
 ### Menú principal
 - Música y sonido son botones con su símbolo (nota y altavoz): apagados se ven oscuros, con el icono atenuado y una raya roja. También en la pausa de la partida.

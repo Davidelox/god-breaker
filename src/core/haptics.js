@@ -1,5 +1,7 @@
 // Vibración (respuesta háptica) al golpear y romper bloques.
 //
+// - App nativa (Capacitor, iPhone y Android): el motor háptico del móvil (@capacitor/haptics),
+//   con toques de distinta fuerza.
 // - Android y otros navegadores con la API de vibración: navigator.vibrate(ms).
 // - iPhone: Safari no tiene esa API. Desde iOS 18 un interruptor nativo (<input type="checkbox" switch>)
 //   da un toque háptico al cambiar; se usa uno oculto y se pulsa por código. En versiones anteriores
@@ -8,14 +10,19 @@
 // Los golpes pueden ser cientos por segundo: se limita la frecuencia para que la vibración se note
 // como pequeños toques y no como un zumbido continuo.
 
+import { Capacitor } from '@capacitor/core';
+import { Haptics as NativeHaptics, ImpactStyle } from '@capacitor/haptics';
+
 const GAP = { hit: 70, break: 45, big: 0 }; // ms mínimos entre toques de cada tipo
 const PATTERN = { hit: 8, break: 18, big: [30, 40, 30] }; // Android: duración (ms) o patrón
+const IMPACT = { hit: ImpactStyle.Light, break: ImpactStyle.Medium, big: ImpactStyle.Heavy }; // app nativa
 
 class Haptics {
   constructor() {
     this.enabled = true;
     this.last = {};
     this.iosSwitch = null;
+    this.native = Capacitor.isNativePlatform();
     this.canVibrate = typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function';
   }
 
@@ -50,6 +57,15 @@ class Haptics {
     if (now - (this.last[kind] ?? -1e9) < GAP[kind]) return;
     this.last[kind] = now;
     try {
+      if (this.native) {
+        const tap = () => NativeHaptics.impact({ style: IMPACT[kind] }).catch(() => {});
+        tap();
+        if (kind === 'big') {
+          setTimeout(tap, 90);
+          setTimeout(tap, 180);
+        }
+        return;
+      }
       if (this.canVibrate) {
         navigator.vibrate(PATTERN[kind]);
         return;

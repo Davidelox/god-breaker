@@ -1,6 +1,7 @@
 import '@fontsource/press-start-2p';
 import '@fontsource/vt323';
 import { installErrorHandlers, logError, showFatal } from './core/errors.js';
+import { setupNativeStorage } from './core/nativeStorage.js';
 
 installErrorHandlers();
 
@@ -20,14 +21,16 @@ try {
   logError('ios-height', err);
 }
 
-// El juego (y config.js, que mide la pantalla) se carga cuando la fuente pixel está lista y la
+// El juego (y config.js, que mide la pantalla) se carga cuando la fuente pixel está lista, el
+// guardado de la app nativa se ha restaurado (ver nativeStorage.js) y la
 // página ya se ha maquetado: en el iPhone la zona segura (env(safe-area-inset-*)) puede valer 0
 // en los primeros instantes y entonces la parte de arriba quedaría tapada por la isla.
 const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 Promise.all([
   document.fonts.load('8px "Press Start 2P"').catch((err) => logError('font', err)),
   document.fonts.load('16px "VT323"').catch((err) => logError('font', err)),
-  nextFrame().then(nextFrame)
+  nextFrame().then(nextFrame),
+  setupNativeStorage().catch((err) => logError('native-storage', err))
 ])
   .then(() => import('./app.js'))
   .then((app) => app.boot())
