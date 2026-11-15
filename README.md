@@ -25,7 +25,10 @@ npm run android    # compila, copia y abre el proyecto en Android Studio
 
 - Después de cambiar el juego hay que volver a ejecutar `npm run cap:sync` (o `ios` / `android`): las apps llevan una copia de `dist/`.
 - iOS solo se puede compilar en el Mac (Xcode). Android, en los dos equipos.
-- Android necesita **Java 21** para compilar (Capacitor 8). Ni el 17 ni el 25 sirven: con el 25, Gradle 8.14 falla con «Unsupported class file major version 69». En Android Studio: Settings → Build Tools → Gradle → Gradle JDK = 21. Desde la terminal: `JAVA_HOME=<ruta del JDK 21> ./gradlew assembleDebug` (dentro de `android/`).
+- Android necesita **Java 21** para compilar (Capacitor 8). Ni el 17 ni el 25 sirven: con el 25, Gradle 8.14 falla con «Unsupported class file major version 69».
+  - Mac: `brew install openjdk@21` y en `~/.gradle/gradle.properties` la línea `org.gradle.java.home=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home`. Con eso `./gradlew assembleDebug` (dentro de `android/`) funciona tal cual.
+  - Windows: instalar un JDK 21 y poner su ruta en `org.gradle.java.home` de `%USERPROFILE%\.gradle\gradle.properties`.
+  - Android Studio: Settings → Build Tools → Gradle → Gradle JDK = el JDK 21.
 - En la app, el guardado y la partida a medias se copian también en el almacenamiento nativo (`src/core/nativeStorage.js`), y la vibración usa el motor háptico del móvil.
 - En Xcode, elige un simulador de iPhone y pulsa ▶. Para depurar la vista web: Safari del Mac → menú Desarrollo → el simulador o el iPhone.
 
