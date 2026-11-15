@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && git pull --ff-only 2>&1 || echo 'AVISO: git pull falló (cambios locales o conflicto). Revisar antes de trabajar.'"
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && git pull --ff-only 2>&1 || echo 'AVISO: git pull falló (cambios locales o conflicto). Revisar antes de trabajar.'; git -C \"$HOME/.claude/skills\" pull --ff-only -q 2>&1 || echo 'AVISO: git pull de claude-skills falló.'"
           }
         ]
       }
