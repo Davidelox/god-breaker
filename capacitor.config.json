@@ -1,0 +1,13 @@
+{
+  "appId": "com.davidelox.godbreaker",
+  "appName": "God Breaker",
+  "webDir": "dist",
+  "backgroundColor": "#0c1020",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false
+  },
+  "android": {
+    "backgroundColor": "#0c1020"
+  }
+}

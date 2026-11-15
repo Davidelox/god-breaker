@@ -5,6 +5,9 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### App móvil
+- El juego ya se puede instalar como app en iPhone y Android con Capacitor (`npm run ios`, `npm run android`). Solo en vertical.
+
 ### Menú principal
 - Música y sonido son botones con su símbolo (nota y altavoz): apagados se ven oscuros, con el icono atenuado y una raya roja. También en la pausa de la partida.
 - Nuevo botón de ajustes (tuerca) con lo que se puede cambiar en la partida: vibración, cuadrícula y velocidad automática.

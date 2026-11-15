@@ -2,7 +2,7 @@
 
 Rompebloques por turnos en pixel art. Eres un cazador humano encargado de vencer y capturar seres de la mitología y dioses griegos, nórdicos y egipcios, lanzando orbes. Completa el bestiario de 600 bestias (también sus versiones doradas, «gold»).
 El juego está en inglés; la documentación del proyecto, en español.
-Hecho con [Phaser 4](https://phaser.io) y Vite. Se juega en el navegador y está preparado para llevarlo a móvil con Capacitor.
+Hecho con [Phaser 4](https://phaser.io) y Vite. Se juega en el navegador y se empaqueta como app de Android e iOS con [Capacitor](https://capacitorjs.com).
 
 ## Comandos
 
@@ -12,6 +12,21 @@ npm run dev      # servidor de desarrollo (http://localhost:5173, también acces
 npm test         # tests
 npm run build    # versión final en dist/
 ```
+
+## App móvil (Capacitor)
+
+Los proyectos nativos están en `android/` e `ios/` y se suben al repo. Identificador de la app: `com.davidelox.godbreaker` (`capacitor.config.json`). Solo vertical.
+
+```bash
+npm run cap:sync   # compila el juego y lo copia a las dos apps
+npm run ios        # compila, copia y abre el proyecto en Xcode (solo Mac)
+npm run android    # compila, copia y abre el proyecto en Android Studio
+```
+
+- Después de cambiar el juego hay que volver a ejecutar `npm run cap:sync` (o `ios` / `android`): las apps llevan una copia de `dist/`.
+- iOS solo se puede compilar en el Mac (Xcode). Android, en los dos equipos.
+- Android necesita Java 21 o superior. Android Studio ya trae el suyo; para compilar desde la terminal: `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` (dentro de `android/`).
+- En Xcode, elige un simulador de iPhone y pulsa ▶. Para depurar la vista web: Safari del Mac → menú Desarrollo → el simulador o el iPhone.
 
 ## Hoja de sprites
 
