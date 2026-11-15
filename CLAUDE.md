@@ -3,7 +3,7 @@
 ## Sincronización entre equipos (Windows ↔ Mac)
 
 Este proyecto se trabaja alternando entre un PC con Windows y un Mac, sincronizado por GitHub.
-Repos sincronizados: **ito** y **god-breaker** (PokeBlock Breaker).
+Repos sincronizados: **ito** (GitHub: `Davidelox/itoapp`) y **god-breaker** (PokeBlock Breaker).
 
 - **"update repos"**: cuando el usuario diga exactamente esta frase, en AMBOS repos (ito y god-breaker):
   `git add -A`, commit con un mensaje descriptivo en español de lo hecho, y `git push`.
