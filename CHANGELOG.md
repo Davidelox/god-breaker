@@ -5,6 +5,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) · Versione
 
 ## [Unreleased]
 
+### Sensación de impacto
+- Cada bloque roto en el mismo lanzamiento suena un poco más agudo, subiendo por una escala pentatónica (hasta 2 octavas).
+- Avisos de combo al romper 10, 25, 50, 100 y 200 bloques en un lanzamiento: «COMBO xN!» grande que entra de golpe, con chispas, sacudida, vibración y arpegio. Cada nivel tiene su color.
+- Micropausa al romper una criatura (más larga cuanto más rara): las bolas van a cámara lenta un instante. Con muchos orbes no se acumula.
+- El lanzador se aplasta y recupera al disparar cada orbe.
+- La puntuación da un pequeño salto cada vez que sube.
+
 ### App móvil
 - El juego ya se puede instalar como app en iPhone y Android con Capacitor (`npm run ios`, `npm run android`). Solo en vertical.
 - En la app, el progreso se guarda también en el almacenamiento del sistema: no se pierde aunque iOS borre los datos de la vista web.

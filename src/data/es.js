@@ -53,6 +53,7 @@ export const ES = {
   'A GOD IN 2 TURNS': 'UN DIOS EN 2 TURNOS',
   'Press ▼ to recall your orbs': 'Pulsa ▼ para recoger tus orbes',
   'VERTICAL STRIKE! +{0}': '¡ATAQUE VERTICAL! +{0}',
+  'COMBO x{0}!': '¡COMBO x{0}!',
   'COMBO!': '¡COMBO!',
   'MAX SPELL!': '¡HECHIZO MAX!',
   'MAX!': '¡MAX!',

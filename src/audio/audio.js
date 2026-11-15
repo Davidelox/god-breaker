@@ -36,6 +36,14 @@ const MOODS = [
 // Separación mínima entre repeticiones del mismo efecto (s), para que no sature.
 const MIN_GAP = { fireHit: 0.06, splash: 0.06, zap: 0.05, frost: 0.06, rumble: 0.08, collect: 0.03, hit: 0.03, launch: 0.045, break: 0.025, shake: 0.08, click: 0.03 };
 
+// Combo: cada bloque roto en el mismo lanzamiento suena un poco más agudo, subiendo por una escala
+// pentatónica (siempre suena bien). Se para a las 2 octavas para no volverse estridente.
+const PENTA = [0, 2, 4, 7, 9];
+export function comboPitch(n = 0) {
+  const k = Math.min(Math.max(Math.floor(n) - 1, 0), 9);
+  return 2 ** ((Math.floor(k / 5) * 12 + PENTA[k % 5]) / 12);
+}
+
 const SFX = {
   click: (a) => a.tone(660, 0.05, { type: 'square', gain: 0.05 }),
   launch: (a) => a.tone(520, 0.06, { type: 'triangle', gain: 0.05, slideTo: 760 }),
@@ -43,13 +51,20 @@ const SFX = {
     o.boss
       ? a.tone(150, 0.09, { type: 'triangle', gain: 0.12, slideTo: 90 })
       : a.tone(360 + Math.random() * 140, 0.035, { type: 'square', gain: 0.035 }),
-  break: (a) => {
-    a.noise(0.12, { gain: 0.1, filter: 2600 });
-    a.tone(320, 0.1, { type: 'square', gain: 0.05, slideTo: 120 });
+  break: (a, o = {}) => {
+    const p = comboPitch(o.combo);
+    a.noise(0.12, { gain: 0.1, filter: 2600 * Math.min(p, 1.6) });
+    a.tone(320 * p, 0.1, { type: 'square', gain: 0.05, slideTo: 120 * p });
   },
-  breakCreature: (a) => {
-    SFX.break(a);
-    a.tone(880, 0.09, { type: 'triangle', gain: 0.07, delay: 0.04 });
+  breakCreature: (a, o = {}) => {
+    SFX.break(a, o);
+    a.tone(880 * Math.min(comboPitch(o.combo), 2), 0.09, { type: 'triangle', gain: 0.07, delay: 0.04 });
+  },
+  // Aviso de combo (10, 25, 50… bloques en un lanzamiento): arpegio que sube, más largo cuanto mayor
+  combo: (a, o = {}) => {
+    const notes = [523, 659, 784, 1047, 1319, 1568].slice(0, 3 + Math.min(o.level ?? 0, 3));
+    notes.forEach((f, i) => a.tone(f, 0.1, { type: 'square', gain: 0.045, delay: i * 0.045 }));
+    a.noise(0.18, { gain: 0.05, filter: 5000, delay: 0 });
   },
   bossBreak: (a) => {
     a.noise(0.7, { gain: 0.25, filter: 1200, sweepTo: 120 });

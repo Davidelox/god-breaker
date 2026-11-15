@@ -44,6 +44,10 @@ const WATER_PIERCE_MAX = 3; // con Tidal Wave MAX
 const VERTICAL_ATTACK_BOUNCES = 6; // rebotes verticales seguidos antes del Ataque vertical
 const VERTICAL_ATTACK_BONUS = 200; // + 50 por bloque roto
 const PLANT_COLOR = 0x8ce070;
+// Sensación de impacto
+const COMBO_STEPS = [10, 25, 50, 100, 200]; // bloques rotos en un lanzamiento que dan aviso de combo
+const COMBO_COLORS = ['#ffffff', '#ffe27a', '#ffa040', '#ff70c0', '#70e8ff'];
+const MICRO_STOP_GAP = 350; // ms mínimos entre micropausas (con muchos orbes no debe congelarse)
 const SHADOW_COLOR = 0xb494f0;
 // Sin tildes en mayúsculas: la fuente pixel no tiene esos glifos.
 const upper = (str) => str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
@@ -562,7 +566,10 @@ export default class GameScene extends Phaser.Scene {
 
   refreshHud() {
     const best = Math.max(this.save.data.bestScore, Math.floor(this.score));
-    this.scoreText.setText(String(Math.floor(this.score)));
+    const shown = Math.floor(this.score);
+    if (shown > (this.hudScore ?? shown)) this.popScore();
+    this.hudScore = shown;
+    this.scoreText.setText(String(shown));
     this.bestText.setText(tr('BEST {0}', best));
     this.turnText.setText(String(this.turn));
     this.captText.setText(String(this.runCaptures.length));
@@ -1212,6 +1219,7 @@ export default class GameScene extends Phaser.Scene {
       this.fxBurst(this.shotX, LAUNCH_Y, [PLANT_COLOR, 0x4cb04c, 0xf070a0], 5, 18, 360, -8);
     }
     audio.play('launch');
+    this.kickLauncher();
     this.balls.push({
       extra,
       x: this.shotX,
@@ -1769,6 +1777,52 @@ export default class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Pausa de impacto corta (s): no se acumula y deja un margen entre una y otra. */
+  microStop(s) {
+    const now = this.time.now;
+    if (now - (this.lastMicroStop ?? -1e9) < MICRO_STOP_GAP) return;
+    this.lastMicroStop = now;
+    this.hitStop = Math.max(this.hitStop, s);
+  }
+
+  /** Aviso de combo: «COMBO xN!» grande que entra de golpe, con sacudida, vibración y arpegio. */
+  comboPop(n) {
+    const level = COMBO_STEPS.indexOf(n);
+    const color = COMBO_COLORS[Math.min(level, COMBO_COLORS.length - 1)];
+    const y = BOARD_TOP + CELL * 3.2;
+    const label = text(this, W / 2, y, tr('COMBO x{0}!', n), 16 + level * 2, color)
+      .setOrigin(0.5).setDepth(46).setStroke('#101828', 6).setScale(2.4).setAlpha(0).setAngle(-8);
+    this.tweens.add({ targets: label, scale: 1, alpha: 1, angle: level % 2 ? 4 : -4, duration: 180, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: label, y: y - 26, alpha: 0, delay: 650, duration: 380, ease: 'Quad.easeIn', onComplete: () => label.destroy() });
+    this.fxBurst(W / 2, y, [hexToNum(color), 0xffffff], 10 + level * 4, 60 + level * 12, 520, 12);
+    this.cameras.main.shake(120 + level * 40, 0.003 + level * 0.0015);
+    haptics.pulse(level >= 2 ? 'big' : 'break');
+    audio.play('combo', { level });
+  }
+
+  /** Retroceso del lanzador al disparar cada orbe: se aplasta y vuelve. */
+  kickLauncher() {
+    const l = this.launcher;
+    if (!l) return;
+    const base = () => (BALL_R / BALL_TEXTURE_R) * texScale(l.texture.key);
+    this.launcherTween?.remove();
+    this.launcherTween = this.tweens.addCounter({
+      from: 1, to: 0, duration: 120, ease: 'Quad.easeOut',
+      onUpdate: (tw) => {
+        const v = tw.getValue();
+        l.setScale(base() * (1 + 0.28 * v), base() * (1 - 0.32 * v));
+      },
+      onComplete: () => l.setScale(base())
+    });
+  }
+
+  /** El marcador da un pequeño salto al sumar puntos. */
+  popScore() {
+    const st = this.scoreText;
+    if (this.scorePopTween?.isPlaying()) return;
+    this.scorePopTween = this.tweens.add({ targets: st, scale: { from: 1.3, to: 1 }, duration: 160, ease: 'Quad.easeOut' });
+  }
+
   // Destrucción: destello, onda, fragmentos con gravedad y sacudida según el tamaño.
   destroyBlock(blk) {
     blk.dead = true;
@@ -1795,7 +1849,9 @@ export default class GameScene extends Phaser.Scene {
       this.celebrateBoss(blk, x, y);
     } else {
       this.cameras.main.shake(blk.creature ? 80 : 50, blk.creature ? 0.003 : 0.0018);
-      audio.play(blk.creature ? 'breakCreature' : 'break');
+      audio.play(blk.creature ? 'breakCreature' : 'break', { combo: this.shotKills + 1 });
+      // Micropausa: las bolas van a cámara lenta un instante (más en las criaturas raras)
+      if (blk.creature) this.microStop(0.05 + 0.025 * blk.creature.rarity);
     }
     const bonus = blk.kind === 'plain' ? 5 : blk.kind === 'creature' ? 20 * blk.creature.rarity : 300;
     this.addScore(bonus);
@@ -1807,6 +1863,7 @@ export default class GameScene extends Phaser.Scene {
     this.save.bestStat('bestRunBeasts', this.runStats.beasts);
     this.save.bestStat('bestRunGodKills', this.runStats.gods);
     this.runStats.bestShot = Math.max(this.runStats.bestShot, this.shotKills);
+    if (COMBO_STEPS.includes(this.shotKills)) this.comboPop(this.shotKills);
     this.save.bestStat('bestShotKills', this.shotKills);
     if (blk.kind === 'boss') {
       this.awardBall();
