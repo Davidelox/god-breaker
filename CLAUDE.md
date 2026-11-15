@@ -9,6 +9,6 @@ Repos sincronizados: **ito** (GitHub: `Davidelox/itoapp`), **god-breaker** (God 
   `git add -A`, commit con un mensaje descriptivo en español de lo hecho, y `git push`.
   Si un repo no tiene cambios, decirlo y seguir con el otro. Nunca subir `.env`.
   - Windows: `E:\Claude Code\ito`, `E:\Claude Code\God Breaker` y `C:\Users\Saek\.claude\skills`
-  - Mac: `~/Claude Code/ito`, `~/Claude Code/God Breaker` y `~/.claude/skills`
+  - Mac: `~/Developer/Claude Code/ito`, `~/Developer/Claude Code/God Breaker` y `~/.claude/skills`
 - **Pull automático**: un hook `SessionStart` (`.claude/settings.json`) hace `git pull --ff-only` del proyecto y de `~/.claude/skills` al abrir sesión.
   Si el pull falla (cambios locales sin subir o conflicto), avisar al usuario antes de tocar nada.
